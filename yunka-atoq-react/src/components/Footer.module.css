@@ -1,0 +1,14 @@
+/* src/components/Footer.module.css */
+
+.footer {
+  background-color: #800000; /* Color guindo */
+  color: white;
+  text-align: center;
+  padding: 1.5rem;
+  margin-top: auto; /* Ayuda a empujar el footer al final de la página */
+}
+
+/* Opcional: Quitar el margen por defecto del párrafo para un mejor centrado */
+.footer p {
+  margin: 0;
+}

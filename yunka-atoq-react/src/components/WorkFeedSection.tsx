@@ -1,6 +1,6 @@
 // src/components/WorkFeedSection.tsx
 
-import React from "react";
+
 // CAMBIO 1: Importamos Link de react-router-dom
 import { Link } from "react-router-dom"; 
 // CAMBIO 2: Ajustamos la ruta del CSS

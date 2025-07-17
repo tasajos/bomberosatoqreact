@@ -1,6 +1,6 @@
 // src/components/OperationsFeed.tsx
 
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 // CAMBIO 1: Ajustamos las rutas de importación
 import styles from "./OperationsFeed.module.css";
 import { db } from "../firebaseConfig"; // Apuntamos a nuestra configuración

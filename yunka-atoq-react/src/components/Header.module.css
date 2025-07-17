@@ -1,0 +1,113 @@
+/* src/components/Header.module.css */
+
+.header {
+  background-color: #1e40af;
+  padding: 0.8rem 2rem; /* <-- Hacemos el header un poco más pequeño */
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: relative; /* Necesario para el menú móvil */
+  z-index: 100;
+}
+
+.logo a {
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+  font-size: 1.4rem;
+}
+
+.mainNav a {
+  color: white;
+  margin: 0 1rem;
+  text-decoration: none;
+  font-weight: 500;
+  padding-bottom: 5px;
+  border-bottom: 2px solid transparent; /* Borde transparente para transición suave */
+  transition: border-color 0.3s;
+}
+
+.mainNav a:hover {
+  border-color: #facc15; /* Borde amarillo al pasar el mouse */
+}
+
+/* Estilo para el enlace de la página activa */
+.activeLink {
+  border-color: #facc15 !important;
+}
+
+/* --- Botón de Hamburguesa --- */
+.hamburgerButton {
+  display: none; /* Oculto en pantallas grandes */
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  z-index: 101;
+}
+
+.hamburgerIcon {
+  width: 30px;
+  height: 3px;
+  background-color: white;
+  position: relative;
+  transition: background-color 0.3s;
+}
+
+.hamburgerIcon::before,
+.hamburgerIcon::after {
+  content: '';
+  position: absolute;
+  width: 30px;
+  height: 3px;
+  background-color: white;
+  left: 0;
+  transition: transform 0.3s;
+}
+
+.hamburgerIcon::before {
+  top: -8px;
+}
+
+.hamburgerIcon::after {
+  bottom: -8px;
+}
+
+
+/* --- Media Query para pantallas pequeñas (móviles) --- */
+@media (max-width: 880px) {
+  .hamburgerButton {
+    display: block; /* Hacemos visible el botón */
+  }
+
+  .mainNav {
+    /* El menú ahora es un panel que sale desde la izquierda */
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 70%;
+    height: 100vh;
+    background-color: #1e3a8a; /* Un azul ligeramente diferente */
+    
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2rem;
+    
+    transform: translateX(-100%); /* Empieza oculto fuera de la pantalla */
+    transition: transform 0.3s ease-in-out;
+  }
+
+  /* Cuando el menú está abierto */
+  .mainNav.menuOpen {
+    transform: translateX(0); /* Lo movemos a su posición visible */
+    box-shadow: 5px 0 15px rgba(0,0,0,0.2);
+  }
+
+  .mainNav a {
+    font-size: 1.2rem;
+  }
+}

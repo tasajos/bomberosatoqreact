@@ -19,3 +19,13 @@
 .rightColumn {
   flex: 2; /* Ocupa 2 partes del espacio disponible (aprox 67%) */
 }
+
+/* Media Query para pantallas pequeñas (tablets y móviles) */
+@media (max-width: 992px) { /* Puedes ajustar este valor si quieres que el cambio ocurra antes o después */
+
+  .mainContentLayout {
+    /* Cambiamos la dirección de fila a columna */
+    flex-direction: column;
+  }
+
+}

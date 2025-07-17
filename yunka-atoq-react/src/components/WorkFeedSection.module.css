@@ -19,9 +19,9 @@
 
 .gridContainer {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 1rem;
-  justify-content: center;
+  /* Esta es la línea mágica */
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
 }
 
 /* Añadido para el Link */
@@ -38,7 +38,7 @@
   transition: transform 0.3s ease;
   display: flex;
   flex-direction: column;
-  height: 100%; /* Asegura que todas las tarjetas tengan la misma altura */
+  height: 100%; 
 }
 
 .card:hover {
@@ -57,12 +57,11 @@
 }
 
 .cardImage {
-  width: 100%; /* La imagen ocupa todo el ancho de la tarjeta */
-  height: 180px; /* Altura fija para las imágenes */
-  object-fit: cover;
-  margin: 0;
+  width: 80px;          /* Un tamaño fijo, como un ícono grande */
+  height: 80px;         /* Mismo alto y ancho para que sea un cuadrado */
+  object-fit: contain;   /* 'contain' es mejor para íconos para que no se corten */
+  margin: 1rem auto;     /* 'auto' en los lados izquierdo/derecho la centra horizontalmente */
 }
-
 .cardContent {
   padding: 1rem;
   flex-grow: 1; /* Permite que este contenedor crezca y empuje la fecha hacia abajo */
@@ -88,3 +87,27 @@
   text-align: right;
   margin-top: 1rem;
 }
+
+ /* Asegúrate de que tu Media Query se vea así */
+ @media (max-width: 480px) {
+     .cardImage {
+         width: 100px; /* Hacemos el ícono un poco más pequeño en móvil */
+         height: 100px;
+     }
+
+     .cardContent {
+         padding: 0.75rem;
+     }
+
+     .cardContent h3 {
+         font-size: 1.1rem; 
+     }
+
+     .cardContent p {
+         font-size: 0.9rem;
+     }
+
+     .date {
+         font-size: 0.8rem;
+     }
+ }

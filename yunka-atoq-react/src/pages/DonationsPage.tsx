@@ -1,5 +1,4 @@
 // src/pages/DonationsPage.tsx
-import React from "react";
 import styles from "./DonationsPage.module.css";
 
 // Nota: El código original usaba clases de Tailwind CSS como "flex", "container", etc.

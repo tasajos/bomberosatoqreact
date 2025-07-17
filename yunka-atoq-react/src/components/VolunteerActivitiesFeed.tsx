@@ -1,5 +1,5 @@
 // src/components/VolunteerActivitiesFeed.tsx
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import styles from "./VolunteerActivitiesFeed.module.css";
 import { db } from "../firebaseConfig"; // 1. Ruta corregida
 import { ref, onValue } from "firebase/database";

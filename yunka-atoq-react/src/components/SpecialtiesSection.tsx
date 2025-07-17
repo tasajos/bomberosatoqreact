@@ -1,6 +1,6 @@
 // src/components/SpecialtiesSection.tsx
 
-import React from "react";
+
 // CAMBIO 1: La ruta de importación ahora es local
 import styles from "./SpecialtiesSection.module.css"; 
 
