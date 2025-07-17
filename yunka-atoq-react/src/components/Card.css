@@ -7,3 +7,15 @@
 }
 .card-image { width: 80px; height: 80px; margin: 0 auto 1rem; }
 .card-title { font-size: 1.1rem; font-weight: 600; }
+
+.card-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem; /* Añade un margen inferior */
+}
+
+.card-description {
+  font-size: 0.9rem;
+  color: #4a5568; /* Un color de texto gris oscuro */
+  line-height: 1.5; /* Mejora la legibilidad */
+}
