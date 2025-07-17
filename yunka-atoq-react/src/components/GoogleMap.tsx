@@ -7,7 +7,7 @@ function GoogleMap() {
   return (
     <div className={styles.mapContainer}>
       <iframe 
-        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3799.873216824734!2d-63.19793582494537!3d-17.75167687841964!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x93f1e7ff3a333333%3A0x8b7b4e3b7b3b3b3b!2sBomberos%20Voluntarios%20de%20Santa%20Cruz%20de%20la%20Sierra%20-%20UUBVSC!5e0!3m2!1ses-419!2sbo!4f13.1!5e0!3m2!1ses-419!2sbo" 
+        src="https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d574.3259556691191!2d-66.12223106282717!3d-17.368535603407885!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e1!3m2!1ses-419!2sbo!4v1752795518062!5m2!1ses-419!2sbo" 
         width="600" 
         height="450" 
         className={styles.mapIframe} // Usamos una clase para hacerlo responsive

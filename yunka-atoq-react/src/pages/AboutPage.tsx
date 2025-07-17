@@ -4,6 +4,7 @@ import styles from "./AboutPage.module.css";
 import GoogleMap from "../components/GoogleMap"; // Importamos nuestro marcador de posición
 import { db } from "../firebaseConfig";
 import { ref, onValue } from "firebase/database";
+import { Link } from 'react-router-dom'; // Añadir esta importación
 
 interface Nota {
   id: string;
@@ -70,14 +71,18 @@ export default function AboutPage() {
         <h2 className={styles.sectionTitle}>Notas de Prensa</h2>
         <div className={styles.notasContainer}>
           {notas.map((nota) => (
-            <div key={nota.id} className={styles.nota}>
-              {nota.imagen && <img src={nota.imagen} alt={nota.titulo} className={styles.notaImagen} />}
-              <h3>{nota.titulo}</h3>
-              <p>{nota.descripcion}</p>
-              <a href={nota.link} target="_blank" rel="noopener noreferrer" className={styles.notaLink}>
-                Leer más
-              </a>
-            </div>
+
+
+             // === INICIO DEL CAMBIO ===
+    <Link to={`/notas/${nota.id}`} key={nota.id} className={styles.notaLinkWrapper}>
+      <div className={styles.nota}>
+        {nota.imagen && <img src={nota.imagen} alt={nota.titulo} className={styles.notaImagen} />}
+        <div className={styles.notaContent}>
+          <h3>{nota.titulo}</h3>
+          <p>{nota.descripcion}</p>
+        </div>
+      </div>
+    </Link>
           ))}
         </div>
       </section>

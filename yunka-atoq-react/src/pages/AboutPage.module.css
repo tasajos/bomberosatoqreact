@@ -147,3 +147,11 @@
     font-size: 1.8rem;
   }
 }
+
+.notaLinkWrapper {
+  text-decoration: none;
+  color: inherit;
+}
+.notaContent {
+  padding: 1.5rem;
+}
