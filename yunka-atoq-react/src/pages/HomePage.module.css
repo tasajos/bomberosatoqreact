@@ -1,0 +1,21 @@
+/* src/pages/HomePage.module.css */
+
+.mainContentLayout {
+  display: flex;
+  flex-direction: row; /* Pone los elementos en fila */
+  gap: 2rem; /* Espacio entre las columnas */
+  max-width: 1500px; /* Ancho máximo para el layout */
+  margin: 2rem auto; /* Centra el layout y le da espacio vertical */
+  padding: 0 1rem;   /* Espacio a los lados */
+}
+
+/* Columna izquierda (para Operaciones) */
+.leftColumn {
+  flex: 1; /* Ocupa 1 parte del espacio disponible (aprox 33%) */
+  min-width: 300px; /* Ancho mínimo para que no se comprima demasiado */
+}
+
+/* Columna derecha (para Actividades) */
+.rightColumn {
+  flex: 2; /* Ocupa 2 partes del espacio disponible (aprox 67%) */
+}
