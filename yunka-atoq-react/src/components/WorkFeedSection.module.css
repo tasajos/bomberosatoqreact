@@ -1,0 +1,90 @@
+/* src/components/WorkFeedSection.module.css */
+
+.feedSection {
+  max-width: 1500px; /* Ancho máximo del contenedor */
+  margin: 0 auto;    /* Centra el contenedor horizontalmente */
+  width: 100%;
+  background-color: #fff;
+  padding: 1rem;
+  box-sizing: border-box;
+  margin-bottom: 2rem;
+}
+
+.title {
+  margin-bottom: 1rem;
+  color: #800000;
+  text-align: center; /* Centra el título */
+  font-size: 1.5rem;
+}
+
+.gridContainer {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1rem;
+  justify-content: center;
+}
+
+/* Añadido para el Link */
+.cardLink {
+  text-decoration: none; /* Quita el subrayado del enlace */
+  color: inherit; /* Hereda el color del texto del padre */
+}
+
+.card {
+  background: #fafafa;
+  border-radius: 8px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  transition: transform 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  height: 100%; /* Asegura que todas las tarjetas tengan la misma altura */
+}
+
+.card:hover {
+  transform: translateY(-5px); /* Un poco más de efecto */
+}
+
+.cardHeader {
+  background-color: #800000;
+  padding: 0.5rem 1rem;
+}
+
+.chip {
+  color: #fff;
+  font-weight: bold;
+  font-size: 0.8rem;
+}
+
+.cardImage {
+  width: 100%; /* La imagen ocupa todo el ancho de la tarjeta */
+  height: 180px; /* Altura fija para las imágenes */
+  object-fit: cover;
+  margin: 0;
+}
+
+.cardContent {
+  padding: 1rem;
+  flex-grow: 1; /* Permite que este contenedor crezca y empuje la fecha hacia abajo */
+  display: flex;
+  flex-direction: column;
+}
+
+.cardContent h3 {
+  margin: 0 0 0.5rem 0;
+  color: #333;
+}
+
+.cardContent p {
+  margin: 0.5rem 0;
+  color: #555;
+  font-size: 0.9rem;
+  flex-grow: 1; /* Empuja la fecha hacia el final */
+}
+
+.date {
+  font-size: 0.8rem;
+  color: #999;
+  text-align: right;
+  margin-top: 1rem;
+}
