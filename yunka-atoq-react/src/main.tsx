@@ -7,6 +7,7 @@ import "slick-carousel/slick/slick-theme.css";
 
 import App from './App.tsx';
 import HomePage from './pages/HomePage.tsx';
+import VolunteersPage from './pages/VolunteersPage.tsx';
 import './index.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
@@ -16,6 +17,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         {/* La ruta principal ("/") usa el layout 'App' y dentro renderiza 'HomePage' */}
         <Route path="/" element={<App />}>
           <Route index element={<HomePage />} />
+          <Route path="voluntarios" element={<VolunteersPage />}/> 
           {/* Aquí añadiremos más rutas como /galeria, /contacto, etc. */}
         </Route>
       </Routes>

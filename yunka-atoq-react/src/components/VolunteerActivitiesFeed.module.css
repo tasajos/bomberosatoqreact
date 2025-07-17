@@ -1,0 +1,75 @@
+/* src/components/VolunteerActivitiesFeed.module.css */
+.feedSection {
+  width: 100%; /* El componente ocupa el 100% de su contenedor padre */
+  background-color: #fff;
+  padding: 1rem;
+  box-sizing: border-box;
+}
+
+.feedTitle {
+  margin-bottom: 1.5rem;
+  font-size: 2rem;
+  color: #800000;
+  text-align: left;
+}
+
+.feedContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.card {
+  width: 100%;
+  background: #fafafa;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  text-align: left;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  overflow: hidden; /* Para que la imagen respete los bordes redondeados */
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+.cardImage {
+  width: 100%;
+  height: 300px;
+  object-fit: cover;
+}
+
+.cardContent {
+  padding: 1.5rem;
+}
+.cardContent h3 {
+  margin-top: 0;
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin-top: 1.5rem;
+  gap: 1rem;
+}
+
+.pageButton {
+  background-color: #800000;
+  color: #fff;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.pageButton:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.pageInfo {
+  font-weight: bold;
+  color: #333;
+}

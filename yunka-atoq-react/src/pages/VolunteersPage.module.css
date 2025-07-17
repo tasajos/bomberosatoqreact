@@ -1,0 +1,19 @@
+/* src/pages/VolunteersPage.module.css */
+.pageContainer {
+  display: flex;
+  gap: 2rem;
+  max-width: 1400px;
+  margin: 2rem auto; /* Centra el contenedor y le da espacio arriba/abajo */
+  padding: 0 1rem;
+}
+
+.mainContent {
+  flex: 3; /* Ocupa 3 partes del espacio */
+}
+
+.sidebar {
+  flex: 1; /* Ocupa 1 parte del espacio */
+  background-color: #f9f9f9;
+  padding: 1rem;
+  border-radius: 8px;
+}
