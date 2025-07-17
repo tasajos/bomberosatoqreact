@@ -14,6 +14,7 @@ import SupportPage from './pages/SupportPage.tsx';
 import RecruitmentPage from './pages/RecruitmentPage.tsx'; 
 import ProjectsPage from './pages/ProjectsPage.tsx'; 
 import AboutPage from './pages/AboutPage.tsx'; 
+import ContactPage from './pages/ContactPage.tsx'; 
 
 import './index.css';
 
@@ -30,6 +31,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
           <Route path="voluntarios" element={<RecruitmentPage />}/>
           <Route path="proyectos" element={<ProjectsPage />} />
           <Route path="nosotros" element={<AboutPage />} />
+          <Route path="contacto" element={<ContactPage />} />
           {/* Aquí añadiremos más rutas como /galeria, /contacto, etc. */}
         </Route>
       </Routes>

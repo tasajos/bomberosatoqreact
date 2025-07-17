@@ -1,0 +1,112 @@
+/* src/pages/ContactPage.module.css */
+.pageContainer {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.heroSection {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.title {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #800000;
+  margin-bottom: 1rem;
+}
+
+.subtitle {
+  font-size: 1.2rem;
+  color: #555;
+}
+
+.contactWrapper {
+  display: flex;
+  gap: 3rem;
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.infoContainer, .formContainer {
+  flex: 1; /* Ambas columnas ocupan el mismo espacio */
+}
+
+.infoContainer h2 {
+  font-size: 1.8rem;
+  color: #800000;
+  margin-top: 0;
+}
+
+.infoList {
+  list-style: none;
+  padding: 0;
+  line-height: 2;
+}
+
+/* === Magia de las Etiquetas Flotantes === */
+.inputGroup {
+  position: relative;
+  margin-bottom: 2rem;
+}
+
+.inputGroup input,
+.inputGroup textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 1rem;
+  background: transparent;
+}
+
+.inputGroup label {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  color: #999;
+  pointer-events: none;
+  transition: all 0.2s ease;
+}
+
+.inputGroup input:focus + label,
+.inputGroup input:valid + label,
+.inputGroup textarea:focus + label,
+.inputGroup textarea:valid + label {
+  top: -10px;
+  left: 5px;
+  font-size: 0.8rem;
+  color: #800000;
+  background: white;
+  padding: 0 5px;
+}
+/* === Fin de la Magia === */
+
+.submitButton {
+  width: 100%;
+  padding: 1rem;
+  background-color: #800000;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.2s;
+}
+
+.submitButton:hover {
+  background-color: #a83232;
+  transform: translateY(-2px);
+}
+
+
+/* === Media Query para hacerlo Responsive === */
+@media (max-width: 768px) {
+  .contactWrapper {
+    flex-direction: column;
+  }
+}

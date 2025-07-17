@@ -28,7 +28,7 @@ function Header() {
         <NavLink to="/" className={({isActive}) => isActive ? styles.activeLink : ''} onClick={() => setIsMenuOpen(false)}>Inicio</NavLink>
         <NavLink to="/nosotros" className={({isActive}) => isActive ? styles.activeLink : ''} onClick={() => setIsMenuOpen(false)}>Nosotros</NavLink>
         <NavLink to="/proyectos" className={({isActive}) => isActive ? styles.activeLink : ''} onClick={() => setIsMenuOpen(false)}>Proyectos</NavLink>
-        <NavLink to="/galeria" className={({isActive}) => isActive ? styles.activeLink : ''} onClick={() => setIsMenuOpen(false)}>Galería</NavLink>
+        {/*  <NavLink to="/galeria" className={({isActive}) => isActive ? styles.activeLink : ''} onClick={() => setIsMenuOpen(false)}>Galería</NavLink> */}
         <NavLink to="/donaciones" className={({isActive}) => isActive ? styles.activeLink : ''} onClick={() => setIsMenuOpen(false)}>Donaciones</NavLink>
         <NavLink to="/contacto" className={({isActive}) => isActive ? styles.activeLink : ''} onClick={() => setIsMenuOpen(false)}>Contacto</NavLink>
       </nav>
