@@ -1,5 +1,5 @@
 // src/pages/NotePage.tsx
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom'; // useParams para leer el ID de la URL
 import { db } from '../firebaseConfig';
 import { ref, onValue } from 'firebase/database';
