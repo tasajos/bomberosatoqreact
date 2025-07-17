@@ -1,0 +1,142 @@
+/* src/pages/SupportPage.module.css */
+
+/* Estilos generales */
+.heroSection {
+  text-align: center;
+  padding: 4rem 1rem;
+  background: linear-gradient(135deg, #800000, #a83232);
+  color: white;
+  margin-bottom: 2rem;
+}
+
+.title {
+  font-size: 3rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+.subtitle {
+  font-size: 1.5rem;
+  font-weight: 300;
+}
+
+.content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+/* Banner */
+.bannerContainer {
+  width: 100%;
+  overflow: hidden;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  margin-bottom: 2rem;
+}
+
+.banner {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Texto */
+.textContent {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  margin-bottom: 3rem;
+  line-height: 1.8;
+  color: #555;
+  font-size: 1.1rem;
+  text-align: justify;
+}
+
+/* Roadmap */
+.roadmap {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  margin-bottom: 4rem;
+}
+
+.roadmapTitle {
+  font-size: 2.5rem;
+  color: #800000;
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.roadmapSteps {
+  display: grid;
+  /* Este grid ya es responsive, se apilará solo en pantallas pequeñas */
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+}
+
+.roadmapStep {
+  text-align: center;
+  padding: 1.5rem;
+  border-radius: 12px;
+  background: #f9f9f9;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.roadmapStep:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+}
+
+.stepIcon {
+  width: 60px;
+  height: 60px;
+  background: #800000;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin: 0 auto 1rem;
+}
+
+.roadmapStep h3 {
+  font-size: 1.5rem;
+  color: #800000;
+  margin-bottom: 1rem;
+}
+
+.roadmapStep p {
+  color: #555;
+  font-size: 1rem;
+}
+
+
+/* === Media Queries para hacerlo Responsive === */
+@media (max-width: 768px) {
+  .title {
+    font-size: 2rem;
+  }
+
+  .subtitle {
+    font-size: 1.1rem;
+  }
+
+  .textContent {
+    padding: 1.5rem;
+    font-size: 1rem;
+  }
+
+  .roadmapTitle {
+    font-size: 2rem;
+  }
+
+  .roadmapStep h3 {
+    font-size: 1.2rem;
+  }
+}

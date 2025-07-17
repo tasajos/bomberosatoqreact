@@ -1,0 +1,124 @@
+/* src/pages/RecruitmentPage.module.css */
+
+/* Estilos generales */
+.heroSection {
+  text-align: center;
+  padding: 4rem 1rem;
+  background: linear-gradient(135deg, #800000, #a83232);
+  color: white;
+  margin-bottom: 2rem;
+}
+
+.title {
+  font-size: 3rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+.subtitle {
+  font-size: 1.5rem;
+  font-weight: 300;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+/* Banner */
+.bannerContainer {
+  width: 100%;
+  overflow: hidden;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  margin-bottom: 2rem;
+}
+
+.banner {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Texto */
+.textContent {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  margin-bottom: 3rem;
+  line-height: 1.8;
+  color: #555;
+  font-size: 1.1rem;
+  text-align: justify;
+}
+
+/* Sección de Información (Requisitos, Beneficios, Ventajas) */
+.infoSection {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  margin-bottom: 4rem;
+}
+
+.infoCard {
+  background: #f9f9f9;
+  padding: 2rem;
+  border-left: 5px solid #800000;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.infoTitle {
+  font-size: 1.75rem;
+  color: #800000;
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+}
+
+.infoList {
+  list-style-type: none; /* Quitamos los puntos por defecto */
+  padding-left: 0;
+  color: #333;
+  font-size: 1rem;
+  line-height: 1.8;
+}
+
+.infoList li {
+  margin-bottom: 1rem;
+  padding-left: 1.5rem;
+  position: relative;
+}
+
+/* Creamos un "check" personalizado */
+.infoList li::before {
+  content: '✔';
+  color: #22c55e; /* Un color verde */
+  position: absolute;
+  left: 0;
+  font-weight: bold;
+}
+
+
+/* === Media Queries para hacerlo Responsive === */
+@media (max-width: 768px) {
+  .title {
+    font-size: 2rem;
+  }
+
+  .subtitle {
+    font-size: 1.1rem;
+  }
+
+  .textContent {
+    padding: 1.5rem;
+    font-size: 1rem;
+  }
+
+  .infoTitle {
+    font-size: 1.5rem;
+  }
+}

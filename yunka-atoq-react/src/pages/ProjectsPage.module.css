@@ -1,0 +1,155 @@
+/* src/pages/ProjectsPage.module.css */
+
+/* Estilos generales */
+.heroSection {
+  text-align: center;
+  padding: 4rem 1rem;
+  background: linear-gradient(135deg, #800000, #a83232);
+  color: white;
+  margin-bottom: 2rem;
+}
+
+.title {
+  font-size: 3rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+.subtitle {
+  font-size: 1.5rem;
+  font-weight: 300;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.bannerContainer {
+  width: 100%;
+  overflow: hidden;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  margin-bottom: 2rem;
+}
+
+.banner {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.textContent {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  margin-bottom: 3rem;
+  line-height: 1.8;
+  color: #555;
+  font-size: 1.1rem;
+  text-align: justify;
+}
+
+/* Lista de Proyectos */
+.projectsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  margin-bottom: 4rem;
+}
+
+.projectCard {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.projectCard:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.projectImage {
+  border-radius: 12px;
+  margin-bottom: 1.5rem; /* Aumentamos el margen */
+  width: 128px;
+  height: 128px;
+  object-fit: cover;
+}
+
+.projectTitle {
+  font-size: 1.75rem;
+  color: #800000;
+  margin-bottom: 1rem;
+}
+
+.projectDescription {
+  color: #555;
+  font-size: 1rem;
+  margin-bottom: 1.5rem;
+  flex-grow: 1; /* Empuja el contenido hacia abajo */
+}
+
+.progressBar {
+  width: 100%;
+  height: 10px;
+  background: #e0e0e0;
+  border-radius: 5px;
+  overflow: hidden;
+  margin-bottom: 0.5rem; /* Margen reducido */
+}
+
+.progressFill {
+  height: 100%;
+  background: #800000;
+  border-radius: 5px;
+  transition: width 0.5s ease;
+}
+
+.progressText {
+  font-size: 0.9rem;
+  color: #333;
+  margin-bottom: 1.5rem;
+}
+
+.whatsappButton {
+  background: #25d366;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  border: none;
+  cursor: pointer;
+  transition: background 0.3s ease;
+  width: 100%; /* El botón ocupa todo el ancho */
+}
+
+.whatsappButton:hover {
+  background: #128c7e;
+}
+
+
+/* === Media Queries para hacerlo Responsive === */
+@media (max-width: 768px) {
+  .title {
+    font-size: 2.2rem;
+  }
+
+  .subtitle {
+    font-size: 1.2rem;
+  }
+
+  .projectTitle {
+    font-size: 1.5rem;
+  }
+}

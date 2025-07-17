@@ -207,3 +207,56 @@
   border-radius: 8px; /* Opcional: bordes redondeados */
   object-fit: cover; /* Asegura que la imagen cubra el espacio sin distorsión */
 }
+
+
+/* === INICIO DEL CÓDIGO NUEVO PARA RESPONSIVE === */
+
+/* Media Query para tablets y móviles (768px o menos) */
+@media (max-width: 768px) {
+  .heroSection {
+    height: auto; /* Altura automática para adaptarse al contenido */
+    padding: 4rem 1rem; /* Más padding para que no se pegue a los bordes */
+  }
+
+  .heroTitle {
+    font-size: 2rem; /* Reducimos el tamaño del título principal */
+  }
+
+  .heroSubtitle {
+    font-size: 1.1rem; /* Reducimos el tamaño del subtítulo */
+  }
+
+  .donationButtons {
+    flex-direction: column; /* Apilamos los botones verticalmente */
+    align-items: center; /* Centramos los botones apilados */
+    width: 100%;
+  }
+
+  .donationButton {
+    width: 80%; /* Hacemos que los botones ocupen más ancho */
+    max-width: 300px;
+    text-align: center;
+  }
+
+  .sectionTitle {
+    font-size: 2rem; /* Hacemos los títulos de sección un poco más pequeños */
+  }
+}
+
+/* Media Query para móviles pequeños (480px o menos) */
+@media (max-width: 480px) {
+  .goalCard img {
+    width: 120px; /* Hacemos los íconos de objetivos más pequeños */
+    height: 120px;
+  }
+
+  .goalCard h3 {
+    font-size: 1.2rem;
+  }
+
+  /* Si añades la sección de testimonios, estos estilos la harán responsive */
+  .testimonialImage {
+    width: 100px;
+    height: 100px;
+  }
+}
