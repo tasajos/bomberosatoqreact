@@ -1,5 +1,5 @@
 // src/pages/AboutPage.tsx
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import styles from "./AboutPage.module.css";
 import GoogleMap from "../components/GoogleMap"; // Importamos nuestro marcador de posición
 import { db } from "../firebaseConfig";

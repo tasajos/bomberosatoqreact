@@ -1,5 +1,5 @@
 // src/pages/RecruitmentPage.tsx
-import React from "react";
+
 import styles from "./RecruitmentPage.module.css";
 
 export default function RecruitmentPage() {

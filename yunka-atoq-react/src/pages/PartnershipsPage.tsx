@@ -1,5 +1,5 @@
 // src/pages/PartnershipsPage.tsx
-import React from "react";
+
 import styles from "./PartnershipsPage.module.css";
 
 export default function PartnershipsPage() {

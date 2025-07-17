@@ -1,5 +1,5 @@
 // src/pages/ProjectsPage.tsx
-import React from "react";
+
 import styles from "./ProjectsPage.module.css";
 
 // 1. Creamos un arreglo con los datos de los proyectos para no repetir código
