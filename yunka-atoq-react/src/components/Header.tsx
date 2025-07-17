@@ -26,7 +26,7 @@ function Header() {
       <nav className={`${styles.mainNav} ${isMenuOpen ? styles.menuOpen : ''}`}>
         {/* Usamos NavLink para poder estilizar el enlace activo */}
         <NavLink to="/" className={({isActive}) => isActive ? styles.activeLink : ''} onClick={() => setIsMenuOpen(false)}>Inicio</NavLink>
-        <NavLink to="/servicios" className={({isActive}) => isActive ? styles.activeLink : ''} onClick={() => setIsMenuOpen(false)}>Servicios</NavLink>
+        <NavLink to="/nosotros" className={({isActive}) => isActive ? styles.activeLink : ''} onClick={() => setIsMenuOpen(false)}>Nosotros</NavLink>
         <NavLink to="/proyectos" className={({isActive}) => isActive ? styles.activeLink : ''} onClick={() => setIsMenuOpen(false)}>Proyectos</NavLink>
         <NavLink to="/galeria" className={({isActive}) => isActive ? styles.activeLink : ''} onClick={() => setIsMenuOpen(false)}>Galería</NavLink>
         <NavLink to="/donaciones" className={({isActive}) => isActive ? styles.activeLink : ''} onClick={() => setIsMenuOpen(false)}>Donaciones</NavLink>

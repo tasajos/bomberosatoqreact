@@ -1,0 +1,149 @@
+/* src/pages/AboutPage.module.css */
+
+.title {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #800000;
+  text-align: center;
+  margin: 2rem 0;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+}
+
+.cardContainer {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  padding: 0 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.card {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.cardImage {
+  width: 128px;
+  height: 128px;
+  object-fit: contain; /* 'contain' para que se vea el logo completo */
+  margin-top: 1.5rem;
+}
+
+.cardContent {
+  padding: 1.5rem;
+  flex-grow: 1;
+}
+
+.cardContent h3 {
+  margin: 0 0 1rem 0;
+  color: #333;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.cardContent p {
+  margin: 0;
+  color: #555;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.section {
+  margin: 4rem auto;
+  padding: 0 1rem;
+  max-width: 1200px;
+}
+
+.sectionTitle {
+  font-size: 2rem;
+  color: #800000;
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.notasContainer {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.nota {
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+  overflow: hidden;
+}
+
+.nota:hover {
+  transform: translateY(-5px);
+}
+
+.notaImagen {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+}
+
+.nota h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 1rem 1rem 0.5rem 1rem;
+}
+
+.nota p {
+  margin: 0 1rem 1rem 1rem;
+  color: #555;
+}
+
+.notaLink {
+  display: block;
+  margin: 0 1rem 1rem 1rem;
+  color: #800000;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.redesContainer {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+}
+
+.redesIcon {
+  width: 48px;
+  height: 48px;
+  transition: transform 0.3s ease;
+}
+
+.redesIcon:hover {
+  transform: scale(1.1);
+}
+
+
+/* === Media Queries para Responsive === */
+@media (max-width: 768px) {
+  .title {
+    font-size: 2rem;
+  }
+  .cardContainer {
+    padding: 0 1rem;
+  }
+  .sectionTitle {
+    font-size: 1.8rem;
+  }
+}

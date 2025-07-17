@@ -1,0 +1,14 @@
+/* src/components/GoogleMap.module.css */
+
+.mapContainer {
+  overflow: hidden; /* Oculta cualquier desbordamiento */
+  border-radius: 12px; /* Bordes redondeados para el contenedor */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); /* Sombra sutil */
+  margin-bottom: 2rem;
+}
+
+.mapIframe {
+  width: 100%;    /* El mapa ocupa todo el ancho de su contenedor */
+  height: 450px;  /* Mantenemos la altura */
+  border: none;   /* Quitamos cualquier borde por defecto */
+}
