@@ -1,14 +1,18 @@
 // src/App.tsx
 import { Outlet } from 'react-router-dom';
 import Header from './components/Header'; 
+import Footer from './components/Footer'; 
+import FloatingWhatsAppButton from './components/FloatingWhatsAppButton'; // Importar
+
 function App() {
   return (
-    <div>
-      <Header /> 
-      <main>
-        <Outlet /> {/* Aquí se cargará el contenido de cada página */}
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+      <Header />
+      <main style={{ flex: '1' }}>
+        <Outlet />
       </main>
-      {/* El pie de página irá aquí más adelante */}
+      <FloatingWhatsAppButton /> {/* Añadir */}
+      <Footer /> {/* Añadir */}
     </div>
   )
 }

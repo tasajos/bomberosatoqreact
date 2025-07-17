@@ -1,0 +1,209 @@
+.pageContainer {
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+/* Estilos generales */
+.heroSection {
+  position: relative;
+  width: 100%;
+  height: 600px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.heroContent {
+  position: relative;
+  z-index: 2;
+}
+
+.heroTitle {
+  font-size: 3rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+.heroSubtitle {
+  font-size: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.heroImage {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 1;
+}
+
+.donationButtons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.donationButton {
+  background: #800000;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  border: none;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.donationButton:hover {
+  background: #a83232;
+}
+
+/* Sección de Objetivos */
+.goalsSection {
+  margin: 4rem 0;
+}
+
+.sectionTitle {
+  font-size: 2.5rem;
+  color: #800000;
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.goalsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+}
+
+
+
+/* Estilos para las tarjetas de objetivos */
+.goalCard {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Centra el contenido horizontalmente */
+}
+
+.goalCard img {
+  width: 180px; /* Tamaño fijo para las imágenes */
+  height: 180px;
+  object-fit: contain; /* Asegura que la imagen se ajuste sin distorsión */
+  margin-bottom: 1rem;
+}
+
+.goalCard h3 {
+  font-size: 1.5rem;
+  color: #800000;
+  margin-bottom: 1rem;
+}
+
+.goalCard p {
+  color: #555;
+}
+
+/* Sección de Testimonios */
+.testimonialsSection {
+  margin: 4rem 0;
+  text-align: center; /* Centra el título de la sección */
+}
+
+.testimonialsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  justify-content: center; /* Centra las tarjetas en la sección */
+}
+
+.testimonialCard {
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Centra el contenido horizontalmente */
+}
+
+.testimonialImage {
+  border-radius: 50%;
+  margin-bottom: 1rem;
+  width: 180px; /* Tamaño fijo para las imágenes */
+  height: 180px;
+  object-fit: cover; /* Asegura que la imagen se ajuste sin distorsión */
+}
+
+.testimonialCard p {
+  font-style: italic;
+  color: #555;
+}
+
+.testimonialCard span {
+  display: block;
+  margin-top: 1rem;
+  font-weight: bold;
+  color: #800000;
+}
+
+/* Sección de Progreso */
+.progressSection {
+  margin: 4rem 0;
+  text-align: center;
+}
+
+.progressBar {
+  width: 100%;
+  height: 20px;
+  background: #e0e0e0;
+  border-radius: 10px;
+  overflow: hidden;
+  margin: 1rem 0;
+}
+
+.progressFill {
+  height: 100%;
+  background: #800000;
+  border-radius: 10px;
+}
+
+.progressText {
+  font-size: 1.2rem;
+  color: #333;
+}
+
+/* Sección de Donación */
+.donationSection {
+  margin: 4rem 0;
+  text-align: center;
+}
+
+.donationText {
+  font-size: 1.2rem;
+  color: #333;
+  margin-bottom: 2rem;
+}
+
+/* Estilos para la sección del banner */
+.bannerSection {
+  width: 100%;
+  margin-bottom: 2rem; /* Espacio debajo del banner */
+}
+
+.bannerImage {
+  width: 100%;
+  height: auto;
+  border-radius: 8px; /* Opcional: bordes redondeados */
+  object-fit: cover; /* Asegura que la imagen cubra el espacio sin distorsión */
+}
