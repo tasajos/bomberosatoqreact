@@ -1,0 +1,62 @@
+/* src/components/HeroSlider.module.css */
+.sliderContainer {
+  width: 100%;
+  height: 600px; /* O la altura que desees para tu banner */
+  position: relative;
+}
+
+.loadingState {
+  width: 100%;
+  height: 600px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  background-color: #e5e7eb;
+}
+
+.slide {
+  position: relative;
+  width: 100%;
+  height: 600px;
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Esto hace que la imagen rellene el div, como 'fill' en Next.js */
+}
+
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.3); /* Un velo oscuro para que el texto resalte */
+}
+
+/* Estilos para las flechas personalizadas */
+.customArrow {
+  z-index: 10;
+  width: 50px;
+  height: 50px;
+  background: rgba(0, 0, 0, 0.5) !important;
+  border-radius: 50%;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+}
+
+.customArrow:hover, .customArrow:focus {
+  background: rgba(0, 0, 0, 0.7) !important;
+}
+
+.customArrow::before {
+  color: white;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.nextArrow { right: 25px !important; }
+.prevArrow { left: 25px !important; }
