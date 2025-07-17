@@ -1,0 +1,93 @@
+/* src/components/OperationsFeed.module.css */
+.feedSection {
+  width: 100%;
+  background-color: #ffffff;
+  padding: 2rem;
+  box-sizing: border-box;
+  margin-bottom: 2rem;
+}
+ 
+.feedTitle {
+  margin-bottom: 1.5rem;
+  font-size: 2rem;
+  color: #800000;
+  text-align: left;
+}
+ 
+.feedContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: stretch; /* Asegura que las tarjetas ocupen el ancho */
+}
+ 
+.card {
+  width: 100%;
+  background: #fafafa;
+  border-left: 5px solid #800000; /* Un borde distintivo */
+  border-radius: 8px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+  padding: 1rem;
+  text-align: left;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  display: flex; /* Flexbox para alinear ícono y contenido */
+  gap: 1rem;
+  align-items: center;
+}
+ 
+.card:hover {
+  transform: scale(1.02);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+}
+ 
+.icon {
+  font-size: 2.5rem;
+  color: #d9534f;
+}
+ 
+.cardContent h3 {
+  margin: 0 0 0.5rem 0;
+  color: #333;
+}
+ 
+.cardContent p {
+  margin: 0.3rem 0;
+  color: #555;
+}
+
+.cardContent p strong {
+  color: #000;
+}
+ 
+/* Paginación */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin-top: 1.5rem;
+  gap: 1rem;
+}
+ 
+.pageButton {
+  background-color: #800000;
+  color: #fff;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.pageButton:hover:not(:disabled) {
+  background-color: #a00000;
+}
+ 
+.pageButton:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+ 
+.pageInfo {
+  font-weight: bold;
+  color: #333;
+}
