@@ -12,6 +12,8 @@ interface Activity {
   descripcion?: string;
   estado?: string;
   fecha?: string;
+  link?: string;
+
 }
 
 const ITEMS_PER_PAGE = 3;
@@ -88,22 +90,54 @@ const VolunteerActivitiesFeed = () => {
         <p>No hay actividades de voluntarios disponibles en este momento.</p>
       ) : (
         <>
-          <div className={styles.feedContainer}>
-            {currentItems.map((item) => (
-              <div key={item.id} className={styles.card}>
-                {item.imagen && (
-                  <img src={item.imagen} alt={item.Titulo || "Actividad"} className={styles.cardImage} />
-                )}
-                <div className={styles.cardContent}>
-                  <h3>{item.Titulo || "Sin título"}</h3>
-                  <p><strong>Ciudad:</strong> {item.ciudad || "No especificado"}</p>
-                  <p><strong>Descripción:</strong> {item.descripcion || "Sin descripción"}</p>
-                  <p><strong>Estado:</strong> {item.estado || "Desconocido"}</p>
-                  <p><strong>Fecha:</strong> {item.fecha || "No registrada"}</p>
-                </div>
-              </div>
-            ))}
+        <div className={styles.feedContainer}>
+  {currentItems.map((item) => {
+    // Creamos el contenido interno de la tarjeta para no repetirlo
+    const cardContent = (
+      <>
+        {item.imagen && (
+          <img src={item.imagen} alt={item.Titulo || "Actividad"} className={styles.cardImage} />
+        )}
+        <div className={styles.cardContent}>
+          <h3>{item.Titulo || "Sin título"}</h3>
+          <p><strong>Ciudad:</strong> {item.ciudad || "No especificado"}</p>
+          <p><strong>Descripción:</strong> {item.descripcion || "Sin descripción"}</p>
+          <p><strong>Estado:</strong> {item.estado || "Desconocido"}</p>
+          <p><strong>Fecha:</strong> {item.fecha || "No registrada"}</p>
+        </div>
+      </>
+    );
+
+    // Lógica condicional:
+    // Si la actividad tiene un enlace, la envolvemos en una etiqueta <a>
+    if (item.link) {
+      return (
+        <a 
+          href={item.link} 
+          key={item.id} 
+          target="_blank" 
+          rel="noopener noreferrer" 
+          className={styles.cardLink}
+        >
+          <div className={styles.card}>
+            {cardContent}
           </div>
+        </a>
+      );
+    }
+
+    // Si NO tiene enlace, es un <div> con un onClick que muestra una alerta
+    return (
+      <div 
+        key={item.id} 
+        className={`${styles.card} ${styles.noLink}`} 
+        onClick={() => alert('No existe más información para esta actividad.')}
+      >
+        {cardContent}
+      </div>
+    );
+  })}
+</div>
           <div className={styles.pagination}>
             <button onClick={handlePrev} disabled={currentPage === 1} className={styles.pageButton}>Anterior</button>
             <span className={styles.pageInfo}>Página {currentPage} de {totalPages}</span>

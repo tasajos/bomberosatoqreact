@@ -73,3 +73,26 @@
   font-weight: bold;
   color: #333;
 }
+
+/* Estilo para la etiqueta <a> que envuelve la tarjeta */
+.cardLink {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Cuando la tarjeta es un enlace, el cursor cambia a una mano */
+.cardLink .card {
+  cursor: pointer;
+}
+
+/* Le damos un efecto hover solo a las tarjetas que son enlaces */
+.cardLink .card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+/* Estilo para las tarjetas que NO tienen enlace */
+.noLink {
+  cursor: not-allowed; /* Muestra un ícono de "no permitido" al pasar el mouse */
+  filter: grayscale(40%); /* Opcional: la hace ver un poco menos vibrante */
+}
