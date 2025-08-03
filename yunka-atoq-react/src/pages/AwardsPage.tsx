@@ -1,5 +1,5 @@
 // src/pages/AwardsPage.tsx
-import React, { useState, useEffect } from "react";
+import  { useState, useEffect } from "react";
 import styles from "./AwardsPage.module.css";
 import { db } from "../firebaseConfig";
 import { ref, onValue } from "firebase/database";
