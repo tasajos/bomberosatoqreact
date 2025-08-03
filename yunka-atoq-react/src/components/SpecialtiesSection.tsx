@@ -15,7 +15,7 @@ const SpecialtiesSection = () => {
     },
     {
       title: "Ciencia, Investigacion y Tecnologia",
-      image: "/especialidades/CienciaYA.png",
+      image: "/especialidades/ciencia_inve_tecn.png",
       description:
         "Innovamos con tecnología y métodos científicos para mejorar la prevención y respuesta ante desastres. Contribuimos al desarrollo de soluciones sostenibles.",
     },
@@ -33,9 +33,15 @@ const SpecialtiesSection = () => {
     },
     {
       title: "Busqueda y Rescate",
-      image: "/especialidades/BusquedayRescate.png",
+      image: "/especialidades/busqueda_rescate.png",
       description:
         "Especializados en localizar y rescatar personas en zonas de difícil acceso o en situaciones de desastre. Cada segundo cuenta para salvar vidas.",
+    },
+    {
+      title: "Rescate Animal",
+      image: "/especialidades/rescate_animal.png",
+      description:
+        "La especialidad de rescate animal en bomberos voluntarios se enfoca en la protección, salvamento y rescate de animales en diversas situaciones de emergencia",
     },
   ];
 
