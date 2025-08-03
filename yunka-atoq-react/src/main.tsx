@@ -16,6 +16,8 @@ import ProjectsPage from './pages/ProjectsPage.tsx';
 import AboutPage from './pages/AboutPage.tsx'; 
 import ContactPage from './pages/ContactPage.tsx'; 
 import NotePage from './pages/NotePage.tsx';
+import HistoryPage from './pages/HistoryPage.tsx'; 
+import AwardsPage from './pages/AwardsPage.tsx'; // Importar
 
 import './index.css';
 
@@ -34,6 +36,8 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
           <Route path="nosotros" element={<AboutPage />} />
           <Route path="contacto" element={<ContactPage />} />
           <Route path="notas/:notaId" element={<NotePage />} />
+          <Route path="historia" element={<HistoryPage />}/>
+          <Route path="reconocimientos" element={<AwardsPage />} /> 
           {/* Aquí añadiremos más rutas como /galeria, /contacto, etc. */}
         </Route>
       </Routes>

@@ -1,0 +1,229 @@
+/* src/pages/AwardsPage.module.css */
+.pageContainer {
+  width: 100%;
+}
+
+.heroSection {
+  text-align: center;
+  padding: 4rem 1rem;
+  background: #f4f4f4; /* Un fondo gris muy claro */
+  border-bottom: 1px solid #ddd;
+}
+
+.title {
+  font-size: 2.8rem;
+  font-weight: bold;
+  color: #800000;
+  margin-bottom: 1rem;
+}
+
+.subtitle {
+  font-size: 1.3rem;
+  color: #555;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.loadingText {
+  text-align: center;
+  padding: 4rem;
+  font-size: 1.2rem;
+}
+
+.awardsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 2.5rem;
+  max-width: 1400px;
+  margin: 3rem auto;
+  padding: 0 2rem;
+}
+
+.awardCard {
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  animation: fadeIn 0.5s ease-out;
+}
+
+.awardCard:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
+}
+
+.imageContainer {
+  width: 100%;
+  height: 220px;
+  overflow: hidden;
+}
+
+.imageContainer img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.awardCard:hover .imageContainer img {
+  transform: scale(1.05);
+}
+
+.cardContent {
+  padding: 1.5rem;
+}
+
+.date {
+  display: block;
+  font-size: 0.85rem;
+  color: #777;
+  margin-bottom: 0.75rem;
+}
+
+.awardTitle {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 0.5rem 0;
+}
+
+.awardIssuer {
+  font-size: 1rem;
+  color: #555;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* --- Media Queries --- */
+@media (max-width: 768px) {
+  .title {
+    font-size: 2.2rem;
+  }
+  .subtitle {
+    font-size: 1.1rem;
+  }
+  .awardsGrid {
+    padding: 0 1rem;
+    gap: 1.5rem;
+  }
+}
+
+/* === ESTILOS PARA EL MODAL === */
+
+.modalBackdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease; /* Usamos la animación que ya teníamos */
+}
+
+.modalContent {
+  background: white;
+  padding: 2rem;
+  border-radius: 15px;
+  max-width: 600px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+  transform: scale(0.95);
+  animation: scaleUp 0.3s ease-out forwards;
+}
+
+.closeButton {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: #888;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.modalImage {
+  width: 100%;
+  max-height: 350px;
+  object-fit: contain; /* <-- Este es el cambio clave */
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  cursor: zoom-in;
+}
+
+.modalTitle {
+  font-size: 2rem;
+  color: #800000;
+  margin: 0 0 0.5rem 0;
+}
+
+.modalIssuer {
+  font-size: 1.1rem;
+  color: #333;
+}
+
+.modalDate {
+  display: block;
+  font-size: 0.9rem;
+  color: #777;
+  margin-bottom: 1.5rem;
+}
+
+.modalDescription {
+  font-size: 1rem;
+  line-height: 1.7;
+  color: #555;
+}
+
+/* Animación para el contenido del modal */
+@keyframes scaleUp {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.zoomBackdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.85); /* Fondo más oscuro */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1001; /* Debe estar por encima del otro modal */
+  cursor: zoom-out;
+  animation: fadeIn 0.3s ease;
+}
+
+.zoomedImage {
+  max-width: 95%;
+  max-height: 95%;
+  object-fit: contain;
+  box-shadow: 0 0 50px rgba(0,0,0,0.5);
+  border-radius: 5px;
+}

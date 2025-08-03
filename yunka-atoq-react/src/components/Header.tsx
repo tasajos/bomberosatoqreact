@@ -27,6 +27,8 @@ function Header() {
         {/* Usamos NavLink para poder estilizar el enlace activo */}
         <NavLink to="/" className={({isActive}) => isActive ? styles.activeLink : ''} onClick={() => setIsMenuOpen(false)}>Inicio</NavLink>
         <NavLink to="/nosotros" className={({isActive}) => isActive ? styles.activeLink : ''} onClick={() => setIsMenuOpen(false)}>Nosotros</NavLink>
+        <NavLink to="/historia" className={({isActive}) => isActive ? styles.activeLink : ''} onClick={() => setIsMenuOpen(false)}>Historia</NavLink>
+        <NavLink to="/reconocimientos" className={({isActive}) => isActive ? styles.activeLink : ''} onClick={() => setIsMenuOpen(false)}>Reconocimientos</NavLink>
         <NavLink to="/proyectos" className={({isActive}) => isActive ? styles.activeLink : ''} onClick={() => setIsMenuOpen(false)}>Proyectos</NavLink>
         {/*  <NavLink to="/galeria" className={({isActive}) => isActive ? styles.activeLink : ''} onClick={() => setIsMenuOpen(false)}>Galería</NavLink> */}
         <NavLink to="/donaciones" className={({isActive}) => isActive ? styles.activeLink : ''} onClick={() => setIsMenuOpen(false)}>Donaciones</NavLink>
