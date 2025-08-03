@@ -1,10 +1,9 @@
 // src/components/VolunteerActivitiesFeed.tsx
 import { useState, useEffect } from "react";
 import styles from "./VolunteerActivitiesFeed.module.css";
-import { db } from "../firebaseConfig"; // 1. Ruta corregida
+import { db } from "../firebaseConfig";
 import { ref, onValue } from "firebase/database";
 
-// 2. Interfaz para tipado fuerte
 interface Activity {
   id: string;
   imagen?: string;
@@ -31,7 +30,32 @@ const VolunteerActivitiesFeed = () => {
           id: key,
           ...data[key],
         }));
-        setActivities(activitiesArray.reverse()); // .reverse() para mostrar las más nuevas primero
+
+        // --- INICIO DEL NUEVO CÓDIGO DE ORDENAMIENTO ---
+
+        // 1. Función para convertir el texto "DD/MM/YYYY" a un objeto Date de JavaScript
+        const parseDate = (dateString: string): Date => {
+          // Dividimos el string en [día, mes, año]
+          const parts = dateString.split('/');
+          // Ojo: en JavaScript los meses van de 0 a 11 (Enero=0, Diciembre=11)
+          return new Date(Number(parts[2]), Number(parts[1]) - 1, Number(parts[0]));
+        };
+
+        // 2. Ordenamos el arreglo usando nuestra función
+        activitiesArray.sort((a, b) => {
+          // Si alguna actividad no tiene fecha, la ponemos al final
+          const dateA = a.fecha ? parseDate(a.fecha) : new Date(0);
+          const dateB = b.fecha ? parseDate(b.fecha) : new Date(0);
+          // Restamos las fechas. Un resultado positivo o negativo determina el orden.
+          // b - a nos da un orden descendente (más reciente primero).
+          return dateB.getTime() - dateA.getTime();
+        });
+
+        // 3. Actualizamos el estado con el arreglo ya ordenado por fecha
+        setActivities(activitiesArray);
+        
+        // --- FIN DEL NUEVO CÓDIGO DE ORDENAMIENTO ---
+
         setCurrentPage(1);
       } else {
         setActivities([]);
@@ -53,13 +77,13 @@ const VolunteerActivitiesFeed = () => {
   };
 
   const handlePrev = () => {
-    if (currentPage > 1) setCurrentPage((prev) => prev - 1);
+    if (currentPage > 1) setCurrentPage((prev) => prev + 1);
   };
 
   return (
+    // El resto del JSX no necesita cambios...
     <section className={styles.feedSection}>
       <h2 className={styles.feedTitle}>Actividades de los Voluntarios</h2>
-
       {activities.length === 0 ? (
         <p>No hay actividades de voluntarios disponibles en este momento.</p>
       ) : (
@@ -68,11 +92,7 @@ const VolunteerActivitiesFeed = () => {
             {currentItems.map((item) => (
               <div key={item.id} className={styles.card}>
                 {item.imagen && (
-                  <img
-                    src={item.imagen}
-                    alt={item.Titulo || "Actividad"}
-                    className={styles.cardImage}
-                  />
+                  <img src={item.imagen} alt={item.Titulo || "Actividad"} className={styles.cardImage} />
                 )}
                 <div className={styles.cardContent}>
                   <h3>{item.Titulo || "Sin título"}</h3>
@@ -84,17 +104,10 @@ const VolunteerActivitiesFeed = () => {
               </div>
             ))}
           </div>
-
           <div className={styles.pagination}>
-            <button onClick={handlePrev} disabled={currentPage === 1} className={styles.pageButton}>
-              Anterior
-            </button>
-            <span className={styles.pageInfo}>
-              Página {currentPage} de {totalPages}
-            </span>
-            <button onClick={handleNext} disabled={currentPage === totalPages} className={styles.pageButton}>
-              Siguiente
-            </button>
+            <button onClick={handlePrev} disabled={currentPage === 1} className={styles.pageButton}>Anterior</button>
+            <span className={styles.pageInfo}>Página {currentPage} de {totalPages}</span>
+            <button onClick={handleNext} disabled={currentPage === totalPages} className={styles.pageButton}>Siguiente</button>
           </div>
         </>
       )}
