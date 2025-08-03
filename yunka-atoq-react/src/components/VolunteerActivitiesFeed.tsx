@@ -76,9 +76,9 @@ const VolunteerActivitiesFeed = () => {
     if (currentPage < totalPages) setCurrentPage((prev) => prev + 1);
   };
 
-  const handlePrev = () => {
-    if (currentPage > 1) setCurrentPage((prev) => prev + 1);
-  };
+ const handlePrev = () => {
+  if (currentPage > 1) setCurrentPage((prev) => prev - 1); // <-- Corregido a - 1
+};
 
   return (
     // El resto del JSX no necesita cambios...
