@@ -2,13 +2,13 @@
 
 .header {
   background-color: #1e40af;
-  padding: 0.8rem 2rem; /* <-- Hacemos el header un poco más pequeño */
+  padding: 0.8rem 2rem;
   color: white;
   display: flex;
   justify-content: space-between;
   align-items: center;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  position: relative; /* Necesario para el menú móvil */
+  position: relative;
   z-index: 100;
 }
 
@@ -17,7 +17,24 @@
   text-decoration: none;
   font-weight: bold;
   font-size: 1.4rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
+
+.logoIcon {
+  height: 40px;
+}
+
+
+/* === EL ARREGLO ESTÁ AQUÍ === */
+/* Estilos para el menú en PANTALLAS GRANDES */
+.mainNav {
+  display: flex; /* <-- ESTA ES LA LÍNEA QUE FALTABA */
+  align-items: center; /* <-- Para alinear el botón y los enlaces */
+}
+/* === FIN DEL ARREGLO === */
+
 
 .mainNav a {
   color: white;
@@ -25,22 +42,40 @@
   text-decoration: none;
   font-weight: 500;
   padding-bottom: 5px;
-  border-bottom: 2px solid transparent; /* Borde transparente para transición suave */
+  border-bottom: 2px solid transparent;
   transition: border-color 0.3s;
 }
 
 .mainNav a:hover {
-  border-color: #facc15; /* Borde amarillo al pasar el mouse */
+  border-color: #facc15;
 }
 
-/* Estilo para el enlace de la página activa */
 .activeLink {
   border-color: #facc15 !important;
 }
 
-/* --- Botón de Hamburguesa --- */
+.headerActions {
+  margin-left: 1rem;
+}
+
+.loginButton {
+  background-color: #048d76;
+  color: #1f2937;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: bold;
+  white-space: nowrap;
+  transition: background-color 0.3s, transform 0.2s;
+}
+
+.loginButton:hover {
+  background-color: #800079;
+  transform: scale(1.05);
+}
+
 .hamburgerButton {
-  display: none; /* Oculto en pantallas grandes */
+  display: none;
   background: none;
   border: none;
   cursor: pointer;
@@ -76,38 +111,38 @@
 }
 
 
-/* --- Media Query para pantallas pequeñas (móviles) --- */
-@media (max-width: 880px) {
+@media (max-width: 992px) {
   .hamburgerButton {
-    display: block; /* Hacemos visible el botón */
+    display: block;
   }
 
   .mainNav {
-    /* El menú ahora es un panel que sale desde la izquierda */
     position: absolute;
     top: 0;
     left: 0;
     width: 70%;
     height: 100vh;
-    background-color: #1e3a8a; /* Un azul ligeramente diferente */
-    
+    background-color: #1e3a8a;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     gap: 2rem;
-    
-    transform: translateX(-100%); /* Empieza oculto fuera de la pantalla */
+    transform: translateX(-100%);
     transition: transform 0.3s ease-in-out;
   }
 
-  /* Cuando el menú está abierto */
   .mainNav.menuOpen {
-    transform: translateX(0); /* Lo movemos a su posición visible */
+    transform: translateX(0);
     box-shadow: 5px 0 15px rgba(0,0,0,0.2);
   }
 
   .mainNav a {
     font-size: 1.2rem;
+  }
+
+  .headerActions {
+    margin-left: 0;
+    margin-top: 1.5rem;
   }
 }
