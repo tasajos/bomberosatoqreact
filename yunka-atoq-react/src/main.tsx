@@ -19,12 +19,17 @@ import NotePage from './pages/NotePage.tsx';
 import HistoryPage from './pages/HistoryPage.tsx'; 
 import AwardsPage from './pages/AwardsPage.tsx'; 
 import LoginPage from './pages/LoginPage.tsx';
+import { UserProvider } from './context/UserContext.tsx';
+import ProtectedRoute from './auth/ProtectedRoute';
+import AdminLayout from './layouts/AdminLayout';
+import DashboardPage from './pages/admin/DashboardPage';
 
 import './index.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <BrowserRouter>
+    <UserProvider>
       <Routes>
         {/* La ruta principal ("/") usa el layout 'App' y dentro renderiza 'HomePage' */}
         <Route path="/" element={<App />}>
@@ -42,7 +47,18 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
           <Route path="login" element={<LoginPage />} />
           {/* Aquí añadiremos más rutas como /galeria, /contacto, etc. */}
         </Route>
+
+{/* === INICIO DE LAS NUEVAS RUTAS PRIVADAS === */}
+  <Route element={<ProtectedRoute allowedRoles={['voluntario']} />}>
+    <Route path="/admin" element={<AdminLayout />}>
+      <Route path="dashboard" element={<DashboardPage />} />
+      {/* Aquí añadirías otras páginas del panel, ej: <Route path="tareas" element={<TasksPage />} /> */}
+    </Route>
+  </Route>
+  {/* === FIN DE LAS NUEVAS RUTAS PRIVADAS === */}
+
       </Routes>
+      </UserProvider>
     </BrowserRouter>
   </React.StrictMode>,
 );

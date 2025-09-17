@@ -2,8 +2,9 @@
 import { initializeApp } from "firebase/app";
 import { getStorage } from "firebase/storage";
 import { getDatabase } from "firebase/database"; 
+import { getAuth } from "firebase/auth"; 
 
-// ¡IMPORTANTE! Reemplaza esto con la configuración de tu propio proyecto de Firebase.
+
 const firebaseConfig = {
   apiKey: "AIzaSyApaHz7BVQa0z8HkR28m7qWiKg82PdID9M",
   authDomain: "fir-login2-c7a59.firebaseapp.com",
@@ -19,6 +20,6 @@ const app = initializeApp(firebaseConfig);
 
 const storage = getStorage(app);
 const db = getDatabase(app);
+const auth = getAuth(app);
 
-
-export { storage, db};
+export { storage, db,auth};

@@ -101,3 +101,12 @@
     width: 100%;
   }
 }
+
+.error {
+  color: #ff3860;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+  background-color: rgba(255, 56, 96, 0.1);
+  padding: 0.5rem;
+  border-radius: 5px;
+}

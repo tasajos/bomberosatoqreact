@@ -1,0 +1,5 @@
+.header { display: flex; justify-content: space-between; align-items: center; background: #333; color: white; padding: 1rem 2rem; }
+.logo { font-weight: bold; font-size: 1.2rem; }
+.nav a { color: white; text-decoration: none; margin: 0 1rem; }
+.userInfo { display: flex; align-items: center; gap: 1rem; }
+.logoutButton { background: #d9534f; color: white; border: none; padding: 0.5rem 1rem; border-radius: 5px; cursor: pointer; }
