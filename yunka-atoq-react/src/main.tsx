@@ -7,7 +7,6 @@ import HomePage from './pages/HomePage.tsx';
 import DonationsPage from './pages/DonationsPage.tsx';
 import PartnershipsPage from './pages/PartnershipsPage.tsx';
 import SupportPage from './pages/SupportPage.tsx';
-import RecruitmentPage from './pages/RecruitmentPage.tsx';
 import ProjectsPage from './pages/ProjectsPage.tsx';
 import AboutPage from './pages/AboutPage.tsx';
 import ContactPage from './pages/ContactPage.tsx';
@@ -15,6 +14,11 @@ import NotePage from './pages/NotePage.tsx';
 import HistoryPage from './pages/HistoryPage.tsx';
 import AwardsPage from './pages/AwardsPage.tsx';
 import LoginPage from './pages/LoginPage.tsx';
+import ServicesPage from './pages/ServicesPage.tsx';
+import StatsPage from './pages/StatsPage.tsx';
+import GalleryPage from './pages/GalleryPage.tsx';
+import VolunteeringPage from './pages/VolunteeringPage.tsx';
+import NewsPage from './pages/NewsPage.tsx';
 
 import { AuthProvider } from './context/AuthContext.tsx';
 import ProtectedRoute from './auth/ProtectedRoute';
@@ -37,11 +41,17 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
             <Route path="donaciones"    element={<DonationsPage />} />
             <Route path="convenios"     element={<PartnershipsPage />} />
             <Route path="apoyos"        element={<SupportPage />} />
-            <Route path="voluntarios"   element={<RecruitmentPage />} />
             <Route path="contacto"      element={<ContactPage />} />
             <Route path="notas/:notaId" element={<NotePage />} />
-            <Route path="login"         element={<LoginPage />} />
+            <Route path="servicios"      element={<ServicesPage />} />
+            <Route path="estadisticas"   element={<StatsPage />} />
+            <Route path="galeria"        element={<GalleryPage />} />
+            <Route path="voluntarios"    element={<VolunteeringPage />} />
+            <Route path="noticias"       element={<NewsPage />} />
           </Route>
+
+          {/* Login standalone — sin header/footer */}
+          <Route path="/login" element={<LoginPage />} />
 
           <Route element={<ProtectedRoute allowedRoles={['voluntario', 'admin']} />}>
             <Route path="/admin" element={<AdminLayout />}>

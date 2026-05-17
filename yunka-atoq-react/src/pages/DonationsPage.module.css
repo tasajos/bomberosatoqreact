@@ -1,262 +1,168 @@
-.pageContainer {
-  max-width: 1200px;
-  margin: 2rem auto;
-  padding: 0 1rem;
+/* ===== Hero ===== */
+.hero {
+  background: var(--color-light);
+  padding: 3rem var(--section-px) var(--section-py);
+  border-bottom: 1px solid var(--color-border);
 }
-
-/* Estilos generales */
-.heroSection {
-  position: relative;
-  width: 100%;
-  height: 600px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  text-align: center;
-  margin-bottom: 2rem;
+.heroInner { max-width: 1280px; margin-inline: auto; }
+.breadcrumb {
+  font-family: var(--font-condensed); font-size: 0.7rem; font-weight: 700;
+  letter-spacing: 0.15em; text-transform: uppercase; color: var(--color-gray); margin-bottom: 2rem;
 }
-
-.heroContent {
-  position: relative;
-  z-index: 2;
-}
-
+.breadcrumb a { color: var(--color-gray); transition: color var(--transition); }
+.breadcrumb a:hover { color: var(--color-dark); }
+.breadcrumb span { margin-inline: 0.5rem; }
 .heroTitle {
-  font-size: 3rem;
-  font-weight: bold;
-  margin-bottom: 1rem;
+  font-family: var(--font-condensed); font-size: clamp(3rem, 7vw, 5.5rem);
+  font-weight: 900; line-height: 0.93; color: var(--color-dark); margin-bottom: 1.5rem;
+}
+.heroDesc { font-size: 1rem; color: var(--color-gray); max-width: 560px; line-height: 1.7; }
+
+/* ===== Calculator + Methods ===== */
+.mainSection {
+  background: var(--color-white);
+  padding: var(--section-py) var(--section-px);
+  border-bottom: 1px solid var(--color-border);
+}
+.mainInner {
+  max-width: 1280px; margin-inline: auto;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 5rem; align-items: start;
 }
 
-.heroSubtitle {
-  font-size: 1.5rem;
-  margin-bottom: 2rem;
+/* Calculator */
+.calcTitle {
+  font-family: var(--font-condensed); font-size: clamp(2.5rem, 4vw, 3.5rem);
+  font-weight: 900; line-height: 0.95; color: var(--color-dark); margin-bottom: 1.75rem;
+}
+.freqToggle { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; }
+.freqBtn {
+  font-family: var(--font-condensed); font-size: 0.9rem; font-weight: 700;
+  letter-spacing: 0.04em; text-transform: uppercase;
+  padding: 0.5rem 1.25rem; border-radius: 4px; border: 1.5px solid var(--color-border);
+  background: transparent; color: var(--color-dark); cursor: pointer;
+  transition: background var(--transition), border-color var(--transition), color var(--transition);
+}
+.freqBtnActive {
+  background: var(--color-red); border-color: var(--color-red); color: var(--color-white);
 }
 
-.heroImage {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  z-index: 1;
+.amountGrid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; margin-bottom: 1.25rem;
 }
-
-.donationButtons {
-  display: flex;
-  gap: 1rem;
-  justify-content: center;
-}
-
-.donationButton {
-  background: #800000;
-  color: white;
-  padding: 0.75rem 1.5rem;
-  border-radius: 8px;
-  font-size: 1rem;
-  border: none;
-  cursor: pointer;
-  transition: background 0.3s ease;
-}
-
-.donationButton:hover {
-  background: #a83232;
-}
-
-/* Sección de Objetivos */
-.goalsSection {
-  margin: 4rem 0;
-}
-
-.sectionTitle {
-  font-size: 2.5rem;
-  color: #800000;
-  text-align: center;
-  margin-bottom: 2rem;
-}
-
-.goalsGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 2rem;
-}
-
-
-
-/* Estilos para las tarjetas de objetivos */
-.goalCard {
-  background: white;
-  padding: 1.5rem;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center; /* Centra el contenido horizontalmente */
-}
-
-.goalCard img {
-  width: 180px; /* Tamaño fijo para las imágenes */
-  height: 180px;
-  object-fit: contain; /* Asegura que la imagen se ajuste sin distorsión */
-  margin-bottom: 1rem;
-}
-
-.goalCard h3 {
-  font-size: 1.5rem;
-  color: #800000;
-  margin-bottom: 1rem;
-}
-
-.goalCard p {
-  color: #555;
-}
-
-/* Sección de Testimonios */
-.testimonialsSection {
-  margin: 4rem 0;
-  text-align: center; /* Centra el título de la sección */
-}
-
-.testimonialsGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 2rem;
-  justify-content: center; /* Centra las tarjetas en la sección */
-}
-
-.testimonialCard {
-  background: white;
-  padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center; /* Centra el contenido horizontalmente */
-}
-
-.testimonialImage {
-  border-radius: 50%;
-  margin-bottom: 1rem;
-  width: 180px; /* Tamaño fijo para las imágenes */
-  height: 180px;
-  object-fit: cover; /* Asegura que la imagen se ajuste sin distorsión */
-}
-
-.testimonialCard p {
-  font-style: italic;
-  color: #555;
-}
-
-.testimonialCard span {
-  display: block;
-  margin-top: 1rem;
-  font-weight: bold;
-  color: #800000;
-}
-
-/* Sección de Progreso */
-.progressSection {
-  margin: 4rem 0;
+.amountBtn {
+  font-family: var(--font-condensed); font-size: 1rem; font-weight: 700;
+  padding: 1rem; border-radius: 6px; border: 1.5px solid var(--color-border);
+  background: var(--color-light); color: var(--color-dark); cursor: pointer;
+  transition: background var(--transition), border-color var(--transition), color var(--transition);
   text-align: center;
 }
-
-.progressBar {
-  width: 100%;
-  height: 20px;
-  background: #e0e0e0;
-  border-radius: 10px;
-  overflow: hidden;
-  margin: 1rem 0;
+.amountBtn:hover { border-color: var(--color-dark); background: var(--color-white); }
+.amountBtnActive {
+  background: var(--color-red); border-color: var(--color-red); color: var(--color-white);
 }
 
-.progressFill {
-  height: 100%;
-  background: #800000;
-  border-radius: 10px;
+.customLabel {
+  font-family: var(--font-condensed); font-size: 0.75rem; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-dark);
+  display: block; margin-bottom: 0.4rem;
+}
+.customInput {
+  width: 100%; padding: 0.875rem 1rem; border: 1.5px solid var(--color-border);
+  border-radius: 6px; font-size: 1rem; font-family: var(--font-body);
+  color: var(--color-dark); background: var(--color-white);
+  outline: none; transition: border-color var(--transition); margin-bottom: 1.5rem;
+}
+.customInput:focus { border-color: var(--color-dark); }
+
+.impactPanel {
+  background: var(--color-navy); border-radius: 10px; padding: 1.75rem;
+}
+.impactLabel {
+  font-family: var(--font-condensed); font-size: 0.68rem; font-weight: 700;
+  letter-spacing: 0.18em; text-transform: uppercase; color: rgba(255,255,255,0.4);
+  margin-bottom: 1.25rem;
+}
+.impactGrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.25rem; }
+.impactNum {
+  font-family: var(--font-condensed); font-size: 2.5rem; font-weight: 900;
+  color: var(--color-amber); line-height: 1; margin-bottom: 0.25rem;
+}
+.impactDesc {
+  font-family: var(--font-condensed); font-size: 0.68rem; font-weight: 700;
+  letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.4);
 }
 
-.progressText {
-  font-size: 1.2rem;
-  color: #333;
+/* Payment methods */
+.methodList { display: flex; flex-direction: column; gap: 0.625rem; margin-bottom: 1.25rem; }
+.methodItem {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  padding: 1.25rem; border: 1px solid var(--color-border);
+  border-radius: 8px; background: var(--color-white);
+}
+.methodName {
+  font-family: var(--font-condensed); font-size: 1rem; font-weight: 800;
+  color: var(--color-dark); margin-bottom: 0.25rem;
+}
+.methodDesc { font-size: 0.82rem; color: var(--color-gray); line-height: 1.5; }
+.methodNum {
+  font-family: var(--font-condensed); font-size: 0.72rem; font-weight: 700;
+  color: rgba(0,0,0,0.2); letter-spacing: 0.08em; flex-shrink: 0; padding-left: 1rem;
+}
+.taxBox {
+  background: #FFF5F5; border: 1px solid #FECACA;
+  border-radius: 8px; padding: 1.1rem 1.25rem;
+  font-size: 0.82rem; color: #7f1d1d; line-height: 1.6;
 }
 
-/* Sección de Donación */
-.donationSection {
-  margin: 4rem 0;
-  text-align: center;
+/* ===== Campaigns ===== */
+.campaigns {
+  background: var(--color-light);
+  padding: var(--section-py) var(--section-px);
+  border-top: 1px solid var(--color-border);
 }
-
-.donationText {
-  font-size: 1.2rem;
-  color: #333;
-  margin-bottom: 2rem;
+.campaignsInner { max-width: 1280px; margin-inline: auto; }
+.campaignsTitle {
+  font-family: var(--font-condensed); font-size: clamp(2.5rem, 5vw, 4rem);
+  font-weight: 900; line-height: 0.95; color: var(--color-dark); margin-bottom: 2.5rem;
 }
+.campaignGrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; }
 
-/* Estilos para la sección del banner */
-.bannerSection {
-  width: 100%;
-  margin-bottom: 2rem; /* Espacio debajo del banner */
+.campaignCard {
+  background: var(--color-white); border: 1px solid var(--color-border);
+  border-radius: 10px; padding: 1.75rem; display: flex; flex-direction: column; gap: 1rem;
 }
-
-.bannerImage {
-  width: 100%;
-  height: auto;
-  border-radius: 8px; /* Opcional: bordes redondeados */
-  object-fit: cover; /* Asegura que la imagen cubra el espacio sin distorsión */
+.campaignBadge {
+  display: inline-flex; align-items: center;
+  background: var(--color-red); color: var(--color-white);
+  font-family: var(--font-condensed); font-size: 0.62rem; font-weight: 700;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  padding: 0.3rem 0.75rem; border-radius: 999px; align-self: flex-start;
 }
-
-
-/* === INICIO DEL CÓDIGO NUEVO PARA RESPONSIVE === */
-
-/* Media Query para tablets y móviles (768px o menos) */
-@media (max-width: 768px) {
-  .heroSection {
-    height: auto; /* Altura automática para adaptarse al contenido */
-    padding: 4rem 1rem; /* Más padding para que no se pegue a los bordes */
-  }
-
-  .heroTitle {
-    font-size: 2rem; /* Reducimos el tamaño del título principal */
-  }
-
-  .heroSubtitle {
-    font-size: 1.1rem; /* Reducimos el tamaño del subtítulo */
-  }
-
-  .donationButtons {
-    flex-direction: column; /* Apilamos los botones verticalmente */
-    align-items: center; /* Centramos los botones apilados */
-    width: 100%;
-  }
-
-  .donationButton {
-    width: 80%; /* Hacemos que los botones ocupen más ancho */
-    max-width: 300px;
-    text-align: center;
-  }
-
-  .sectionTitle {
-    font-size: 2rem; /* Hacemos los títulos de sección un poco más pequeños */
-  }
+.campaignName {
+  font-family: var(--font-condensed); font-size: 1.1rem; font-weight: 800;
+  color: var(--color-dark); line-height: 1.25;
 }
+.campaignBar { height: 4px; background: var(--color-border); border-radius: 999px; overflow: hidden; }
+.campaignFill { height: 100%; background: var(--color-red); border-radius: 999px; }
+.campaignMeta { display: flex; justify-content: space-between; align-items: baseline; }
+.campaignRaised { font-size: 0.82rem; color: var(--color-dark); }
+.campaignPct { font-family: var(--font-condensed); font-size: 1rem; font-weight: 800; color: var(--color-dark); }
+.campaignGoal { font-size: 0.78rem; color: var(--color-gray); }
+.campaignBtn {
+  display: block; text-align: center; width: 100%;
+  border: 1.5px solid var(--color-border); border-radius: 6px; padding: 0.875rem;
+  font-family: var(--font-condensed); font-size: 0.875rem; font-weight: 700;
+  color: var(--color-dark); letter-spacing: 0.04em; text-transform: uppercase;
+  transition: background var(--transition), border-color var(--transition), color var(--transition);
+  cursor: pointer; background: transparent;
+}
+.campaignBtn:hover { background: var(--color-dark); border-color: var(--color-dark); color: var(--color-white); }
 
-/* Media Query para móviles pequeños (480px o menos) */
-@media (max-width: 480px) {
-  .goalCard img {
-    width: 120px; /* Hacemos los íconos de objetivos más pequeños */
-    height: 120px;
-  }
-
-  .goalCard h3 {
-    font-size: 1.2rem;
-  }
-
-  /* Si añades la sección de testimonios, estos estilos la harán responsive */
-  .testimonialImage {
-    width: 100px;
-    height: 100px;
-  }
+/* Responsive */
+@media (max-width: 1024px) {
+  .mainInner { grid-template-columns: 1fr; gap: 3rem; }
+  .campaignGrid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 640px) {
+  .campaignGrid { grid-template-columns: 1fr; }
 }
