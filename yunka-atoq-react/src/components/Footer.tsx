@@ -1,12 +1,91 @@
-// src/components/Footer.tsx
+import { Link } from 'react-router-dom';
 import styles from './Footer.module.css';
 
+const compania = [
+  { to: '/nosotros', label: 'Nuestra historia' },
+  { to: '/servicios', label: 'Servicios' },
+  { to: '/estadisticas', label: 'Transparencia' },
+  { to: '/estadisticas', label: 'Operativos' },
+  { to: '/noticias', label: 'Noticias' },
+];
+
+const participar = [
+  { to: '/voluntarios', label: 'Únete como voluntario' },
+  { to: '/donaciones', label: 'Hacer una donación' },
+  { to: '/capacitaciones', label: 'Capacitaciones' },
+  { to: '/donaciones', label: 'Apadrina un equipo' },
+  { to: '/login', label: 'Acceso voluntarios' },
+];
+
+const social = [
+  { label: 'fb', href: '#' },
+  { label: 'ig', href: '#' },
+  { label: 'tk', href: '#' },
+  { label: 'yt', href: '#' },
+];
+
 function Footer() {
-  const currentYear = new Date().getFullYear();
+  const year = new Date().getFullYear();
+
   return (
     <footer className={styles.footer}>
-      <p>&copy; {currentYear} Yunka Atoq - Bomberos Voluntarios. Todos los derechos reservados.</p>
+      <div className={styles.top}>
+        <div className={styles.brand}>
+          <div className={styles.brandLogo}>
+            <img src="/yunka_atoq_log.png" alt="Logo" className={styles.brandImg} />
+            <span className={styles.brandText}>
+              <span className={styles.brandName}>Yunka Atoq</span>
+              <span className={styles.brandSub}>Bomberos Voluntarios</span>
+            </span>
+          </div>
+          <p className={styles.brandDesc}>
+            El zorro del valle, vigilante. Compañía de bomberos voluntarios al servicio de Cochabamba desde 2008.
+          </p>
+          <div className={styles.social}>
+            {social.map(({ label, href }) => (
+              <a key={label} href={href} className={styles.socialBtn} target="_blank" rel="noreferrer">
+                {label}
+              </a>
+            ))}
+          </div>
+        </div>
+
+        <div className={styles.col}>
+          <h4 className={styles.colTitle}>Compañía</h4>
+          <ul className={styles.colList}>
+            {compania.map(({ to, label }) => (
+              <li key={label}><Link to={to}>{label}</Link></li>
+            ))}
+          </ul>
+        </div>
+
+        <div className={styles.col}>
+          <h4 className={styles.colTitle}>Participar</h4>
+          <ul className={styles.colList}>
+            {participar.map(({ to, label }) => (
+              <li key={label}><Link to={to}>{label}</Link></li>
+            ))}
+          </ul>
+        </div>
+
+        <div className={styles.col}>
+          <h4 className={styles.colTitle}>Contacto</h4>
+          <ul className={styles.colList}>
+            <li>Av. Heroínas #1456</li>
+            <li>Cercado · Cochabamba</li>
+            <li>+591 4 422 0000</li>
+            <li><a href="mailto:contacto@yunkaatoq.bo">contacto@yunkaatoq.bo</a></li>
+            <li className={styles.emergency}>Emergencias · 119</li>
+          </ul>
+        </div>
+      </div>
+
+      <div className={styles.bottom}>
+        <p>© {year} Yunka Atoq · Bomberos Voluntarios. Personería jurídica Nº 042/2008.</p>
+        <p>NIT 1023459021 · Hecho con propósito en Cochabamba, Bolivia.</p>
+      </div>
     </footer>
   );
 }
+
 export default Footer;

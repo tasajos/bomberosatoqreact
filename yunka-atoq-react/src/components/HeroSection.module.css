@@ -1,0 +1,192 @@
+.hero {
+  background: var(--color-light);
+  padding: var(--section-py) var(--section-px);
+  position: relative;
+  overflow: hidden;
+}
+
+.inner {
+  max-width: 1280px;
+  margin-inline: auto;
+  display: grid;
+  grid-template-columns: 1fr 480px;
+  gap: 4rem;
+  align-items: center;
+}
+
+/* Meta badge */
+.meta {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  font-family: var(--font-condensed);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-gray);
+  margin-bottom: 2rem;
+}
+
+.metaDot { color: var(--color-gray); }
+
+/* Headline */
+.headline {
+  font-family: var(--font-condensed);
+  font-size: clamp(3rem, 6vw, 5.5rem);
+  font-weight: 900;
+  line-height: 0.95;
+  letter-spacing: -0.01em;
+  color: var(--color-dark);
+  margin-bottom: 1.5rem;
+}
+
+.headlineAccent {
+  color: var(--color-red);
+  font-style: italic;
+}
+
+.description {
+  font-size: 1rem;
+  color: var(--color-gray);
+  max-width: 480px;
+  line-height: 1.65;
+  margin-bottom: 2.5rem;
+}
+
+.ctas {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+/* Campaign Card */
+.card {
+  background: linear-gradient(145deg, #122040 0%, #0B1729 100%);
+  border-radius: 12px;
+  padding: 2rem;
+  color: var(--color-white);
+  position: relative;
+  overflow: hidden;
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.25rem;
+}
+
+.cardLabel {
+  font-family: var(--font-condensed);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.5);
+}
+
+.cardBadge {
+  background: var(--color-red);
+  color: var(--color-white);
+  font-family: var(--font-condensed);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 0.3rem 0.75rem;
+  border-radius: 3px;
+}
+
+.cardTitle {
+  font-family: var(--font-condensed);
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1.2;
+  margin-bottom: 1.5rem;
+}
+
+/* Progress bar */
+.progressTrack {
+  height: 6px;
+  background: rgba(255,255,255,0.12);
+  border-radius: 999px;
+  margin-bottom: 0.75rem;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: var(--color-red);
+  border-radius: 999px;
+  transition: width 1s ease;
+}
+
+.progressMeta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.5);
+  margin-bottom: 1.5rem;
+}
+
+.cardStats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.75rem;
+}
+
+.stat {}
+
+.statValue {
+  font-family: var(--font-condensed);
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--color-white);
+  line-height: 1;
+}
+
+.statLabel {
+  font-family: var(--font-condensed);
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.45);
+  margin-top: 0.25rem;
+}
+
+.donateFullBtn {
+  display: block;
+  width: 100%;
+  text-align: center;
+  background: var(--color-red);
+  color: var(--color-white);
+  font-family: var(--font-condensed);
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.875rem;
+  border-radius: 6px;
+  transition: background var(--transition);
+  margin-bottom: 0.625rem;
+}
+
+.donateFullBtn:hover { background: var(--color-red-hover); }
+
+.methods {
+  text-align: center;
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.35);
+}
+
+@media (max-width: 1024px) {
+  .inner { grid-template-columns: 1fr; gap: 3rem; }
+  .card { max-width: 480px; }
+}
+
+@media (max-width: 640px) {
+  .card { max-width: 100%; }
+}

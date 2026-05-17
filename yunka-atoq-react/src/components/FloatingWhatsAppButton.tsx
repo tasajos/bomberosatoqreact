@@ -1,15 +1,15 @@
-// src/components/FloatingWhatsAppButton.tsx
 import styles from './FloatingWhatsAppButton.module.css';
 
-function FloatingWhatsAppButton() {
-  const numero = "+59168503758"; // Tu número de WhatsApp
-  const mensaje = "Hola, necesito más información.";
-  const url = `https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}`;
+function FloatingEmergencyButton() {
+  const numero = '+59168503758';
+  const url = `https://wa.me/${numero}?text=${encodeURIComponent('Hola, necesito información.')}`;
 
   return (
-    <a href={url} target="_blank" rel="noopener noreferrer" className={styles.whatsappButton}>
-      <img src="/icons/whatsapp.svg" alt="WhatsApp" />
+    <a href={url} target="_blank" rel="noopener noreferrer" className={styles.btn} aria-label="Contacto de emergencia WhatsApp">
+      <span className={styles.label}>Emergencia · 68503758</span>
+      <span className={styles.dot} />
     </a>
   );
 }
-export default FloatingWhatsAppButton;
+
+export default FloatingEmergencyButton;

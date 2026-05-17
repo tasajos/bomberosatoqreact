@@ -1,0 +1,148 @@
+/* =============================================
+   Yunka Atoq · Design System Global
+   ============================================= */
+
+:root {
+  /* Colores */
+  --color-dark:    #0B1729;
+  --color-navy:    #122040;
+  --color-red:     #C41E1E;
+  --color-red-hover: #A01818;
+  --color-amber:   #D97706;
+  --color-cream:   #F5F0E8;
+  --color-light:   #F9F7F4;
+  --color-white:   #FFFFFF;
+  --color-gray:    #6B7280;
+  --color-border:  #E5E0D8;
+
+  /* Tipografía */
+  --font-condensed: 'Barlow Condensed', sans-serif;
+  --font-body:      'Barlow', sans-serif;
+
+  /* Espaciado */
+  --section-px: clamp(1.5rem, 5vw, 6rem);
+  --section-py: clamp(4rem, 8vw, 8rem);
+
+  /* Transiciones */
+  --transition: 0.2s ease;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--color-dark);
+  background: var(--color-white);
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+/* Clases utilitarias */
+.container {
+  width: 100%;
+  max-width: 1280px;
+  margin-inline: auto;
+  padding-inline: var(--section-px);
+}
+
+.section-tag {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-family: var(--font-condensed);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-red);
+  margin-bottom: 1.25rem;
+}
+
+.section-tag::before {
+  content: '';
+  display: block;
+  width: 2rem;
+  height: 2px;
+  background: var(--color-red);
+  flex-shrink: 0;
+}
+
+.section-tag--light {
+  color: var(--color-amber);
+}
+
+.section-tag--light::before {
+  background: var(--color-amber);
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--color-red);
+  color: var(--color-white);
+  font-family: var(--font-condensed);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  padding: 0.875rem 1.75rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background var(--transition);
+  text-transform: uppercase;
+}
+
+.btn-primary:hover {
+  background: var(--color-red-hover);
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: transparent;
+  color: var(--color-dark);
+  font-family: var(--font-condensed);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  padding: 0.875rem 1.75rem;
+  border: 2px solid var(--color-border);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: border-color var(--transition), color var(--transition);
+  text-transform: uppercase;
+}
+
+.btn-secondary:hover {
+  border-color: var(--color-dark);
+}
+
+.btn-secondary--light {
+  color: var(--color-white);
+  border-color: rgba(255,255,255,0.35);
+}
+
+.btn-secondary--light:hover {
+  border-color: var(--color-white);
+}

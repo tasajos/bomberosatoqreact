@@ -1,14 +1,164 @@
-/* src/components/Footer.module.css */
-
 .footer {
-  background-color: #800000; /* Color guindo */
-  color: white;
-  text-align: center;
-  padding: 1.5rem;
-  margin-top: auto; /* Ayuda a empujar el footer al final de la página */
+  background: var(--color-navy);
+  color: rgba(255,255,255,0.75);
 }
 
-/* Opcional: Quitar el margen por defecto del párrafo para un mejor centrado */
-.footer p {
-  margin: 0;
+.top {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 3rem;
+  max-width: 1280px;
+  margin-inline: auto;
+  padding: 4rem var(--section-px) 3rem;
+}
+
+/* Brand column */
+.brand {}
+
+.brandLogo {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  margin-bottom: 1rem;
+}
+
+.brandImg {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+}
+
+.brandText {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+
+.brandName {
+  font-family: var(--font-condensed);
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--color-white);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.brandSub {
+  font-family: var(--font-condensed);
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--color-amber);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.brandDesc {
+  font-size: 0.875rem;
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+  max-width: 280px;
+}
+
+.social {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.socialBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 4px;
+  font-family: var(--font-condensed);
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: rgba(255,255,255,0.7);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  transition: background var(--transition), color var(--transition);
+}
+
+.socialBtn:hover {
+  background: rgba(255,255,255,0.15);
+  color: var(--color-white);
+}
+
+/* Nav columns */
+.col {}
+
+.colTitle {
+  font-family: var(--font-condensed);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--color-white);
+  margin-bottom: 1.25rem;
+}
+
+.colList {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.colList li {
+  font-size: 0.875rem;
+}
+
+.colList a {
+  color: rgba(255,255,255,0.65);
+  transition: color var(--transition);
+}
+
+.colList a:hover {
+  color: var(--color-white);
+}
+
+.emergency {
+  font-family: var(--font-condensed);
+  font-weight: 700;
+  color: var(--color-amber) !important;
+  font-size: 0.9rem !important;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* Bottom bar */
+.bottom {
+  border-top: 1px solid rgba(255,255,255,0.1);
+  max-width: 1280px;
+  margin-inline: auto;
+  padding: 1.25rem var(--section-px);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+}
+
+@media (max-width: 1024px) {
+  .top {
+    grid-template-columns: 1fr 1fr;
+    gap: 2.5rem;
+  }
+  .brand { grid-column: 1 / -1; }
+}
+
+@media (max-width: 640px) {
+  .top {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    padding: 2.5rem var(--section-px) 2rem;
+  }
+  .bottom {
+    flex-direction: column;
+    text-align: center;
+  }
 }

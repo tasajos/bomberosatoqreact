@@ -1,47 +1,69 @@
-// src/components/Header.tsx
 import { useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import styles from './Header.module.css';
 
-function Header() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+const navItems = [
+  { to: '/',              label: 'Inicio' },
+  { to: '/nosotros',      label: 'Nosotros' },
+  { to: '/servicios',     label: 'Servicios' },
+  { to: '/estadisticas',  label: 'Estadísticas' },
+  { to: '/galeria',       label: 'Galería' },
+  { to: '/voluntarios',   label: 'Voluntariado' },
+  { to: '/donaciones',    label: 'Donaciones' },
+  { to: '/noticias',      label: 'Noticias' },
+  { to: '/contacto',      label: 'Contacto' },
+];
 
-  const closeMenu = () => setIsMenuOpen(false);
+function Header() {
+  const [open, setOpen] = useState(false);
+  const close = () => setOpen(false);
 
   return (
     <header className={styles.header}>
-      {/* 1. Logo ahora con ícono y texto */}
-      <div className={styles.logo}>
-        <Link to="/" onClick={closeMenu}>
-          <img src="/yunka_atoq_log.png" alt="Logo Yunka Atoq" className={styles.logoIcon} />
-          <span>YUNKA ATOQ</span>
+      <div className={styles.inner}>
+        <Link to="/" className={styles.logo} onClick={close}>
+          <img src="/yunka_atoq_log.png" alt="Logo Yunka Atoq" />
+          <span className={styles.logoText}>
+            <span className={styles.logoName}>Yunka Atoq</span>
+            <span className={styles.logoSub}>Bomberos Voluntarios</span>
+          </span>
         </Link>
-      </div>
 
-      <button 
-        className={styles.hamburgerButton}
-        onClick={() => setIsMenuOpen(!isMenuOpen)}
-        aria-label="Abrir menú"
-      >
-        <div className={styles.hamburgerIcon}></div>
-      </button>
+        <nav className={`${styles.nav} ${open ? styles.navOpen : ''}`}>
+          {navItems.map(({ to, label }) => (
+            <NavLink
+              key={to}
+              to={to}
+              end={to === '/'}
+              className={({ isActive }) =>
+                `${styles.navLink} ${isActive ? styles.navLinkActive : ''}`
+              }
+              onClick={close}
+            >
+              {label}
+            </NavLink>
+          ))}
+        </nav>
 
-      <nav className={`${styles.mainNav} ${isMenuOpen ? styles.menuOpen : ''}`}>
-        <NavLink to="/" className={({isActive}) => isActive ? styles.activeLink : ''} onClick={closeMenu}>Inicio</NavLink>
-        <NavLink to="/nosotros" className={({isActive}) => isActive ? styles.activeLink : ''} onClick={closeMenu}>Nosotros</NavLink>
-        <NavLink to="/historia" className={({isActive}) => isActive ? styles.activeLink : ''} onClick={closeMenu}>Historia</NavLink>
-        <NavLink to="/reconocimientos" className={({isActive}) => isActive ? styles.activeLink : ''} onClick={closeMenu}>Reconocimientos</NavLink>
-        <NavLink to="/proyectos" className={({isActive}) => isActive ? styles.activeLink : ''} onClick={closeMenu}>Proyectos</NavLink>
-        <NavLink to="/donaciones" className={({isActive}) => isActive ? styles.activeLink : ''} onClick={closeMenu}>Donaciones</NavLink>
-        <NavLink to="/contacto" className={({isActive}) => isActive ? styles.activeLink : ''} onClick={closeMenu}>Contacto</NavLink>
-
-        {/* 2. Botón de Iniciar Sesión añadido al final del nav */}
-        <div className={styles.headerActions}>
-          <Link to="/login" className={styles.loginButton} onClick={closeMenu}>
-            Iniciar sesión
+        <div className={styles.actions}>
+          <Link to="/login" className={styles.accessLink}>
+            <span>🔒</span> Acceso Voluntarios
+          </Link>
+          <Link to="/donaciones" className={styles.donateBtn}>
+            Donar
           </Link>
         </div>
-      </nav>
+
+        <button
+          className={`${styles.hamburger} ${open ? styles.hamburgerOpen : ''}`}
+          onClick={() => setOpen(!open)}
+          aria-label="Abrir menú"
+        >
+          <span />
+          <span />
+          <span />
+        </button>
+      </div>
     </header>
   );
 }
