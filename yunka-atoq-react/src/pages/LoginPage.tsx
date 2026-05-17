@@ -3,15 +3,12 @@ import { useNavigate, Navigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import styles from './LoginPage.module.css';
 
-type Tab = 'voluntario' | 'admin';
-
 export default function LoginPage() {
-  const [tab, setTab]         = useState<Tab>('voluntario');
-  const [email, setEmail]     = useState('');
+  const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
   const [remember, setRemember] = useState(false);
-  const [error, setError]     = useState('');
-  const [loading, setLoading] = useState(false);
+  const [error, setError]       = useState('');
+  const [loading, setLoading]   = useState(false);
 
   const { user, login, loading: authLoading } = useAuth();
   const navigate = useNavigate();
@@ -71,33 +68,18 @@ export default function LoginPage() {
 
         {/* Right */}
         <div className={styles.right}>
-          <div className={styles.tabs}>
-            <button
-              className={`${styles.tab} ${tab === 'voluntario' ? styles.tabActive : ''}`}
-              onClick={() => setTab('voluntario')}
-            >
-              Voluntario activo
-            </button>
-            <button
-              className={`${styles.tab} ${tab === 'admin' ? styles.tabActive : ''}`}
-              onClick={() => setTab('admin')}
-            >
-              Administración
-            </button>
-          </div>
-
           <h2 className={styles.title}>Bienvenido<br />de vuelta.</h2>
-          <p className={styles.subtitle}>Ingresa con tu carnet de voluntario y contraseña.</p>
+          <p className={styles.subtitle}>Ingresa con tu correo y contraseña.</p>
 
           <form className={styles.form} onSubmit={handleSubmit}>
             {error && <div className={styles.error}>{error}</div>}
 
             <div className={styles.field}>
-              <label className={styles.label}>Carnet de voluntario</label>
+              <label className={styles.label}>Correo electrónico</label>
               <input
                 className={styles.input}
                 type="email"
-                placeholder="YA-2026-0042"
+                placeholder="voluntario@yunkaatoq.bo"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 required
