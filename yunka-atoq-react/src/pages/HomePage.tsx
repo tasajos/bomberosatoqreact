@@ -4,6 +4,7 @@ import StatsBar from '../components/StatsBar';
 import HistorySection from '../components/HistorySection';
 import ServicesSection from '../components/ServicesSection';
 import EspecialidadesSection from '../components/EspecialidadesSection';
+import RecognitionsSection from '../components/RecognitionsSection';
 import RecruitSection from '../components/RecruitSection';
 
 function HomePage() {
@@ -13,8 +14,10 @@ function HomePage() {
       <HeroSection />
       <StatsBar />
       <HistorySection />
+      <RecognitionsSection />
       <ServicesSection />
       <EspecialidadesSection />
+      
       <RecruitSection />
     </>
   );
