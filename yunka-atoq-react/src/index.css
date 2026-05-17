@@ -20,8 +20,8 @@
   --font-body:      'Barlow', sans-serif;
 
   /* Espaciado */
-  --section-px: clamp(1.5rem, 5vw, 6rem);
-  --section-py: clamp(4rem, 8vw, 8rem);
+  --section-px: clamp(1.25rem, 5vw, 6rem);
+  --section-py: clamp(3rem, 8vw, 8rem);
 
   /* Transiciones */
   --transition: 0.2s ease;

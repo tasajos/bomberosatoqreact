@@ -217,3 +217,12 @@
   .ctaInner { grid-template-columns: 1fr; }
   .ctaBtn { min-width: unset; width: 100%; }
 }
+@media (max-width: 480px) {
+  .hero { padding-bottom: 2rem; }
+  .list { padding-left: 1rem; padding-right: 1rem; }
+  .cta { padding-left: 1rem; padding-right: 1rem; }
+  .serviceThumb { width: 48px; height: 48px; }
+  .serviceThumb svg { width: 24px; height: 24px; }
+  .capList { gap: 0; }
+  .capItem { font-size: 0.82rem; padding: 0.625rem 0; }
+}

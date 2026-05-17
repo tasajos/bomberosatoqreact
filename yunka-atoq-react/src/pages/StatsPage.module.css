@@ -203,4 +203,15 @@
   .liveMetrics { grid-template-columns: 1fr 1fr; }
   .distGrid { grid-template-columns: 1fr; }
   .distCard { border-right: none; }
+  .chartSection { padding-left: 1rem; padding-right: 1rem; }
+  .livePanel { border-radius: 8px; }
+  .livePanelTop { padding: 1rem; }
+  .liveMetric { padding: 1.25rem 1rem; }
+}
+@media (max-width: 480px) {
+  .hero { padding-bottom: 2rem; }
+  .liveMetrics { grid-template-columns: 1fr 1fr; }
+  .metricValue { font-size: 1.75rem; }
+  .distTop { flex-wrap: wrap; }
+  .distPct { font-size: 1.5rem; }
 }

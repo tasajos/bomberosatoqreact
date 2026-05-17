@@ -165,4 +165,13 @@
 }
 @media (max-width: 640px) {
   .campaignGrid { grid-template-columns: 1fr; }
+  .amountGrid { grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
+  .amountBtn { padding: 0.75rem 0.5rem; font-size: 0.875rem; }
+  .freqToggle { flex-wrap: wrap; }
+  .impactGrid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 480px) {
+  .amountGrid { grid-template-columns: repeat(2, 1fr); }
+  .mainSection { padding-left: 1rem; padding-right: 1rem; }
+  .campaigns { padding-left: 1rem; padding-right: 1rem; }
 }
