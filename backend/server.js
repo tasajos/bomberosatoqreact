@@ -9,7 +9,8 @@ import operativosRoutes from './routes/operativos.js';
 import campaniasRoutes from './routes/campanias.js';
 import noticiasRoutes from './routes/noticias.js';
 import voluntariosRoutes from './routes/voluntarios.js';
-import sliderRoutes from './routes/slider.js';
+import sliderRoutes          from './routes/slider.js';
+import reconocimientosRoutes from './routes/reconocimientos.js';
 
 dotenv.config();
 
@@ -31,7 +32,8 @@ app.use('/api/operativos', operativosRoutes);
 app.use('/api/campanias',  campaniasRoutes);
 app.use('/api/noticias',   noticiasRoutes);
 app.use('/api/voluntarios',voluntariosRoutes);
-app.use('/api/slider',     sliderRoutes);
+app.use('/api/slider',          sliderRoutes);
+app.use('/api/reconocimientos', reconocimientosRoutes);
 
 app.get('/api/health', (_, res) => res.json({ status: 'ok', ts: new Date().toISOString() }));
 

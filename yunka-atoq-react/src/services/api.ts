@@ -82,6 +82,31 @@ export const voluntariosApi = {
     }),
 };
 
+// Reconocimientos
+export const reconocimientosApi = {
+  list: (all = false) => request<Reconocimiento[]>(`/reconocimientos${all ? '?all=true' : ''}`),
+  get:  (id: number)  => request<Reconocimiento>(`/reconocimientos/${id}`),
+  create: (data: Partial<Reconocimiento>) =>
+    request<{ id: number }>('/reconocimientos', { method: 'POST', body: JSON.stringify(data) }),
+  update: (id: number, data: Partial<Reconocimiento>) =>
+    request<{ ok: boolean }>(`/reconocimientos/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  delete: (id: number) =>
+    request<{ ok: boolean }>(`/reconocimientos/${id}`, { method: 'DELETE' }),
+  uploadImage: (file: File) => {
+    const token = getToken();
+    const fd = new FormData();
+    fd.append('imagen', file);
+    return fetch(`${BASE_URL}/reconocimientos/upload-image`, {
+      method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: fd,
+    }).then(async r => {
+      if (!r.ok) { const b = await r.json().catch(() => ({})); throw new Error(b.error || `Error ${r.status}`); }
+      return r.json() as Promise<{ url: string }>;
+    });
+  },
+};
+
 // Slider
 export const sliderApi = {
   list: (all = false) => request<SliderImage[]>(`/slider${all ? '?all=true' : ''}`),
@@ -105,6 +130,22 @@ export const sliderApi = {
 };
 
 // Types
+export interface Reconocimiento {
+  id: number;
+  badge: string;
+  fecha: string;
+  institucion: string;
+  titulo: string;
+  descripcion: string;
+  texto_completo: string;
+  firmante: string;
+  icono: string;
+  img_url: string | null;
+  activo: number;
+  orden: number;
+  created_at: string;
+}
+
 export interface SliderImage {
   id: number;
   filename: string;

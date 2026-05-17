@@ -26,6 +26,7 @@ import AdminLayout from './layouts/AdminLayout';
 import DashboardPage from './pages/admin/DashboardPage';
 import SliderPage from './pages/admin/SliderPage';
 import CampaignsPage from './pages/admin/CampaignsPage';
+import RecognitionsAdminPage from './pages/admin/RecognitionsAdminPage';
 
 import './index.css';
 
@@ -59,7 +60,8 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
             <Route path="/admin" element={<AdminLayout />}>
                 <Route path="dashboard"  element={<DashboardPage />} />
               <Route path="slider"     element={<SliderPage />} />
-              <Route path="campanias"  element={<CampaignsPage />} />
+              <Route path="campanias"        element={<CampaignsPage />} />
+              <Route path="reconocimientos"  element={<RecognitionsAdminPage />} />
             </Route>
           </Route>
         </Routes>
