@@ -1,4 +1,5 @@
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+export const API_BASE = BASE_URL.replace('/api', '');
 
 function getToken(): string | null {
   return localStorage.getItem('ya_token');
@@ -67,7 +68,41 @@ export const voluntariosApi = {
     }),
 };
 
+// Slider
+export const sliderApi = {
+  list: (all = false) => request<SliderImage[]>(`/slider${all ? '?all=true' : ''}`),
+  upload: (formData: FormData) => {
+    const token = getToken();
+    return fetch(`${BASE_URL}/slider`, {
+      method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: formData,
+    }).then(async r => {
+      if (!r.ok) { const b = await r.json().catch(() => ({})); throw new Error(b.error || `Error ${r.status}`); }
+      return r.json() as Promise<SliderImage>;
+    });
+  },
+  update: (id: number, data: Partial<SliderImage>) =>
+    request<{ ok: boolean }>(`/slider/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  reorder: (items: { id: number; orden: number }[]) =>
+    request<{ ok: boolean }>('/slider/reorder/batch', { method: 'PUT', body: JSON.stringify({ items }) }),
+  delete: (id: number) =>
+    request<{ ok: boolean }>(`/slider/${id}`, { method: 'DELETE' }),
+};
+
 // Types
+export interface SliderImage {
+  id: number;
+  filename: string;
+  url: string;
+  caption: string;
+  tag: string;
+  position: string;
+  activo: number;
+  orden: number;
+  created_at: string;
+}
+
 export interface AuthUser {
   id: number;
   nombre: string;

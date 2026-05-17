@@ -24,6 +24,7 @@ import { AuthProvider } from './context/AuthContext.tsx';
 import ProtectedRoute from './auth/ProtectedRoute';
 import AdminLayout from './layouts/AdminLayout';
 import DashboardPage from './pages/admin/DashboardPage';
+import SliderPage from './pages/admin/SliderPage';
 
 import './index.css';
 
@@ -55,7 +56,8 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 
           <Route element={<ProtectedRoute allowedRoles={['voluntario', 'admin']} />}>
             <Route path="/admin" element={<AdminLayout />}>
-              <Route path="dashboard" element={<DashboardPage />} />
+                <Route path="dashboard"  element={<DashboardPage />} />
+              <Route path="slider"     element={<SliderPage />} />
             </Route>
           </Route>
         </Routes>
