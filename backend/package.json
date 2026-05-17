@@ -4,7 +4,9 @@
   "type": "module",
   "scripts": {
     "dev": "nodemon server.js",
-    "start": "node server.js"
+    "start": "node server.js",
+    "setup:admin": "node scripts/setup-admin.js",
+    "check:db": "node scripts/check-db.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
