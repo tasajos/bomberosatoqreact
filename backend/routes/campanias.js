@@ -1,6 +1,26 @@
 import { Router } from 'express';
+import multer from 'multer';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import pool from '../db.js';
 import { verifyToken, requireRole } from '../middleware/auth.js';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const storage = multer.diskStorage({
+  destination: path.join(__dirname, '..', 'uploads', 'campanias'),
+  filename: (_, file, cb) => {
+    const ext = path.extname(file.originalname).toLowerCase();
+    cb(null, `campania_${Date.now()}${ext}`);
+  },
+});
+const upload = multer({
+  storage,
+  limits: { fileSize: 8 * 1024 * 1024 },
+  fileFilter: (_, file, cb) => {
+    const ok = ['.jpg', '.jpeg', '.png', '.webp'].includes(path.extname(file.originalname).toLowerCase());
+    cb(null, ok);
+  },
+});
 
 const router = Router();
 
@@ -65,6 +85,12 @@ router.put('/:id', verifyToken, requireRole('admin'), async (req, res) => {
     console.error(err);
     res.status(500).json({ error: 'Error del servidor' });
   }
+});
+
+// POST /api/campanias/upload-image — subir imagen (admin)
+router.post('/upload-image', verifyToken, requireRole('admin'), upload.single('imagen'), (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'No se recibió imagen' });
+  res.json({ url: `/uploads/campanias/${req.file.filename}` });
 });
 
 export default router;

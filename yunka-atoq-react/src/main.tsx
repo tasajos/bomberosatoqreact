@@ -25,6 +25,7 @@ import ProtectedRoute from './auth/ProtectedRoute';
 import AdminLayout from './layouts/AdminLayout';
 import DashboardPage from './pages/admin/DashboardPage';
 import SliderPage from './pages/admin/SliderPage';
+import CampaignsPage from './pages/admin/CampaignsPage';
 
 import './index.css';
 
@@ -58,6 +59,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
             <Route path="/admin" element={<AdminLayout />}>
                 <Route path="dashboard"  element={<DashboardPage />} />
               <Route path="slider"     element={<SliderPage />} />
+              <Route path="campanias"  element={<CampaignsPage />} />
             </Route>
           </Route>
         </Routes>

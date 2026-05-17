@@ -44,11 +44,25 @@ export const operativosApi = {
 // Campañas
 export const campaniasApi = {
   list: () => request<Campania[]>('/campanias'),
+  activas: () => request<Campania[]>('/campanias').then(r => r.filter(c => c.estado === 'activa')),
   activa: () => request<Campania>('/campanias/activa'),
   create: (data: Partial<Campania>) =>
     request<{ id: number }>('/campanias', { method: 'POST', body: JSON.stringify(data) }),
   update: (id: number, data: Partial<Campania>) =>
     request<{ ok: boolean }>(`/campanias/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  uploadImage: (file: File) => {
+    const token = getToken();
+    const fd = new FormData();
+    fd.append('imagen', file);
+    return fetch(`${BASE_URL}/campanias/upload-image`, {
+      method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: fd,
+    }).then(async r => {
+      if (!r.ok) { const b = await r.json().catch(() => ({})); throw new Error(b.error || `Error ${r.status}`); }
+      return r.json() as Promise<{ url: string }>;
+    });
+  },
 };
 
 // Noticias
