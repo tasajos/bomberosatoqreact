@@ -82,6 +82,18 @@ export const voluntariosApi = {
     }),
 };
 
+// Servicios
+export const serviciosApi = {
+  list: (all = false) => request<Servicio[]>(`/servicios${all ? '?all=true' : ''}`),
+  get:  (id: number)  => request<Servicio>(`/servicios/${id}`),
+  create: (data: Partial<Servicio>) =>
+    request<{ id: number }>('/servicios', { method: 'POST', body: JSON.stringify(data) }),
+  update: (id: number, data: Partial<Servicio>) =>
+    request<{ ok: boolean }>(`/servicios/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  delete: (id: number) =>
+    request<{ ok: boolean }>(`/servicios/${id}`, { method: 'DELETE' }),
+};
+
 // Reconocimientos
 export const reconocimientosApi = {
   list: (all = false) => request<Reconocimiento[]>(`/reconocimientos${all ? '?all=true' : ''}`),
@@ -130,6 +142,19 @@ export const sliderApi = {
 };
 
 // Types
+export interface Servicio {
+  id: number;
+  numero: string;
+  titulo: string;
+  descripcion: string;
+  icono: string;
+  capacidades: string[];
+  tags: string[];
+  activo: number;
+  orden: number;
+  created_at: string;
+}
+
 export interface Reconocimiento {
   id: number;
   badge: string;
