@@ -1,0 +1,206 @@
+/* ===== Hero ===== */
+.hero {
+  background: var(--color-light);
+  padding: 3rem var(--section-px) var(--section-py);
+  border-bottom: 1px solid var(--color-border);
+}
+.heroInner { max-width: 1280px; margin-inline: auto; }
+
+.breadcrumb {
+  font-family: var(--font-condensed);
+  font-size: 0.7rem; font-weight: 700;
+  letter-spacing: 0.15em; text-transform: uppercase;
+  color: var(--color-gray); margin-bottom: 2rem;
+}
+.breadcrumb a { color: var(--color-gray); transition: color var(--transition); }
+.breadcrumb a:hover { color: var(--color-dark); }
+.breadcrumb span { margin-inline: 0.5rem; }
+
+.heroTitle {
+  font-family: var(--font-condensed);
+  font-size: clamp(3rem, 7vw, 5.5rem);
+  font-weight: 900; line-height: 0.93;
+  color: var(--color-dark); margin-bottom: 1.5rem;
+}
+.heroDesc {
+  font-size: 1rem; color: var(--color-gray);
+  max-width: 540px; line-height: 1.7;
+}
+
+/* ===== Live Panel ===== */
+.liveWrap {
+  background: var(--color-white);
+  padding: var(--section-py) var(--section-px);
+}
+.liveInner { max-width: 1280px; margin-inline: auto; }
+
+.livePanel {
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.livePanelTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid var(--color-border);
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+.liveLabel {
+  font-family: var(--font-condensed);
+  font-size: 0.7rem; font-weight: 700;
+  letter-spacing: 0.15em; text-transform: uppercase;
+  color: var(--color-gray); margin-bottom: 0.375rem;
+}
+.liveDate {
+  font-family: var(--font-condensed);
+  font-size: 1.25rem; font-weight: 800;
+  color: var(--color-dark);
+}
+.liveBadge {
+  display: flex; align-items: center; gap: 0.5rem;
+  background: rgba(196,30,30,0.08);
+  border: 1px solid rgba(196,30,30,0.2);
+  border-radius: 999px;
+  padding: 0.4rem 1rem;
+  font-family: var(--font-condensed);
+  font-size: 0.72rem; font-weight: 700;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--color-red);
+}
+.liveDot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--color-red);
+  animation: blink 1.6s infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+.liveMetrics {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+}
+.liveMetric {
+  padding: 1.75rem 2rem;
+  border-right: 1px solid var(--color-border);
+}
+.liveMetric:last-child { border-right: none; }
+
+.metricValue {
+  font-family: var(--font-condensed);
+  font-size: clamp(2rem, 3vw, 2.75rem);
+  font-weight: 900; color: var(--color-dark);
+  line-height: 1; margin-bottom: 0.375rem;
+}
+.metricLabel {
+  font-family: var(--font-condensed);
+  font-size: 0.65rem; font-weight: 700;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--color-gray); margin-bottom: 0.5rem;
+}
+.metricSub {
+  font-size: 0.78rem; color: var(--color-amber);
+}
+
+/* ===== Chart ===== */
+.chartSection {
+  background: var(--color-light);
+  padding: var(--section-py) var(--section-px);
+  border-top: 1px solid var(--color-border);
+}
+.chartInner { max-width: 1280px; margin-inline: auto; }
+
+.chartHeader { margin-bottom: 2.5rem; }
+.chartTitle {
+  font-family: var(--font-condensed);
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  font-weight: 900; line-height: 0.95;
+  color: var(--color-dark);
+}
+
+.chartLegend {
+  display: flex; gap: 1.5rem; margin-bottom: 2rem;
+  justify-content: flex-end;
+}
+.legendItem {
+  display: flex; align-items: center; gap: 0.5rem;
+  font-size: 0.8rem; color: var(--color-dark);
+}
+.legendDot {
+  width: 12px; height: 12px; border-radius: 2px; flex-shrink: 0;
+}
+.legendDotNavy { background: var(--color-navy); }
+.legendDotRed  { background: var(--color-red); }
+
+.chartWrap {
+  width: 100%;
+  overflow-x: auto;
+}
+.chartSvg { display: block; min-width: 600px; width: 100%; }
+
+/* ===== Distribution ===== */
+.distSection {
+  background: var(--color-white);
+  padding: var(--section-py) var(--section-px);
+  border-top: 1px solid var(--color-border);
+}
+.distInner { max-width: 1280px; margin-inline: auto; }
+
+.distGrid {
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  margin-top: 2rem;
+}
+.distCard {
+  padding: 2rem;
+  border-right: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+}
+.distCard:nth-child(3n) { border-right: none; }
+.distCard:nth-last-child(-n+3) { border-bottom: none; }
+
+.distTop {
+  display: flex; justify-content: space-between;
+  align-items: flex-start; margin-bottom: 0.75rem;
+}
+.distOps {
+  font-size: 0.8rem; color: var(--color-gray);
+}
+.distPct {
+  font-family: var(--font-condensed);
+  font-size: 2rem; font-weight: 900;
+  color: var(--color-red); line-height: 1;
+}
+.distName {
+  font-family: var(--font-condensed);
+  font-size: 1.05rem; font-weight: 800;
+  color: var(--color-dark); margin-bottom: 1rem;
+}
+.distBar {
+  height: 4px; background: var(--color-border);
+  border-radius: 999px; overflow: hidden;
+}
+.distFill {
+  height: 100%; background: var(--color-red);
+  border-radius: 999px;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .liveMetrics { grid-template-columns: repeat(2,1fr); }
+  .liveMetric:nth-child(2) { border-right: none; }
+  .liveMetric:nth-child(3) { border-top: 1px solid var(--color-border); }
+  .liveMetric:nth-child(4) { border-top: 1px solid var(--color-border); border-right: none; }
+  .distGrid { grid-template-columns: repeat(2,1fr); }
+  .distCard:nth-child(3n) { border-right: 1px solid var(--color-border); }
+  .distCard:nth-child(2n) { border-right: none; }
+}
+@media (max-width: 640px) {
+  .liveMetrics { grid-template-columns: 1fr 1fr; }
+  .distGrid { grid-template-columns: 1fr; }
+  .distCard { border-right: none; }
+}
