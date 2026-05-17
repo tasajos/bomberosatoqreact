@@ -81,8 +81,8 @@ function Footer() {
       </div>
 
       <div className={styles.bottom}>
-        <p>© {year} Yunka Atoq · Bomberos Voluntarios. Personería jurídica Nº 042/2008.</p>
-        <p>NIT 1023459021 · Hecho con propósito en Cochabamba, Bolivia.</p>
+        <p>© {year} Yunka Atoq · Bomberos Voluntarios. Personería jurídica Nº 304/2025 - Registro de SIDUREPEJC Nº 711</p>
+        <p>NIT 680272021 · Hecho por Carlos Andres Azcarraga Esquivel Cochabamba, Bolivia.</p>
       </div>
     </footer>
   );

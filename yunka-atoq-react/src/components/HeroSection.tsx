@@ -21,14 +21,6 @@ export default function HeroSection() {
       <div className={styles.inner}>
         {/* Left */}
         <div>
-          <div className={styles.meta}>
-            <span>Cochabamba · Bolivia</span>
-            <span className={styles.metaDot}>·</span>
-            <span>EST. 2008 · Cía. 042</span>
-            <span className={styles.metaDot}>·</span>
-            <span>17 años de servicio</span>
-          </div>
-
           <h1 className={styles.headline}>
             Cuando suena<br />
             la alarma,<br />
