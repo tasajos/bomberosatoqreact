@@ -1,68 +1,32 @@
 import { useState, useEffect, useRef, DragEvent } from 'react';
 import { Link } from 'react-router-dom';
 import styles from './SliderPage.module.css';
+import FocalPointPicker from '../../components/admin/FocalPointPicker';
+import SlideEditModal from '../../components/admin/SlideEditModal';
 import { sliderApi, type SliderImage, API_BASE } from '../../services/api';
 
 const TAGS = ['Operativo', 'Forestal', 'Rescate', 'Capacitación', 'Comunidad', 'Unidad', 'Cuartel', 'Otro'];
-
-// 9 posiciones focales
-const POSITIONS = [
-  { label: '↖', value: 'top left'     },
-  { label: '↑', value: 'top center'   },
-  { label: '↗', value: 'top right'    },
-  { label: '←', value: 'center left'  },
-  { label: '⊕', value: 'center center'},
-  { label: '→', value: 'center right' },
-  { label: '↙', value: 'bottom left'  },
-  { label: '↓', value: 'bottom center'},
-  { label: '↘', value: 'bottom right' },
-];
 
 function resolveUrl(url: string) {
   return url.startsWith('/uploads/') ? `${API_BASE}${url}` : url;
 }
 
-// Selector de posición 3x3
-function PositionPicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
-  return (
-    <div className={styles.posGrid}>
-      {POSITIONS.map(p => (
-        <button
-          key={p.value}
-          type="button"
-          className={`${styles.posBtn} ${value === p.value ? styles.posBtnActive : ''}`}
-          onClick={() => onChange(p.value)}
-          title={p.value}
-        >
-          {p.label}
-        </button>
-      ))}
-    </div>
-  );
-}
-
 export default function SliderPage() {
-  const [slides, setSlides]   = useState<SliderImage[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [slides, setSlides]     = useState<SliderImage[]>([]);
+  const [loading, setLoading]   = useState(true);
+  const [editSlide, setEditSlide] = useState<SliderImage | null>(null);
 
   // Upload state
-  const [file, setFile]         = useState<File | null>(null);
-  const [preview, setPreview]   = useState('');
-  const [caption, setCaption]   = useState('');
-  const [tag, setTag]           = useState('Operativo');
-  const [position, setPosition] = useState('center center');
+  const [file, setFile]           = useState<File | null>(null);
+  const [preview, setPreview]     = useState('');
+  const [caption, setCaption]     = useState('');
+  const [tag, setTag]             = useState('Operativo');
+  const [position, setPosition]   = useState('50% 50%');
   const [uploading, setUploading] = useState(false);
   const [uploadMsg, setUploadMsg] = useState('');
   const [uploadErr, setUploadErr] = useState('');
-  const [dragging, setDragging] = useState(false);
+  const [dragging, setDragging]   = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
-
-  // Edit inline state
-  const [editing, setEditing]       = useState<number | null>(null);
-  const [editCaption, setEditCaption] = useState('');
-  const [editTag, setEditTag]         = useState('');
-  const [editPosition, setEditPosition] = useState('center center');
-  const [editOrden, setEditOrden]     = useState(0);
 
   const load = () => {
     setLoading(true);
@@ -72,6 +36,7 @@ export default function SliderPage() {
 
   const handleFile = (f: File) => {
     setFile(f);
+    setPosition('50% 50%');
     const reader = new FileReader();
     reader.onload = e => setPreview(e.target?.result as string);
     reader.readAsDataURL(f);
@@ -82,6 +47,12 @@ export default function SliderPage() {
     e.preventDefault(); setDragging(false);
     const f = e.dataTransfer.files[0];
     if (f) handleFile(f);
+  };
+
+  const resetUpload = () => {
+    setFile(null); setPreview(''); setCaption('');
+    setTag('Operativo'); setPosition('50% 50%');
+    if (fileRef.current) fileRef.current.value = '';
   };
 
   const handleUpload = async () => {
@@ -95,9 +66,7 @@ export default function SliderPage() {
       fd.append('position', position);
       await sliderApi.upload(fd);
       setUploadMsg('✅ Imagen subida. El slider se actualizó.');
-      setFile(null); setPreview(''); setCaption('');
-      setTag('Operativo'); setPosition('center center');
-      if (fileRef.current) fileRef.current.value = '';
+      resetUpload();
       load();
     } catch (err: unknown) {
       setUploadErr(err instanceof Error ? err.message : 'Error al subir');
@@ -114,23 +83,6 @@ export default function SliderPage() {
   const handleDelete = async (id: number) => {
     if (!confirm('¿Eliminar esta imagen del slider?')) return;
     await sliderApi.delete(id);
-    load();
-  };
-
-  const startEdit = (s: SliderImage) => {
-    setEditing(s.id);
-    setEditCaption(s.caption);
-    setEditTag(s.tag);
-    setEditPosition(s.position || 'center center');
-    setEditOrden(s.orden);
-  };
-
-  const saveEdit = async (s: SliderImage) => {
-    await sliderApi.update(s.id, {
-      caption: editCaption, tag: editTag,
-      position: editPosition, activo: s.activo, orden: editOrden,
-    });
-    setEditing(null);
     load();
   };
 
@@ -152,8 +104,8 @@ export default function SliderPage() {
         <div className={styles.cardTitle}>Subir nueva imagen</div>
         <div className={styles.uploadBody}>
 
-          {/* Drop zone — el input cubre el área, el onClick está solo en el label visual */}
-          {!preview ? (
+          {/* Drop zone — label evita doble apertura */}
+          {!preview && (
             <label
               className={`${styles.dropZone} ${dragging ? styles.dropZoneActive : ''}`}
               onDragOver={e => { e.preventDefault(); setDragging(true); }}
@@ -161,7 +113,7 @@ export default function SliderPage() {
               onDrop={onDrop}
             >
               <span className={styles.dropZoneIcon}>🖼️</span>
-              <span className={styles.dropZoneText}>Arrastra una imagen o haz clic para seleccionar</span>
+              <span className={styles.dropZoneText}>Arrastra una imagen o haz clic aquí</span>
               <span className={styles.dropZoneSub}>JPG, PNG, WEBP · Máx. 8 MB</span>
               <input
                 ref={fileRef}
@@ -171,67 +123,42 @@ export default function SliderPage() {
                 onChange={e => { if (e.target.files?.[0]) handleFile(e.target.files[0]); }}
               />
             </label>
-          ) : (
-            /* Preview con posición focal aplicada en tiempo real */
-            <div className={styles.previewWrap}>
-              <img
-                src={preview}
-                alt="Preview"
-                className={styles.previewImg}
-                style={{ objectPosition: position }}
-              />
-              <span className={styles.previewLabel}>Vista previa · {position}</span>
-              <button
-                className={styles.changeImgBtn}
-                onClick={() => { setFile(null); setPreview(''); if (fileRef.current) fileRef.current.value = ''; }}
-              >
-                Cambiar imagen
-              </button>
-            </div>
           )}
 
-          <div className={styles.formRow}>
-            <div className={styles.field}>
-              <label className={styles.label}>Descripción / Caption</label>
-              <input className={styles.input} placeholder="Ej. Brigada forestal en el Tunari"
-                value={caption} onChange={e => setCaption(e.target.value)} />
-            </div>
-            <div className={styles.field}>
-              <label className={styles.label}>Categoría</label>
-              <select className={styles.select} value={tag} onChange={e => setTag(e.target.value)}>
-                {TAGS.map(t => <option key={t}>{t}</option>)}
-              </select>
-            </div>
-          </div>
-
-          {/* Posición focal */}
+          {/* Focal point picker tras seleccionar imagen */}
           {preview && (
-            <div className={styles.field}>
-              <label className={styles.label}>Posición focal (punto de interés de la imagen)</label>
-              <div className={styles.posRow}>
-                <PositionPicker value={position} onChange={setPosition} />
-                <div className={styles.posMiniPreview}>
-                  <img src={preview} alt="" style={{ objectPosition: position }} />
-                  <span className={styles.posMiniLabel}>Resultado en slider</span>
+            <>
+              <FocalPointPicker src={preview} value={position} onChange={setPosition} aspectRatio={16 / 9} />
+
+              <div className={styles.formRow}>
+                <div className={styles.field}>
+                  <label className={styles.label}>Descripción / Caption</label>
+                  <input className={styles.input} placeholder="Ej. Brigada forestal en el Tunari"
+                    value={caption} onChange={e => setCaption(e.target.value)} />
+                </div>
+                <div className={styles.field}>
+                  <label className={styles.label}>Categoría</label>
+                  <select className={styles.select} value={tag} onChange={e => setTag(e.target.value)}>
+                    {TAGS.map(t => <option key={t}>{t}</option>)}
+                  </select>
                 </div>
               </div>
-            </div>
+
+              {uploadMsg && <div className={styles.successMsg}>{uploadMsg}</div>}
+              {uploadErr && <div className={styles.errorMsg}>{uploadErr}</div>}
+
+              <div style={{ display: 'flex', gap: '0.75rem' }}>
+                <button className={styles.uploadBtn} onClick={handleUpload} disabled={uploading}>
+                  {uploading ? 'Subiendo…' : '↑ Subir al slider'}
+                </button>
+                <button className={`${styles.uploadBtn} ${styles.cancelBtn}`} onClick={resetUpload}>
+                  Cancelar
+                </button>
+              </div>
+            </>
           )}
 
-          {uploadMsg && <div className={styles.successMsg}>{uploadMsg}</div>}
-          {uploadErr && <div className={styles.errorMsg}>{uploadErr}</div>}
-
-          <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-            <button className={styles.uploadBtn} onClick={handleUpload} disabled={!file || uploading}>
-              {uploading ? 'Subiendo…' : '↑ Subir al slider'}
-            </button>
-            {file && (
-              <button className={`${styles.uploadBtn} ${styles.cancelBtn}`}
-                onClick={() => { setFile(null); setPreview(''); if (fileRef.current) fileRef.current.value = ''; }}>
-                Cancelar
-              </button>
-            )}
-          </div>
+          {!preview && uploadMsg && <div className={styles.successMsg}>{uploadMsg}</div>}
         </div>
       </div>
 
@@ -254,7 +181,7 @@ export default function SliderPage() {
                     src={resolveUrl(s.url)}
                     alt={s.caption}
                     loading="lazy"
-                    style={{ objectPosition: s.position || 'center center' }}
+                    style={{ objectPosition: s.position || '50% 50%' }}
                   />
                   <span className={styles.ordenBadge}>#{s.orden}</span>
                   <span className={`${styles.activeBadge} ${!s.activo ? styles.inactiveBadge : ''}`} />
@@ -262,43 +189,37 @@ export default function SliderPage() {
 
                 <div className={styles.slideInfo}>
                   <div className={styles.slideCaption}>{s.caption || '(sin descripción)'}</div>
-                  <div className={styles.slideTag}>{s.tag} · {s.position} · {s.activo ? '✓ Activa' : '✗ Inactiva'}</div>
+                  <div className={styles.slideTag}>{s.tag} · {s.activo ? '✓ Activa' : '✗ Inactiva'}</div>
+
                   <div className={styles.slideActions}>
-                    <button className={`${styles.btnToggle} ${!s.activo ? styles.inactive : ''}`} onClick={() => handleToggle(s)}>
+                    <button
+                      className={`${styles.btnToggle} ${!s.activo ? styles.inactive : ''}`}
+                      onClick={() => handleToggle(s)}
+                    >
                       {s.activo ? 'Desactivar' : 'Activar'}
                     </button>
-                    <button className={styles.btnEdit} onClick={() => editing === s.id ? setEditing(null) : startEdit(s)}>
-                      {editing === s.id ? 'Cerrar' : 'Editar'}
+                    <button className={styles.btnEdit} onClick={() => setEditSlide(s)}>
+                      Editar
                     </button>
                     <button className={styles.btnDelete} onClick={() => handleDelete(s.id)}>
                       Eliminar
                     </button>
                   </div>
                 </div>
-
-                {editing === s.id && (
-                  <div className={styles.editInline}>
-                    <input className={styles.input} placeholder="Descripción"
-                      value={editCaption} onChange={e => setEditCaption(e.target.value)} />
-                    <div className={styles.editRow}>
-                      <select className={styles.select} value={editTag} onChange={e => setEditTag(e.target.value)}>
-                        {TAGS.map(t => <option key={t}>{t}</option>)}
-                      </select>
-                      <input className={styles.input} type="number" placeholder="Orden" min="1"
-                        value={editOrden} onChange={e => setEditOrden(Number(e.target.value))} />
-                    </div>
-                    <div>
-                      <span className={styles.label} style={{ display: 'block', marginBottom: '0.4rem' }}>Posición focal</span>
-                      <PositionPicker value={editPosition} onChange={setEditPosition} />
-                    </div>
-                    <button className={styles.saveBtn} onClick={() => saveEdit(s)}>Guardar cambios</button>
-                  </div>
-                )}
               </div>
             ))}
           </div>
         )}
       </div>
+
+      {/* Modal de edición */}
+      {editSlide && (
+        <SlideEditModal
+          slide={editSlide}
+          onClose={() => setEditSlide(null)}
+          onSaved={load}
+        />
+      )}
     </div>
   );
 }
