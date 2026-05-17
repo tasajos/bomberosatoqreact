@@ -56,7 +56,7 @@
   padding-top: 0.2rem;
 }
 
-.timelineContent {}
+.timelineContent { flex: 1; }
 
 .timelineYear {
   font-family: var(--font-condensed);
@@ -72,6 +72,68 @@
   line-height: 1.6;
   border-left: 2px solid rgba(255,255,255,0.12);
   padding-left: 1rem;
+}
+
+/* Paginador */
+.paginator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 2.5rem;
+  flex-wrap: wrap;
+}
+
+.pageBtn {
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.2);
+  background: rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.7);
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--transition), border-color var(--transition), color var(--transition);
+}
+.pageBtn:hover:not(:disabled) {
+  background: rgba(255,255,255,0.15);
+  color: var(--color-white);
+}
+.pageBtn:disabled {
+  opacity: 0.25;
+  cursor: not-allowed;
+}
+
+.pageNum {
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.15);
+  background: transparent;
+  color: rgba(255,255,255,0.55);
+  font-family: var(--font-condensed);
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background var(--transition), border-color var(--transition), color var(--transition);
+}
+.pageNum:hover { background: rgba(255,255,255,0.1); color: var(--color-white); }
+.pageNumActive {
+  background: var(--color-red);
+  border-color: var(--color-red);
+  color: var(--color-white);
+}
+
+.pageInfo {
+  font-family: var(--font-condensed);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: rgba(255,255,255,0.3);
+  margin-left: 0.5rem;
+  text-transform: uppercase;
 }
 
 @media (max-width: 1024px) {

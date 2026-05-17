@@ -3,10 +3,10 @@ import styles from './StatsBar.module.css';
 import { operativosApi, type Stats } from '../services/api';
 
 const STATIC_STATS = [
-  { value: '1.247', label: 'Operativos 2026', desc: 'Atenciones del 1º de enero al día de hoy.' },
-  { value: '89',    label: 'Voluntarios activos', desc: 'Cuerpo operativo + brigada de soporte.' },
-  { value: '12',    label: 'Min · tiempo de respuesta', desc: 'Mediana en el área metropolitana.' },
-  { value: '100%',  label: 'Servicio voluntario', desc: 'Sin fines de lucro · auditado anualmente.' },
+  { value: '1.247', label: 'Operativos 2026', desc: 'Atenciones al día de hoy.' },
+  { value: '45',    label: 'Voluntarios activos', desc: 'Cuerpo operativo + brigada de soporte.' },
+  { value: '12',    label: 'Min · tiempo de respuesta', desc: 'Mediana en el área urbana.' },
+  { value: '100%',  label: 'Servicio voluntario', desc: 'Sin fines de lucro.' },
 ];
 
 export default function StatsBar() {
@@ -19,7 +19,7 @@ export default function StatsBar() {
   const items = stats
     ? [
         { value: stats.operativos_anio.toLocaleString('es-BO'), label: 'Operativos 2026', desc: 'Atenciones del 1º de enero al día de hoy.' },
-        { value: String(stats.voluntarios_activos), label: 'Voluntarios activos', desc: 'Cuerpo operativo + brigada de soporte.' },
+        { value: '45', label: 'Voluntarios activos', desc: 'Cuerpo operativo + brigada de soporte.' },
         STATIC_STATS[2],
         STATIC_STATS[3],
       ]

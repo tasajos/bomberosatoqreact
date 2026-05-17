@@ -4,8 +4,8 @@ import styles from './RecruitSection.module.css';
 const reqs = [
   { value: '18+', label: 'Mayor de edad' },
   { value: '6 m', label: 'Entrenamiento gratis' },
-  { value: '2 / sem', label: 'Guardias mínimas' },
-  { value: 'NFPA', label: 'Certificación' },
+  { value: '1 / sem', label: 'Guardias mínimas' },
+  
 ];
 
 export default function RecruitSection() {
@@ -18,7 +18,7 @@ export default function RecruitSection() {
             No necesitamos<br />héroes. Necesitamos<br />vecinos<br />comprometidos.
           </h2>
           <p className={styles.desc}>
-            Cuarenta y dos plazas abiertas para la convocatoria 2026. Entrenamiento gratuito de seis meses, certificación internacional NFPA y un compromiso: dos guardias por semana durante tres años.
+            Cuarenta y dos plazas abiertas para la convocatoria 2026. Entrenamiento gratuito de seis meses, y un compromiso: una guardia semanal.
           </p>
           <div className={styles.ctas}>
             <Link to="/voluntarios" className="btn-primary">Postular ahora →</Link>

@@ -39,7 +39,7 @@ function Footer() {
             </span>
           </div>
           <p className={styles.brandDesc}>
-            El zorro del valle, vigilante. Compañía de bomberos voluntarios al servicio de Cochabamba desde 2008.
+            El zorro del valle, vigilante. Compañía de bomberos voluntarios al servicio de Cochabamba desde 2023.
           </p>
           <div className={styles.social}>
             {social.map(({ label, href }) => (
@@ -71,11 +71,9 @@ function Footer() {
         <div className={styles.col}>
           <h4 className={styles.colTitle}>Contacto</h4>
           <ul className={styles.colList}>
-            <li>Av. Heroínas #1456</li>
-            <li>Cercado · Cochabamba</li>
-            <li>+591 4 422 0000</li>
-            <li><a href="mailto:contacto@yunkaatoq.bo">contacto@yunkaatoq.bo</a></li>
-            <li className={styles.emergency}>Emergencias · 119</li>
+       
+            <li><a href="mailto:contacto@yunkaatoq.bo">informaciones@bomberosatoq.org</a></li>
+            <li className={styles.emergency}>Emergencias · 68503758</li>
           </ul>
         </div>
       </div>

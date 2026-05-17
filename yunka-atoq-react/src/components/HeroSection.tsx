@@ -30,11 +30,6 @@ export default function HeroSection() {
             existimos.</span>
           </h1>
 
-          <p className={styles.description}>
-            Somos una compañía de bomberos <strong>100% voluntaria y autofinanciada</strong>.
-            Cada metro de manguera, cada equipo de rescate existe gracias a tu apoyo.
-          </p>
-
           <div className={styles.ctas}>
             <Link to="/donaciones" className="btn-primary">Donar ahora</Link>
             <Link to="/voluntarios" className="btn-secondary">Ser voluntario</Link>
