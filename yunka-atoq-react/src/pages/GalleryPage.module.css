@@ -54,6 +54,10 @@
 }
 .filterBtnActive:hover { background: var(--color-navy); border-color: var(--color-navy); }
 
+.filterBtnFb { border-color: #1877F2; color: #1877F2; }
+.filterBtnFb:hover { background: rgba(24,119,242,0.07); }
+.filterBtnFb.filterBtnActive { background: #1877F2 !important; border-color: #1877F2 !important; color: white !important; }
+
 .count {
   font-family: var(--font-condensed); font-size: 0.7rem; font-weight: 700;
   letter-spacing: 0.12em; text-transform: uppercase; color: var(--color-gray); white-space: nowrap;
