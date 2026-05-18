@@ -226,7 +226,26 @@ export const sliderApi = {
     request<{ ok: boolean }>(`/slider/${id}`, { method: 'DELETE' }),
 };
 
+// Resumen ejecutivo
+export const resumenApi = {
+  get: () => request<ResumenData>('/resumen'),
+};
+
 // Types
+export interface ResumenData {
+  voluntarios: {
+    total: number;
+    por_rol: { role: string; total: number }[];
+    por_codigo: { codigo: string; total: number }[];
+  };
+  operativos: { total: number; anio: number };
+  campanias: Campania[];
+  contacto: { total: number; no_leidos: number };
+  jefes: { nombre: string; apellido_paterno: string; role: string; matricula: string; especialidad: string; telefono: string }[];
+  noticias: { total: number; publicadas: number };
+  generado_en: string;
+}
+
 export interface AdminUser {
   id: number;
   nombre: string;
@@ -329,11 +348,17 @@ export interface SliderImage {
   created_at: string;
 }
 
+export type UserRole =
+  | 'admin' | 'presidente' | 'coordinador' | 'fundador'
+  | 'voluntario' | 'postulante'
+  | 'jefe_operaciones' | 'jefe_personal' | 'jefe_logistica'
+  | 'jefe_marketing' | 'jefe_enlaces';
+
 export interface AuthUser {
   id: number;
   nombre: string;
   email: string;
-  role: 'admin' | 'voluntario';
+  role: UserRole;
 }
 
 export interface Operativo {

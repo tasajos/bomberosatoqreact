@@ -34,6 +34,8 @@ import SubscribersPage from './pages/admin/SubscribersPage';
 import ContactAdminPage from './pages/admin/ContactAdminPage';
 import SiteConfigPage from './pages/admin/SiteConfigPage';
 import UsersAdminPage from './pages/admin/UsersAdminPage';
+import PresidenteLayout from './layouts/PresidenteLayout';
+import PresidenteDashboard from './pages/presidente/PresidenteDashboard';
 
 import './index.css';
 
@@ -76,6 +78,13 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
               <Route path="contactos"        element={<ContactAdminPage />} />
               <Route path="configuracion"    element={<SiteConfigPage />} />
               <Route path="usuarios"         element={<UsersAdminPage />} />
+            </Route>
+          </Route>
+
+          {/* Vista presidencial */}
+          <Route element={<ProtectedRoute allowedRoles={['presidente']} />}>
+            <Route path="/presidente" element={<PresidenteLayout />}>
+              <Route index element={<PresidenteDashboard />} />
             </Route>
           </Route>
         </Routes>

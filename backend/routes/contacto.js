@@ -23,7 +23,7 @@ router.post('/', async (req, res) => {
 });
 
 // GET /api/contacto — listar solicitudes (admin)
-router.get('/', verifyToken, requireRole('admin'), async (req, res) => {
+router.get('/', verifyToken, requireRole('admin','presidente'), async (req, res) => {
   const solo_no_leidos = req.query.no_leidos === 'true';
   const where = solo_no_leidos ? 'WHERE leido = 0' : '';
   try {

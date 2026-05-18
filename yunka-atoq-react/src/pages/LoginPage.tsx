@@ -14,7 +14,7 @@ export default function LoginPage() {
   const navigate = useNavigate();
 
   if (authLoading) return null;
-  if (user) return <Navigate to="/admin/dashboard" replace />;
+  if (user) return <Navigate to={user.role === 'presidente' ? '/presidente' : '/admin/dashboard'} replace />;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
