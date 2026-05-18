@@ -16,7 +16,6 @@ const menu = [
     section: 'Gestión de Usuarios',
     items: [
       { label: 'Usuarios y roles',   to: '/admin/usuarios',   icon: 'M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75' },
-      { label: 'Crear usuario',      to: '/admin/usuarios/nuevo', icon: 'M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M12.5 7a4 4 0 100-8 4 4 0 000 8zM20 8v6M23 11h-6' },
     ],
   },
   {

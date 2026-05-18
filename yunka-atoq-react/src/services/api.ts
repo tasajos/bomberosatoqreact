@@ -103,6 +103,20 @@ export const voluntariosApi = {
     }),
 };
 
+// Admin Users
+export const adminUsersApi = {
+  list: () => request<AdminUser[]>('/admin/users'),
+  get:  (id: number) => request<AdminUser>(`/admin/users/${id}`),
+  nextMatricula: (codigo: string) =>
+    request<{ matricula: string; siguiente: number }>(`/admin/users/next-matricula?codigo=${codigo}`),
+  create: (data: Partial<AdminUser> & { password: string }) =>
+    request<{ id: number }>('/admin/users', { method: 'POST', body: JSON.stringify(data) }),
+  update: (id: number, data: Partial<AdminUser> & { password?: string }) =>
+    request<{ ok: boolean }>(`/admin/users/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  delete: (id: number) =>
+    request<{ ok: boolean }>(`/admin/users/${id}`, { method: 'DELETE' }),
+};
+
 // Contacto
 export const contactoApi = {
   send: (data: { nombre: string; correo: string; telefono?: string; tema?: string; mensaje: string }) =>
@@ -213,6 +227,27 @@ export const sliderApi = {
 };
 
 // Types
+export interface AdminUser {
+  id: number;
+  nombre: string;
+  apellido_paterno: string;
+  apellido_materno: string;
+  fecha_nacimiento: string | null;
+  carnet_identidad: string;
+  domicilio: string;
+  telefono: string;
+  contacto_nombre: string;
+  contacto_telefono: string;
+  codigo: string;
+  matricula: string;
+  especialidad: string;
+  tipo_sangre: string;
+  email: string;
+  role: string;
+  activo: number;
+  created_at: string;
+}
+
 export interface ContactoItem {
   id: number;
   nombre: string;

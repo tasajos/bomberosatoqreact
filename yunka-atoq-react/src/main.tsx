@@ -33,6 +33,7 @@ import NewsAdminPage from './pages/admin/NewsAdminPage';
 import SubscribersPage from './pages/admin/SubscribersPage';
 import ContactAdminPage from './pages/admin/ContactAdminPage';
 import SiteConfigPage from './pages/admin/SiteConfigPage';
+import UsersAdminPage from './pages/admin/UsersAdminPage';
 
 import './index.css';
 
@@ -74,6 +75,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
               <Route path="suscriptores"     element={<SubscribersPage />} />
               <Route path="contactos"        element={<ContactAdminPage />} />
               <Route path="configuracion"    element={<SiteConfigPage />} />
+              <Route path="usuarios"         element={<UsersAdminPage />} />
             </Route>
           </Route>
         </Routes>

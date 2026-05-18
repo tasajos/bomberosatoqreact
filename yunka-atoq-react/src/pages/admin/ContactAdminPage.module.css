@@ -1,0 +1,82 @@
+.page { display: flex; flex-direction: column; gap: 1.5rem; }
+
+.pageHeader {
+  background: var(--color-white); border: 1px solid #E2E5EA; border-radius: 12px;
+  padding: 1.5rem 2rem; display: flex; align-items: center;
+  justify-content: space-between; flex-wrap: wrap; gap: 1rem;
+}
+.pageTitle { font-family: var(--font-condensed); font-size: 1.5rem; font-weight: 900; color: var(--color-dark); }
+.pageDesc  { font-size: 0.82rem; color: var(--color-gray); margin-top: 0.2rem; }
+.unreadBadge {
+  background: var(--color-red); color: white;
+  font-family: var(--font-condensed); font-size: 0.7rem; font-weight: 700;
+  letter-spacing: 0.08em; padding: 0.28rem 0.7rem; border-radius: 999px;
+}
+
+/* Stats */
+.stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 1rem; }
+.statCard {
+  background: var(--color-white); border: 1px solid #E2E5EA; border-radius: 10px;
+  padding: 1.25rem 1.5rem; text-align: center;
+}
+.statNum { font-family: var(--font-condensed); font-size: 2rem; font-weight: 900; color: var(--color-dark); line-height: 1; margin-bottom: 0.375rem; }
+.statLabel { font-family: var(--font-condensed); font-size: 0.65rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--color-gray); }
+
+/* Controls */
+.controls {
+  background: var(--color-white); border: 1px solid #E2E5EA; border-radius: 10px;
+  padding: 0.875rem 1.25rem; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;
+}
+.tabBtn {
+  font-family: var(--font-condensed); font-size: 0.78rem; font-weight: 700;
+  letter-spacing: 0.04em; text-transform: uppercase;
+  padding: 0.42rem 0.875rem; border-radius: 6px; border: 1.5px solid #E2E5EA;
+  background: transparent; color: var(--color-gray); cursor: pointer; transition: all var(--transition);
+}
+.tabBtn:hover { border-color: var(--color-dark); color: var(--color-dark); }
+.tabBtnActive { background: var(--color-dark); border-color: var(--color-dark); color: var(--color-white); }
+
+/* Cards */
+.cards { display: flex; flex-direction: column; gap: 1rem; }
+.card {
+  background: var(--color-white); border: 1px solid #E2E5EA; border-radius: 10px;
+  overflow: hidden; transition: box-shadow var(--transition);
+}
+.card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.07); }
+.cardUnread { border-left: 4px solid var(--color-red); }
+
+.cardHeader {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  padding: 1.25rem 1.5rem 0.875rem; gap: 1rem; flex-wrap: wrap;
+}
+.cardLeft { display: flex; flex-direction: column; gap: 0.25rem; }
+.cardName { font-family: var(--font-condensed); font-size: 1rem; font-weight: 800; color: var(--color-dark); }
+.cardMeta { font-size: 0.78rem; color: var(--color-gray); display: flex; gap: 0.75rem; flex-wrap: wrap; }
+.cardMeta a { color: var(--color-red); }
+.temaBadge {
+  font-family: var(--font-condensed); font-size: 0.6rem; font-weight: 700;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  background: #F0F2F5; color: var(--color-gray);
+  padding: 0.2rem 0.6rem; border-radius: 3px; align-self: flex-start;
+}
+.cardDate { font-family: var(--font-condensed); font-size: 0.7rem; color: var(--color-gray); white-space: nowrap; }
+
+.cardMsg { padding: 0 1.5rem 1rem; font-size: 0.875rem; color: var(--color-dark); line-height: 1.65; }
+
+.cardActions {
+  display: flex; gap: 0.5rem; padding: 0.75rem 1.5rem;
+  border-top: 1px solid #F0F2F5;
+}
+.btnRead, .btnDelete {
+  font-family: var(--font-condensed); font-size: 0.7rem; font-weight: 700;
+  letter-spacing: 0.04em; text-transform: uppercase;
+  padding: 0.38rem 0.875rem; border-radius: 4px;
+  border: 1px solid #E2E5EA; cursor: pointer; transition: all var(--transition); background: transparent;
+}
+.btnRead   { color: #16a34a; border-color: rgba(34,197,94,.3); } .btnRead:hover { background: rgba(34,197,94,.08); }
+.btnDelete { color: var(--color-red); } .btnDelete:hover { background: #FEF2F2; border-color: #FECACA; }
+.unreadDot { width: 8px; height: 8px; border-radius: 50%; background: var(--color-red); flex-shrink: 0; margin-top: 6px; }
+
+.empty { padding: 3rem; text-align: center; color: var(--color-gray); font-size: 0.9rem; }
+
+@media (max-width: 640px) { .stats { grid-template-columns: 1fr 1fr; } }
