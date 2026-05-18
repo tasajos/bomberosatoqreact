@@ -115,6 +115,14 @@
 }
 
 /* ===== Campaigns ===== */
+.campaignImg {
+  width: calc(100% + 3.5rem);
+  margin: -1.75rem -1.75rem 1.25rem -1.75rem;
+  height: 160px;
+  object-fit: cover;
+  display: block;
+  border-radius: 10px 10px 0 0;
+}
 .campaigns {
   background: var(--color-light);
   padding: var(--section-py) var(--section-px);

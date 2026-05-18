@@ -1,30 +1,29 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import styles from './DonationsPage.module.css';
+import { campaniasApi, type Campania, API_BASE } from '../services/api';
+
+function resolveImg(url: string | null) {
+  if (!url) return null;
+  return url.startsWith('/uploads/') ? `${API_BASE}${url}` : url;
+}
 
 const AMOUNTS = [50, 100, 250, 500, 1000, 2500];
 
 function calcImpact(bs: number) {
   return [
-    { num: Math.max(0, Math.floor(bs / 50)),   desc: 'Metros de manguera'   },
     { num: Math.max(0, Math.floor(bs / 20)),   desc: 'Guantes ignífugos'    },
     { num: Math.max(0, Math.floor(bs / 120)),  desc: 'Máscaras de carbón'   },
     { num: Math.max(0, Math.floor(bs / 350)),  desc: 'Linternas tácticas'   },
+    { num: Math.max(0, Math.floor(bs / 800)),  desc: 'Equipos de protección' },
   ].filter(i => i.num > 0).slice(0, 4);
 }
 
 const methods = [
-  { num: '01', name: 'Transferencia bancaria', desc: 'Banco Mercantil Santa Cruz · Cta. 4-0123-4567-8 (Bs)' },
+  { num: '01', name: 'Transferencia bancaria', desc: '' },
   { num: '02', name: 'Código QR',              desc: 'Genera al confirmar el monto. Compatible con todos los bancos.' },
-  { num: '03', name: 'Tigo Money',             desc: 'Envía a 76543210 — recibe confirmación inmediata.' },
+  { num: '03', name: 'Tigo Money',             desc: 'Envía al número 68503758 — recibe confirmación inmediata.' },
   { num: '04', name: 'Tarjeta de crédito / débito', desc: 'VISA · Mastercard · American Express vía gateway seguro.' },
-  { num: '05', name: 'En cuartel',             desc: 'Av. Heroínas 1456, de lunes a viernes 8-18h.' },
-];
-
-const campaigns = [
-  { badge: 'Equipamiento', name: 'Equipos de respiración autónoma ERA-2026', raised: 186420, goal: 275000 },
-  { badge: 'Flota',        name: 'Mantenimiento mayor · Unidad B-04',        raised:  31500, goal:  75000 },
-  { badge: 'Formación',    name: 'Beca escuela bomberil · 200 escolares',     raised:  64800, goal:  80000 },
 ];
 
 function fmt(n: number) { return new Intl.NumberFormat('es-BO').format(n); }
@@ -32,7 +31,12 @@ function fmt(n: number) { return new Intl.NumberFormat('es-BO').format(n); }
 export default function DonationsPage() {
   const [freq, setFreq]     = useState<'once' | 'monthly'>('once');
   const [selected, setSelected] = useState<number>(100);
-  const [custom, setCustom] = useState('100');
+  const [custom, setCustom]     = useState('100');
+  const [campaigns, setCampaigns] = useState<Campania[]>([]);
+
+  useEffect(() => {
+    campaniasApi.activas().then(setCampaigns).catch(() => {});
+  }, []);
 
   const amount = Number(custom) > 0 ? Number(custom) : selected;
   const impact = calcImpact(amount);
@@ -56,10 +60,10 @@ export default function DonationsPage() {
             <Link to="/">Inicio</Link><span>/</span>Donaciones
           </div>
           <h1 className={styles.heroTitle}>
-            Tu donación,<br />en metros de<br />manguera.
+            Tu donación,<br />nuestra misión.
           </h1>
           <p className={styles.heroDesc}>
-            Cada peso boliviano se convierte en algo concreto. Te mostramos exactamente en qué.
+            Cada peso boliviano se convierte en equipamiento, formación y servicio para Cochabamba.
           </p>
         </div>
       </section>
@@ -143,10 +147,6 @@ export default function DonationsPage() {
               ))}
             </div>
 
-            <div className={styles.taxBox}>
-              <strong>Empresas:</strong> emitimos factura electrónica para descargo tributario.
-              NIT 680272021 · Personería 304/2025.
-            </div>
           </div>
         </div>
       </section>
@@ -159,22 +159,33 @@ export default function DonationsPage() {
             Donaciones con<br />destino específico.
           </h2>
 
+          {campaigns.length === 0 && (
+            <p style={{ color: 'var(--color-gray)', fontSize: '0.9rem' }}>No hay campañas activas en este momento.</p>
+          )}
           <div className={styles.campaignGrid}>
-            {campaigns.map(({ badge, name, raised, goal }) => {
-              const pct = Math.round((raised / goal) * 100);
+            {campaigns.map(c => {
+              const pct = Math.min(100, Math.round((Number(c.recaudado) / Number(c.meta)) * 100));
               return (
-                <div key={name} className={styles.campaignCard}>
-                  <span className={styles.campaignBadge}>{badge}</span>
-                  <div className={styles.campaignName}>{name}</div>
+                <div key={c.id} className={styles.campaignCard}>
+                  {resolveImg(c.imagen_url) && (
+                    <img
+                      src={resolveImg(c.imagen_url)!}
+                      alt={c.nombre}
+                      className={styles.campaignImg}
+                      onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                    />
+                  )}
+                  <span className={styles.campaignBadge}>{c.estado}</span>
+                  <div className={styles.campaignName}>{c.nombre}</div>
                   <div className={styles.campaignBar}>
                     <div className={styles.campaignFill} style={{ width: `${pct}%` }} />
                   </div>
                   <div>
                     <div className={styles.campaignMeta}>
-                      <span className={styles.campaignRaised}>Bs {fmt(raised)} recaudado</span>
+                      <span className={styles.campaignRaised}>Bs {fmt(Number(c.recaudado))} recaudado</span>
                       <span className={styles.campaignPct}>{pct}%</span>
                     </div>
-                    <div className={styles.campaignGoal}>Meta: Bs {fmt(goal)}</div>
+                    <div className={styles.campaignGoal}>Meta: Bs {fmt(Number(c.meta))}</div>
                   </div>
                   <button className={styles.campaignBtn}>Donar a esta campaña</button>
                 </div>
