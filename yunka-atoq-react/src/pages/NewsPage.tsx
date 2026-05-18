@@ -1,51 +1,101 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import styles from './NewsPage.module.css';
+import { noticiasApi, suscriptoresApi, type Noticia, API_BASE } from '../services/api';
 
-const featured = [
-  {
-    id: 1,
-    category: 'Operativo',
-    date: '12 MAY 2026',
-    title: 'Yunka Atoq controla incendio estructural en Cala Cala tras 4 horas de combate',
-    excerpt: 'Tres unidades y 14 voluntarios respondieron al llamado. El incendio afectó dos pisos de una vivienda y amenazaba las propiedades adyacentes.',
-    img: '/history/7.jpg',
-    size: 'large',
-  },
-  {
-    id: 2,
-    category: 'Comunidad',
-    date: '08 MAY 2026',
-    title: 'Convocatoria 2026 abierta: 42 plazas para nuevos voluntarios',
-    excerpt: '',
-    img: '/history/9.jpg',
-    size: 'small',
-  },
-  {
-    id: 3,
-    category: 'Capacitación',
-    date: '02 MAY 2026',
-    title: 'Curso de descarcelación junto a Holmatro y bomberos de Santa Cruz',
-    excerpt: '',
-    img: '/history/12.jpg',
-    size: 'small',
-  },
-];
+const PER_PAGE = 5;
 
-const listNews = [
-  { id: 4, category: 'Institucional', date: '28 ABR 2026', title: 'Publicamos la Memoria Anual 2025: auditoría externa por tercer año' },
-  { id: 5, category: 'Operativo',     date: '21 ABR 2026', title: 'Tres operativos simultáneos en una madrugada: cómo nos coordinamos' },
-  { id: 6, category: 'Comunidad',     date: '14 ABR 2026', title: 'Escuela bomberil llega a 1.200 niñas y niños en Quillacollo' },
-];
+function resolveImg(url: string | null) {
+  if (!url) return null;
+  return url.startsWith('/uploads/') ? `${API_BASE}${url}` : url;
+}
+
+function fmtDate(s: string) {
+  return new Intl.DateTimeFormat('es-BO', { day:'numeric', month:'short', year:'numeric' }).format(new Date(s));
+}
+
+function shareOnFacebook(url: string) {
+  window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, '_blank', 'width=600,height=400');
+}
+
+const CATS = ['Todas','Operativo','Forestal','Comunidad','Institucional','Capacitación'];
 
 export default function NewsPage() {
-  const [email, setEmail] = useState('');
+  const [allNews,    setAllNews]    = useState<Noticia[]>([]);
+  const [email,      setEmail]      = useState('');
   const [subscribed, setSubscribed] = useState(false);
+  const [cat,        setCat]        = useState('Todas');
+  const [page,       setPage]       = useState(1);
+  const [loading,    setLoading]    = useState(true);
 
-  const handleSubscribe = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (email) setSubscribed(true);
+  useEffect(() => {
+    noticiasApi.list(1, 100)
+      .then(res => setAllNews(res.data))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  // Filtrar por categoría y resetear página
+  const filtered = cat === 'Todas'
+    ? allNews
+    : allNews.filter(n => n.categoria === cat);
+
+  const totalPages = Math.ceil(filtered.length / PER_PAGE);
+  const pageItems  = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE);
+
+  // 1er item grande, resto pequeños (hasta 4)
+  const mainCard  = pageItems[0] ?? null;
+  const sideCards = pageItems.slice(1);
+
+  const goPage = useCallback((p: number) => {
+    setPage(p);
+    window.scrollTo({ top: 300, behavior: 'smooth' });
+  }, []);
+
+  const handleCat = (c: string) => {
+    setCat(c);
+    setPage(1);
   };
+
+  const currentUrl = window.location.href;
+
+  function NewsCard({ n, large }: { n: Noticia; large?: boolean }) {
+    const img = resolveImg(n.imagen_url);
+    const isExternal = n.tipo === 'externa';
+    const shareUrl = isExternal ? n.fuente_url : currentUrl;
+    return (
+      <article className={`${styles.card} ${large ? styles.cardLarge : styles.cardSmall}`}>
+        <div className={styles.cardPhoto}>
+          {img
+            ? <img src={img} alt={n.titulo} onError={e=>{(e.target as HTMLImageElement).style.display='none';}} />
+            : <span className={styles.cardPhotoPlaceholder}>{isExternal ? '🔗' : '📰'}</span>
+          }
+          {isExternal && <span className={styles.externalBadge}>🔗 {n.fuente_nombre || 'Fuente externa'}</span>}
+        </div>
+        <div className={styles.cardBody}>
+          <div className={styles.cardMeta}>
+            <span className={styles.cardCategory}>{n.categoria || 'General'}</span>
+            <span className={styles.cardDot}>·</span>
+            <span className={styles.cardDate}>{fmtDate(n.fecha)}</span>
+          </div>
+          <h2 className={styles.cardTitle}>{n.titulo}</h2>
+          {n.resumen && <p className={styles.cardExcerpt}>{large ? n.resumen : n.resumen.slice(0,100) + (n.resumen.length > 100 ? '…' : '')}</p>}
+          <div className={styles.cardActions}>
+            {isExternal
+              ? <a href={n.fuente_url} target="_blank" rel="noreferrer" className={styles.btnSource}>Ver noticia original →</a>
+              : <span />
+            }
+            <button className={styles.btnShare} onClick={() => shareOnFacebook(shareUrl)}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/>
+              </svg>
+              Compartir
+            </button>
+          </div>
+        </div>
+      </article>
+    );
+  }
 
   return (
     <main>
@@ -55,59 +105,74 @@ export default function NewsPage() {
           <div className={styles.breadcrumb}>
             <Link to="/">Inicio</Link><span>/</span>Noticias
           </div>
-          <h1 className={styles.heroTitle}>
-            Lo que pasa<br />en el cuartel.
-          </h1>
+          <h1 className={styles.heroTitle}>Lo que pasa<br />en el cuartel.</h1>
           <p className={styles.heroDesc}>
             Operativos, convocatorias, capacitaciones y comunicados oficiales de la compañía.
           </p>
         </div>
       </section>
 
-      {/* Noticias destacadas */}
-      <section className={styles.featured}>
-        <div className={styles.featuredInner}>
-          {featured.map(({ id, category, date, title, excerpt, img, size }) => (
-            <article
-              key={id}
-              className={`${styles.card} ${size === 'large' ? styles.cardLarge : styles.cardSmall}`}
-            >
-              <div className={styles.cardPhoto}>
-                <img
-                  src={img}
-                  alt={title}
-                  loading="lazy"
-                  onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                />
-                <span className={styles.cardPhotoPlaceholder}>Foto</span>
-              </div>
-              <div className={styles.cardBody}>
-                <div className={styles.cardMeta}>
-                  <span className={styles.cardCategory}>{category}</span>
-                  <span className={styles.cardDot}>·</span>
-                  <span className={styles.cardDate}>{date}</span>
-                </div>
-                <h2 className={styles.cardTitle}>{title}</h2>
-                {excerpt && <p className={styles.cardExcerpt}>{excerpt}</p>}
-              </div>
-            </article>
+      {/* Filtros */}
+      <div className={styles.catBar}>
+        <div className={styles.catBarInner}>
+          {CATS.map(c => (
+            <button key={c}
+              className={`${styles.catBtn} ${cat === c ? styles.catBtnActive : ''}`}
+              onClick={() => handleCat(c)}>{c}</button>
           ))}
+          <span className={styles.catCount}>{filtered.length} noticias</span>
         </div>
-      </section>
+      </div>
 
-      {/* Lista de noticias */}
-      <section className={styles.list}>
-        <div className={styles.listInner}>
-          {listNews.map(({ id, category, date, title }) => (
-            <div key={id} className={styles.listItem}>
-              <div className={styles.listMeta}>
-                <span className={styles.listCategory}>{category}</span>
-                <span className={styles.listDate}>{date}</span>
-              </div>
-              <div className={styles.listTitle}>{title}</div>
+      {/* Grid 1 grande + hasta 4 pequeños */}
+      <section className={styles.featured}>
+        {loading && <p style={{ padding:'3rem', textAlign:'center', color:'var(--color-gray)' }}>Cargando noticias…</p>}
+
+        {!loading && filtered.length === 0 && (
+          <p style={{ padding:'3rem', textAlign:'center', color:'var(--color-gray)' }}>
+            No hay noticias en esta categoría.
+          </p>
+        )}
+
+        {!loading && mainCard && (
+          <div className={styles.pageGrid}>
+            {/* Card principal grande */}
+            <div className={styles.mainCol}>
+              <NewsCard n={mainCard} large />
             </div>
-          ))}
-        </div>
+            {/* Cards secundarias */}
+            {sideCards.length > 0 && (
+              <div className={styles.sideCol}>
+                {sideCards.map(n => <NewsCard key={n.id} n={n} />)}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Paginador */}
+        {totalPages > 1 && (
+          <div className={styles.paginator}>
+            <button className={styles.pageBtn} onClick={() => goPage(page - 1)} disabled={page === 1}>← Anterior</button>
+
+            <div className={styles.pageNums}>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+                <button
+                  key={p}
+                  className={`${styles.pageNum} ${p === page ? styles.pageNumActive : ''}`}
+                  onClick={() => goPage(p)}
+                >
+                  {p}
+                </button>
+              ))}
+            </div>
+
+            <button className={styles.pageBtn} onClick={() => goPage(page + 1)} disabled={page === totalPages}>Siguiente →</button>
+
+            <span className={styles.pageInfo}>
+              {(page - 1) * PER_PAGE + 1}–{Math.min(page * PER_PAGE, filtered.length)} de {filtered.length}
+            </span>
+          </div>
+        )}
       </section>
 
       {/* Newsletter */}
@@ -117,23 +182,13 @@ export default function NewsPage() {
             <div className={styles.newsletterLeft}>
               <div className="section-tag">Boletín mensual</div>
               <div className={styles.newsletterTitle}>Lo importante del cuartel, una vez al mes.</div>
-              <p className={styles.newsletterDesc}>
-                Operativos destacados, transparencia financiera y oportunidades para participar. Sin spam.
-              </p>
+              <p className={styles.newsletterDesc}>Operativos destacados, transparencia financiera y oportunidades. Sin spam.</p>
             </div>
             {subscribed
-              ? <div style={{ color: 'var(--color-gray)', fontSize: '0.9rem' }}>
-                  ✓ Suscripción confirmada. ¡Gracias!
-                </div>
-              : <form className={styles.newsletterForm} onSubmit={handleSubscribe}>
-                  <input
-                    className={styles.newsletterInput}
-                    type="email"
-                    placeholder="tu@correo.bo"
-                    value={email}
-                    onChange={e => setEmail(e.target.value)}
-                    required
-                  />
+              ? <div style={{ color:'var(--color-gray)', fontSize:'0.9rem' }}>✓ ¡Gracias por suscribirte!</div>
+              : <form className={styles.newsletterForm} onSubmit={async e=>{ e.preventDefault(); if(email){ try{ await suscriptoresApi.subscribe(email); }catch{} setSubscribed(true); } }}>
+                  <input className={styles.newsletterInput} type="email" placeholder="tu@correo.bo"
+                    value={email} onChange={e=>setEmail(e.target.value)} required />
                   <button type="submit" className={styles.newsletterBtn}>Suscribirme</button>
                 </form>
             }

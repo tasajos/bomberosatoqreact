@@ -13,6 +13,7 @@ import sliderRoutes          from './routes/slider.js';
 import reconocimientosRoutes from './routes/reconocimientos.js';
 import serviciosRoutes       from './routes/servicios.js';
 import galeriaRoutes         from './routes/galeria.js';
+import suscriptoresRoutes    from './routes/suscriptores.js';
 
 dotenv.config();
 
@@ -38,6 +39,7 @@ app.use('/api/slider',          sliderRoutes);
 app.use('/api/reconocimientos', reconocimientosRoutes);
 app.use('/api/servicios',       serviciosRoutes);
 app.use('/api/galeria',         galeriaRoutes);
+app.use('/api/suscriptores',    suscriptoresRoutes);
 
 app.get('/api/health', (_, res) => res.json({ status: 'ok', ts: new Date().toISOString() }));
 

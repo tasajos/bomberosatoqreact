@@ -67,9 +67,30 @@ export const campaniasApi = {
 
 // Noticias
 export const noticiasApi = {
-  list: (page = 1, limit = 10) =>
-    request<NoticiasResponse>(`/noticias?page=${page}&limit=${limit}`),
-  get: (id: number) => request<Noticia>(`/noticias/${id}`),
+  list: (page = 1, limit = 12, all = false) =>
+    request<NoticiasResponse>(`/noticias?page=${page}&limit=${limit}${all ? '&all=true' : ''}`),
+  get:    (id: number) => request<Noticia>(`/noticias/${id}`),
+  create: (data: Partial<Noticia>) =>
+    request<{ id: number }>('/noticias', { method: 'POST', body: JSON.stringify(data) }),
+  update: (id: number, data: Partial<Noticia>) =>
+    request<{ ok: boolean }>(`/noticias/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  togglePublish: (id: number, publicado: boolean) =>
+    request<{ ok: boolean }>(`/noticias/${id}/publicar`, { method: 'PUT', body: JSON.stringify({ publicado }) }),
+  delete: (id: number) =>
+    request<{ ok: boolean }>(`/noticias/${id}`, { method: 'DELETE' }),
+  uploadImage: (file: File) => {
+    const token = getToken();
+    const fd = new FormData();
+    fd.append('imagen', file);
+    return fetch(`${BASE_URL}/noticias/upload-image`, {
+      method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: fd,
+    }).then(async r => {
+      if (!r.ok) { const b = await r.json().catch(()=>({})); throw new Error(b.error||`Error ${r.status}`); }
+      return r.json() as Promise<{ url: string }>;
+    });
+  },
 };
 
 // Voluntarios
@@ -80,6 +101,16 @@ export const voluntariosApi = {
       method: 'POST',
       body: JSON.stringify(data),
     }),
+};
+
+// Suscriptores
+export const suscriptoresApi = {
+  subscribe: (email: string, fuente = 'noticias') =>
+    request<{ ok: boolean; mensaje: string }>('/suscriptores', {
+      method: 'POST', body: JSON.stringify({ email, fuente }),
+    }),
+  list: () => request<SuscriptoresResponse>('/suscriptores'),
+  delete: (id: number) => request<{ ok: boolean }>(`/suscriptores/${id}`, { method: 'DELETE' }),
 };
 
 // Galería
@@ -166,6 +197,19 @@ export const sliderApi = {
 };
 
 // Types
+export interface Suscriptor {
+  id: number;
+  email: string;
+  activo: number;
+  fuente: string;
+  created_at: string;
+}
+export interface SuscriptoresResponse {
+  data: Suscriptor[];
+  total: number;
+  activos: number;
+}
+
 export interface GaleriaItem {
   id: number;
   src: string;
@@ -268,6 +312,12 @@ export interface Noticia {
   imagen_url: string | null;
   fecha: string;
   autor: string;
+  publicado: number;
+  tipo: 'propia' | 'externa';
+  fuente_nombre: string;
+  fuente_url: string;
+  categoria: string;
+  created_at: string;
 }
 
 export interface NoticiasResponse {
