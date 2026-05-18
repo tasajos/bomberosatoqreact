@@ -103,6 +103,22 @@ export const voluntariosApi = {
     }),
 };
 
+// Contacto
+export const contactoApi = {
+  send: (data: { nombre: string; correo: string; telefono?: string; tema?: string; mensaje: string }) =>
+    request<{ ok: boolean; mensaje: string }>('/contacto', { method: 'POST', body: JSON.stringify(data) }),
+  list: () => request<ContactoResponse>('/contacto'),
+  markRead: (id: number) => request<{ ok: boolean }>(`/contacto/${id}/leido`, { method: 'PUT' }),
+  delete: (id: number) => request<{ ok: boolean }>(`/contacto/${id}`, { method: 'DELETE' }),
+};
+
+// Configuración
+export const configApi = {
+  get: () => request<Record<string, string>>('/config'),
+  update: (data: Record<string, string>) =>
+    request<{ ok: boolean }>('/config', { method: 'PUT', body: JSON.stringify(data) }),
+};
+
 // Suscriptores
 export const suscriptoresApi = {
   subscribe: (email: string, fuente = 'noticias') =>
@@ -197,6 +213,22 @@ export const sliderApi = {
 };
 
 // Types
+export interface ContactoItem {
+  id: number;
+  nombre: string;
+  correo: string;
+  telefono: string | null;
+  tema: string | null;
+  mensaje: string;
+  leido: number;
+  created_at: string;
+}
+export interface ContactoResponse {
+  data: ContactoItem[];
+  total: number;
+  no_leidos: number;
+}
+
 export interface Suscriptor {
   id: number;
   email: string;

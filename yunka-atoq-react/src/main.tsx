@@ -31,6 +31,8 @@ import ServicesAdminPage from './pages/admin/ServicesAdminPage';
 import GalleryAdminPage from './pages/admin/GalleryAdminPage';
 import NewsAdminPage from './pages/admin/NewsAdminPage';
 import SubscribersPage from './pages/admin/SubscribersPage';
+import ContactAdminPage from './pages/admin/ContactAdminPage';
+import SiteConfigPage from './pages/admin/SiteConfigPage';
 
 import './index.css';
 
@@ -70,6 +72,8 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
               <Route path="galeria"          element={<GalleryAdminPage />} />
               <Route path="noticias"         element={<NewsAdminPage />} />
               <Route path="suscriptores"     element={<SubscribersPage />} />
+              <Route path="contactos"        element={<ContactAdminPage />} />
+              <Route path="configuracion"    element={<SiteConfigPage />} />
             </Route>
           </Route>
         </Routes>

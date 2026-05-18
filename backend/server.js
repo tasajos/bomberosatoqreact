@@ -14,6 +14,8 @@ import reconocimientosRoutes from './routes/reconocimientos.js';
 import serviciosRoutes       from './routes/servicios.js';
 import galeriaRoutes         from './routes/galeria.js';
 import suscriptoresRoutes    from './routes/suscriptores.js';
+import contactoRoutes        from './routes/contacto.js';
+import configRoutes          from './routes/config.js';
 
 dotenv.config();
 
@@ -40,6 +42,8 @@ app.use('/api/reconocimientos', reconocimientosRoutes);
 app.use('/api/servicios',       serviciosRoutes);
 app.use('/api/galeria',         galeriaRoutes);
 app.use('/api/suscriptores',    suscriptoresRoutes);
+app.use('/api/contacto',        contactoRoutes);
+app.use('/api/config',          configRoutes);
 
 app.get('/api/health', (_, res) => res.json({ status: 'ok', ts: new Date().toISOString() }));
 
