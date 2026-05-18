@@ -7,8 +7,7 @@
 --   3. El admin quedará listo para iniciar sesión
 --
 -- Credenciales del admin:
---   Email:      admin@yunkaatoq.bo
---   Contraseña: YunkaAtoq2026!
+-- 
 -- ============================================================
 
 -- 1. Crear base de datos si no existe

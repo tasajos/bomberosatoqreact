@@ -28,6 +28,7 @@ import SliderPage from './pages/admin/SliderPage';
 import CampaignsPage from './pages/admin/CampaignsPage';
 import RecognitionsAdminPage from './pages/admin/RecognitionsAdminPage';
 import ServicesAdminPage from './pages/admin/ServicesAdminPage';
+import GalleryAdminPage from './pages/admin/GalleryAdminPage';
 
 import './index.css';
 
@@ -64,6 +65,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
               <Route path="campanias"        element={<CampaignsPage />} />
               <Route path="reconocimientos"  element={<RecognitionsAdminPage />} />
               <Route path="servicios"        element={<ServicesAdminPage />} />
+              <Route path="galeria"          element={<GalleryAdminPage />} />
             </Route>
           </Route>
         </Routes>

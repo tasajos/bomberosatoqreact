@@ -82,6 +82,30 @@ export const voluntariosApi = {
     }),
 };
 
+// Galería
+export const galeriaApi = {
+  list: (all = false) => request<GaleriaItem[]>(`/galeria${all ? '?all=true' : ''}`),
+  create: (data: { src: string; label: string; category: string }) =>
+    request<{ id: number }>('/galeria', { method: 'POST', body: JSON.stringify(data) }),
+  upload: (file: File, label: string, category: string) => {
+    const token = getToken();
+    const fd = new FormData();
+    fd.append('imagen', file); fd.append('label', label); fd.append('category', category);
+    return fetch(`${BASE_URL}/galeria/upload`, {
+      method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: fd,
+    }).then(async r => {
+      if (!r.ok) { const b = await r.json().catch(()=>({})); throw new Error(b.error || `Error ${r.status}`); }
+      return r.json() as Promise<{ id: number; src: string }>;
+    });
+  },
+  update: (id: number, data: Partial<GaleriaItem>) =>
+    request<{ ok: boolean }>(`/galeria/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  delete: (id: number) =>
+    request<{ ok: boolean }>(`/galeria/${id}`, { method: 'DELETE' }),
+};
+
 // Servicios
 export const serviciosApi = {
   list: (all = false) => request<Servicio[]>(`/servicios${all ? '?all=true' : ''}`),
@@ -142,6 +166,17 @@ export const sliderApi = {
 };
 
 // Types
+export interface GaleriaItem {
+  id: number;
+  src: string;
+  label: string;
+  category: string;
+  source_type: 'upload' | 'url';
+  activo: number;
+  orden: number;
+  created_at: string;
+}
+
 export interface Servicio {
   id: number;
   numero: string;

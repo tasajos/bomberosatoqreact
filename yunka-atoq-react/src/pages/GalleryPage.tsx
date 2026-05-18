@@ -1,56 +1,61 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import styles from './GalleryPage.module.css';
+import { galeriaApi, type GaleriaItem, API_BASE } from '../services/api';
 
-type Category = 'Todos' | 'Estructurales' | 'Forestales' | 'Rescate' | 'Comunidad' | 'Entrenamiento';
+type Category = 'Todos' | string;
 
-interface Photo {
-  id: string;
-  src: string;
-  label: string;
-  category: Category;
+function resolveUrl(src: string) {
+  return src.startsWith('/uploads/') ? `${API_BASE}${src}` : src;
 }
 
-const photos: Photo[] = [
-  { id: '1',  src: '/history/2.jpg',        label: 'Operativo estructural',    category: 'Estructurales' },
-  { id: '2',  src: '/history/4.jpg',         label: 'Incendio forestal Tunari', category: 'Forestales'    },
-  { id: '3',  src: '/history/5.jpg',         label: 'Rescate vehicular',        category: 'Rescate'       },
-  { id: '4',  src: '/history/6.jpg',         label: 'Capacitación NFPA',        category: 'Entrenamiento' },
-  { id: '5',  src: '/history/7.jpg',         label: 'Brigada forestal',         category: 'Forestales'    },
-  { id: '6',  src: '/history/8.jpg',         label: 'Intervención comunidad',   category: 'Comunidad'     },
-  { id: '7',  src: '/history/9.jpg',         label: 'Operativo estructural',    category: 'Estructurales' },
-  { id: '8',  src: '/history/10.jpg',        label: 'Entrenamiento físico',     category: 'Entrenamiento' },
-  { id: '9',  src: '/history/12.jpg',        label: 'Incendio forestal',        category: 'Forestales'    },
-  { id: '10', src: '/history/13.jpg',        label: 'Rescate alto ángulo',      category: 'Rescate'       },
-  { id: '11', src: '/history/15.jpg',        label: 'Jornada comunitaria',      category: 'Comunidad'     },
-  { id: '12', src: '/history/16.jpg',        label: 'Simulacro USAR',           category: 'Entrenamiento' },
-  { id: '13', src: '/history/18.jpg',        label: 'Ataque ofensivo',          category: 'Estructurales' },
-  { id: '14', src: '/trabajo/rr3.jpg',       label: 'Operativo en ruta',        category: 'Rescate'       },
-  { id: '15', src: '/trabajo/rrblanco.jpg',  label: 'Guardia nocturna',         category: 'Estructurales' },
-  { id: '16', src: '/history/atoq.png',      label: 'Cuartel Yunka Atoq',       category: 'Comunidad'     },
-];
-
-const CATEGORIES: Category[] = ['Todos','Estructurales','Forestales','Rescate','Comunidad','Entrenamiento'];
-
 export default function GalleryPage() {
-  const [active, setActive] = useState<Category>('Todos');
-  const [lightbox, setLightbox] = useState<Photo | null>(null);
+  const [photos, setPhotos]   = useState<GaleriaItem[]>([]);
+  const [active, setActive]   = useState<Category>('Todos');
+  const [lightbox, setLightbox] = useState<number | null>(null); // índice en visible[]
+  const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
+    galeriaApi.list()
+      .then(setPhotos)
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  // Categorías únicas
+  const categories = ['Todos', ...Array.from(new Set(photos.map(p => p.category)))];
   const visible = active === 'Todos' ? photos : photos.filter(p => p.category === active);
+
+  // Lightbox con navegación teclado
+  const closeLb = useCallback(() => setLightbox(null), []);
+  const prevLb  = useCallback(() => setLightbox(i => i !== null ? (i - 1 + visible.length) % visible.length : null), [visible.length]);
+  const nextLb  = useCallback(() => setLightbox(i => i !== null ? (i + 1) % visible.length : null), [visible.length]);
+
+  useEffect(() => {
+    if (lightbox === null) return;
+    document.body.style.overflow = 'hidden';
+    const h = (e: KeyboardEvent) => {
+      if (e.key === 'Escape')      closeLb();
+      if (e.key === 'ArrowLeft')   prevLb();
+      if (e.key === 'ArrowRight')  nextLb();
+    };
+    window.addEventListener('keydown', h);
+    return () => { window.removeEventListener('keydown', h); document.body.style.overflow = ''; };
+  }, [lightbox, closeLb, prevLb, nextLb]);
+
+  const currentPhoto = lightbox !== null ? visible[lightbox] : null;
 
   return (
     <main>
-      {/* Hero */}
+      {/* Hero oscuro */}
       <section className={styles.hero}>
         <div className={styles.heroInner}>
           <div className={styles.breadcrumb}>
             <Link to="/">Inicio</Link><span>/</span>Galería
           </div>
-          <h1 className={styles.heroTitle}>
-            Operativos<br />en imágenes.
-          </h1>
+          <h1 className={styles.heroTitle}>Operativos<br />en imágenes.</h1>
           <p className={styles.heroDesc}>
-            Archivo fotográfico de la compañía. Cada operativo es documentado por nuestro equipo de comunicación con consentimiento expreso de los afectados.
+            Archivo fotográfico de la compañía. Cada operativo es documentado con consentimiento expreso de los afectados.
           </p>
         </div>
       </section>
@@ -59,61 +64,69 @@ export default function GalleryPage() {
       <div className={styles.controls}>
         <div className={styles.controlsInner}>
           <div className={styles.filters}>
-            {CATEGORIES.map(cat => (
-              <button
-                key={cat}
+            {categories.map(cat => (
+              <button key={cat}
                 className={`${styles.filterBtn} ${active === cat ? styles.filterBtnActive : ''}`}
-                onClick={() => setActive(cat)}
-              >
+                onClick={() => { setActive(cat); setLightbox(null); }}>
                 {cat}
               </button>
             ))}
           </div>
-          <span className={styles.count}>
-            {visible.length} elementos · Archivo 2025-2026
-          </span>
+          <span className={styles.count}>{visible.length} imágenes</span>
         </div>
       </div>
 
-      {/* Galería masonry */}
+      {/* Masonry */}
       <section className={styles.gallery}>
         <div className={styles.galleryInner}>
-          {visible.map(photo => (
-            <div
-              key={photo.id}
-              className={styles.photoCard}
-              onClick={() => setLightbox(photo)}
-            >
+          {loading && <p style={{ padding:'2rem', color:'var(--color-gray)' }}>Cargando galería…</p>}
+          {visible.map((photo, i) => (
+            <div key={photo.id} className={styles.photoCard} onClick={() => setLightbox(i)}>
               <img
-                src={photo.src}
+                src={resolveUrl(photo.src)}
                 alt={photo.label}
                 loading="lazy"
-                onError={e => {
-                  (e.target as HTMLImageElement).style.minHeight = '200px';
-                }}
+                onError={e => { (e.target as HTMLImageElement).src = '/yunka_atoq_log.png'; }}
               />
-              <div className={styles.photoOverlay}>
-                <div className={styles.photoMeta}>
-                  <span className={styles.photoLabel}>{photo.label}</span>
-                  <span className={styles.photoTag}>{photo.category}</span>
-                </div>
+              <span className={styles.zoomIcon}>⤢</span>
+              <div className={styles.photoMeta}>
+                <span className={styles.photoLabel}>{photo.label}</span>
+                <span className={styles.photoCat}>{photo.category}</span>
               </div>
             </div>
           ))}
         </div>
       </section>
 
-      {/* Lightbox */}
-      {lightbox && (
-        <div className={styles.lightbox} onClick={() => setLightbox(null)}>
+      {/* Lightbox elegante */}
+      {currentPhoto && (
+        <div className={styles.lightbox} onClick={closeLb}>
+          <button className={styles.lbClose} onClick={closeLb}>✕</button>
+
+          {visible.length > 1 && (
+            <>
+              <button className={styles.lbPrev} onClick={e => { e.stopPropagation(); prevLb(); }}>‹</button>
+              <button className={styles.lbNext} onClick={e => { e.stopPropagation(); nextLb(); }}>›</button>
+            </>
+          )}
+
           <img
-            src={lightbox.src}
-            alt={lightbox.label}
-            className={styles.lightboxImg}
+            key={currentPhoto.id}
+            src={resolveUrl(currentPhoto.src)}
+            alt={currentPhoto.label}
+            className={styles.lbImg}
             onClick={e => e.stopPropagation()}
           />
-          <button className={styles.lightboxClose} onClick={() => setLightbox(null)}>×</button>
-          <span className={styles.lightboxCaption}>{lightbox.label} · {lightbox.category}</span>
+
+          <div className={styles.lbFooter}>
+            <div className={styles.lbMeta}>
+              <span className={styles.lbLabel}>{currentPhoto.label}</span>
+              <span className={styles.lbCat}>{currentPhoto.category}</span>
+            </div>
+            <span className={styles.lbCounter}>
+              {(lightbox ?? 0) + 1} / {visible.length}
+            </span>
+          </div>
         </div>
       )}
     </main>
