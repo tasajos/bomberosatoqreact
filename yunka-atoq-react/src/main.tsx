@@ -36,6 +36,7 @@ import SiteConfigPage from './pages/admin/SiteConfigPage';
 import UsersAdminPage from './pages/admin/UsersAdminPage';
 import PresidenteLayout from './layouts/PresidenteLayout';
 import PresidenteDashboard from './pages/presidente/PresidenteDashboard';
+import PresidenteVolunteers from './pages/presidente/PresidenteVolunteers';
 
 import './index.css';
 
@@ -85,6 +86,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
           <Route element={<ProtectedRoute allowedRoles={['presidente']} />}>
             <Route path="/presidente" element={<PresidenteLayout />}>
               <Route index element={<PresidenteDashboard />} />
+              <Route path="voluntarios" element={<PresidenteVolunteers />} />
             </Route>
           </Route>
         </Routes>

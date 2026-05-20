@@ -7,10 +7,11 @@ const router = Router();
 
 const COLS = `id, nombre, apellido_paterno, apellido_materno, fecha_nacimiento,
   carnet_identidad, domicilio, telefono, contacto_nombre, contacto_telefono,
-  codigo, matricula, especialidad, tipo_sangre, email, role, activo, created_at`;
+  codigo, matricula, especialidad, tipo_sangre, grado, cargo_directiva,
+  email, role, activo, created_at`;
 
-// GET /api/admin/users
-router.get('/', verifyToken, requireRole('admin'), async (req, res) => {
+// GET /api/admin/users — admin ve todos, presidente solo activos
+router.get('/', verifyToken, requireRole('admin','presidente'), async (req, res) => {
   try {
     const [rows] = await pool.query(
       `SELECT ${COLS} FROM users ORDER BY created_at DESC`
@@ -92,12 +93,14 @@ router.put('/:id', verifyToken, requireRole('admin'), async (req, res) => {
     carnet_identidad, domicilio, telefono,
     contacto_nombre = '', contacto_telefono = '',
     codigo = '', matricula = '', especialidad = '', tipo_sangre = '',
+    grado = '', cargo_directiva = '',
     email, role, activo, password,
   } = req.body;
 
   const base = [nombre, apellido_paterno, apellido_materno, fecha_nacimiento || null,
     carnet_identidad, domicilio, telefono, contacto_nombre, contacto_telefono,
-    codigo, matricula, especialidad, tipo_sangre, email, role, activo ? 1 : 0];
+    codigo, matricula, especialidad, tipo_sangre, grado, cargo_directiva,
+    email, role, activo ? 1 : 0];
 
   try {
     if (password) {
@@ -105,7 +108,8 @@ router.put('/:id', verifyToken, requireRole('admin'), async (req, res) => {
       await pool.query(
         `UPDATE users SET nombre=?,apellido_paterno=?,apellido_materno=?,fecha_nacimiento=?,
          carnet_identidad=?,domicilio=?,telefono=?,contacto_nombre=?,contacto_telefono=?,
-         codigo=?,matricula=?,especialidad=?,tipo_sangre=?,email=?,role=?,activo=?,password_hash=?
+         codigo=?,matricula=?,especialidad=?,tipo_sangre=?,grado=?,cargo_directiva=?,
+         email=?,role=?,activo=?,password_hash=?
          WHERE id=?`,
         [...base, hash, req.params.id]
       );
@@ -113,11 +117,24 @@ router.put('/:id', verifyToken, requireRole('admin'), async (req, res) => {
       await pool.query(
         `UPDATE users SET nombre=?,apellido_paterno=?,apellido_materno=?,fecha_nacimiento=?,
          carnet_identidad=?,domicilio=?,telefono=?,contacto_nombre=?,contacto_telefono=?,
-         codigo=?,matricula=?,especialidad=?,tipo_sangre=?,email=?,role=?,activo=?
+         codigo=?,matricula=?,especialidad=?,tipo_sangre=?,grado=?,cargo_directiva=?,
+         email=?,role=?,activo=?
          WHERE id=?`,
         [...base, req.params.id]
       );
     }
+    res.json({ ok: true });
+  } catch (err) { console.error(err); res.status(500).json({ error: 'Error del servidor' }); }
+});
+
+// PATCH /api/admin/users/:id/grado — presidente puede actualizar grado y cargo
+router.patch('/:id/grado', verifyToken, requireRole('admin','presidente'), async (req, res) => {
+  const { grado = '', cargo_directiva = '' } = req.body;
+  try {
+    await pool.query(
+      'UPDATE users SET grado=?, cargo_directiva=? WHERE id=?',
+      [grado, cargo_directiva, req.params.id]
+    );
     res.json({ ok: true });
   } catch (err) { console.error(err); res.status(500).json({ error: 'Error del servidor' }); }
 });

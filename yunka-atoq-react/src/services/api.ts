@@ -113,6 +113,8 @@ export const adminUsersApi = {
     request<{ id: number }>('/admin/users', { method: 'POST', body: JSON.stringify(data) }),
   update: (id: number, data: Partial<AdminUser> & { password?: string }) =>
     request<{ ok: boolean }>(`/admin/users/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  updateGrado: (id: number, grado: string, cargo_directiva: string) =>
+    request<{ ok: boolean }>(`/admin/users/${id}/grado`, { method: 'PATCH', body: JSON.stringify({ grado, cargo_directiva }) }),
   delete: (id: number) =>
     request<{ ok: boolean }>(`/admin/users/${id}`, { method: 'DELETE' }),
 };
@@ -261,6 +263,8 @@ export interface AdminUser {
   matricula: string;
   especialidad: string;
   tipo_sangre: string;
+  grado: string;
+  cargo_directiva: string;
   email: string;
   role: string;
   activo: number;
@@ -352,7 +356,7 @@ export type UserRole =
   | 'admin' | 'presidente' | 'coordinador' | 'fundador'
   | 'voluntario' | 'postulante'
   | 'jefe_operaciones' | 'jefe_personal' | 'jefe_logistica'
-  | 'jefe_marketing' | 'jefe_enlaces';
+  | 'jefe_marketing' | 'jefe_enlaces' | 'jefe_finanzas';
 
 export interface AuthUser {
   id: number;

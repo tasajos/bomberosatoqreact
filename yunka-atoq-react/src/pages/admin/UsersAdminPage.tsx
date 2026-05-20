@@ -13,6 +13,7 @@ const ROLES = [
   { value: 'jefe_logistica',    label: 'Jefe de Logística',  emoji: '📦', color: '#047857' },
   { value: 'jefe_marketing',    label: 'Jefe de Marketing',  emoji: '📢', color: '#b45309' },
   { value: 'jefe_enlaces',      label: 'Jefe de Enlaces',    emoji: '🤝', color: '#6d28d9' },
+  { value: 'jefe_finanzas',     label: 'Jefe de Finanzas',   emoji: '💼', color: '#0d7c4d' },
   { value: 'voluntario',        label: 'Voluntario',         emoji: '🧑‍🚒', color: '#374151' },
   { value: 'postulante',        label: 'Postulante',         emoji: '📝', color: '#6B7280' },
 ];

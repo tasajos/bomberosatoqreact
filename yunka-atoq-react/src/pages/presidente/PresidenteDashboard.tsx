@@ -30,10 +30,26 @@ const DEPT_COLOR: Record<string, string> = {
 };
 
 const KPI_CONFIGS = [
-  { key: 'voluntarios', label: 'Voluntarios activos',  icon: '🧑‍🚒', color: 'rgba(139,92,246,0.15)', accent: '#8b5cf6' },
-  { key: 'operativos',  label: 'Operativos en el año', icon: '🔥', color: 'rgba(196,30,30,0.15)',    accent: '#ef4444' },
-  { key: 'campanias',   label: 'Campañas activas',     icon: '💰', color: 'rgba(217,119,6,0.15)',    accent: '#d97706' },
-  { key: 'contacto',    label: 'Mensajes sin leer',    icon: '✉️', color: 'rgba(34,197,94,0.1)',      accent: '#22c55e' },
+  {
+    key: 'voluntarios', label: 'Voluntarios activos', icon: '🧑‍🚒',
+    bg: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 100%)',
+    accent: '#818cf8',
+  },
+  {
+    key: 'operativos', label: 'Operativos en el año', icon: '🔥',
+    bg: 'linear-gradient(135deg, #450a0a 0%, #991b1b 100%)',
+    accent: '#f87171',
+  },
+  {
+    key: 'campanias', label: 'Campañas activas', icon: '🎯',
+    bg: 'linear-gradient(135deg, #1c1917 0%, #78350f 100%)',
+    accent: '#fbbf24',
+  },
+  {
+    key: 'contacto', label: 'Mensajes sin leer', icon: '✉️',
+    bg: 'linear-gradient(135deg, #052e16 0%, #14532d 100%)',
+    accent: '#4ade80',
+  },
 ];
 
 export default function PresidenteDashboard() {
@@ -88,19 +104,25 @@ export default function PresidenteDashboard() {
       {/* KPIs */}
       <div className={styles.kpiGrid}>
         {KPI_CONFIGS.map(cfg => (
-          <div key={cfg.key} className={styles.kpiCard}
-            style={{ background: `linear-gradient(135deg, ${cfg.color} 0%, rgba(255,255,255,0.03) 100%)`, border: `1px solid ${cfg.accent}30` }}>
-            <div className={styles.kpiGlow} style={{ '--kpi-color': `${cfg.accent}20` } as React.CSSProperties} />
+          <div key={cfg.key} className={styles.kpiCard} style={{ background: cfg.bg }}>
+            {/* Línea de acento superior */}
+            <div className={styles.kpiAccentLine} style={{ background: cfg.accent }} />
+
+            {/* Badge urgente */}
+            {cfg.key === 'contacto' && !loading && kpiValues[cfg.key] > 0 && (
+              <span className={`${styles.kpiBadge} ${styles.urgente}`}>⚠ Atención</span>
+            )}
+
             <span className={styles.kpiIcon}>{cfg.icon}</span>
-            <div className={styles.kpiValue} style={{ color: cfg.accent }}>
+            <div className={styles.kpiValue}>
               {loading ? '—' : fmt(kpiValues[cfg.key])}
             </div>
             <div className={styles.kpiLabel}>{cfg.label}</div>
-            {cfg.key === 'contacto' && kpiValues[cfg.key] > 0 && (
-              <span className={`${styles.kpiBadge} ${styles.urgente}`}>Atención requerida</span>
-            )}
             {cfg.key === 'operativos' && data && (
               <div className={styles.kpiSub}>{fmt(data.operativos.total)} histórico total</div>
+            )}
+            {cfg.key === 'voluntarios' && data && (
+              <div className={styles.kpiSub}>{data.voluntarios.por_codigo.map(c=>`${c.codigo}: ${c.total}`).join(' · ')}</div>
             )}
           </div>
         ))}
