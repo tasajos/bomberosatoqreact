@@ -174,19 +174,7 @@ function DetailPanel({ user, onClose, onSaved }: { user: AdminUser; onClose: () 
                   onClick={() => setGrado(g.value)}
                   title={g.label}
                 >
-                  <svg className={styles.gradoBtnSvg} viewBox="0 0 48 72">
-                    <path d="M8,72 L8,28 L24,14 L40,28 L40,72 Q40,72 8,72 Z"
-                      fill={g.color === 'blue' ? '#2233CC' : '#FFE800'}
-                      stroke="rgba(0,0,0,0.15)" strokeWidth="0.5"/>
-                    {Array.from({length: Math.min(g.stripes,3)}).map((_,i) => (
-                      <rect key={i} x="6" y={72-6-(i*6)} width="36" height="4"
-                        fill={g.color === 'blue' ? '#FFE800' : '#2233CC'} opacity="0.9"/>
-                    ))}
-                    {(g.style==='tree'||g.style==='tree-ax'||g.style==='tree-red') && (
-                      <path d="M24,20 C24,20 18,24 18,30 M24,20 C24,20 30,24 30,30 M20,30 C20,26 28,26 28,30 M24,20 L24,40"
-                        fill="none" stroke="#1a4a1a" strokeWidth="2" strokeLinecap="round"/>
-                    )}
-                  </svg>
+                  <RankBadgeSVG grado={g.value} size={52} />
                   <span className={styles.gradoBtnLabel}>{g.label}</span>
                 </button>
               ))}
