@@ -10,6 +10,21 @@ const COLS = `id, nombre, apellido_paterno, apellido_materno, fecha_nacimiento,
   codigo, matricula, especialidad, tipo_sangre, grado, cargo_directiva,
   email, role, activo, created_at`;
 
+// POST /api/admin/users/recalculate-points — recalcula total_puntos de todos (admin)
+router.post('/recalculate-points', verifyToken, requireRole('admin','presidente'), async (req, res) => {
+  try {
+    await pool.query(`
+      UPDATE users u
+      SET u.total_puntos = (
+        SELECT COALESCE(SUM(p.puntos), 0)
+        FROM puntos_voluntario p
+        WHERE p.voluntario_id = u.id
+      )
+    `);
+    res.json({ ok: true });
+  } catch(err) { console.error(err); res.status(500).json({ error:'Error del servidor' }); }
+});
+
 // GET /api/admin/users — admin ve todos, presidente solo activos
 router.get('/', verifyToken, requireRole('admin','presidente'), async (req, res) => {
   try {

@@ -1,5 +1,6 @@
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-export const API_BASE = BASE_URL.replace('/api', '');
+export const API_BASE     = BASE_URL.replace('/api', '');   // http://localhost:5000
+export const API_BASE_URL = BASE_URL;                       // http://localhost:5000/api
 
 function getToken(): string | null {
   return localStorage.getItem('ya_token');
@@ -103,6 +104,36 @@ export const voluntariosApi = {
     }),
 };
 
+// Departamento de Operaciones
+export const opsDptoApi = {
+  resumen:       () => request<OpsDptoResumen>('/operaciones-dpto/resumen'),
+  listOps:       (p?: Record<string,string>) => {
+    const qs = p ? '?' + new URLSearchParams(p).toString() : '';
+    return request<OpsResponse>(`/operaciones-dpto${qs}`);
+  },
+  createOp:      (d: Partial<Operacion>) => request<{id:number}>('/operaciones-dpto',{method:'POST',body:JSON.stringify(d)}),
+  validarOp:     (id:number,d:{estado:string;puntos_asignados?:number;observacion_validacion?:string}) =>
+    request<{ok:boolean}>(`/operaciones-dpto/${id}/validar`,{method:'PUT',body:JSON.stringify(d)}),
+  deleteOp:      (id:number) => request<{ok:boolean}>(`/operaciones-dpto/${id}`,{method:'DELETE'}),
+
+  listGuardias:  (p?: Record<string,string>) => {
+    const qs = p ? '?' + new URLSearchParams(p).toString() : '';
+    return request<Guardia[]>(`/operaciones-dpto/guardias${qs}`);
+  },
+  createGuardia: (d: Partial<Guardia>) => request<{id:number}>('/operaciones-dpto/guardias',{method:'POST',body:JSON.stringify(d)}),
+  deleteGuardia: (id:number) => request<{ok:boolean}>(`/operaciones-dpto/guardias/${id}`,{method:'DELETE'}),
+
+  getPuntos:     (vid:number) => request<PuntosResponse>(`/operaciones-dpto/puntos/${vid}`),
+  addPuntos:     (d:{voluntario_id:number;puntos:number;concepto:string}) =>
+    request<{ok:boolean}>('/operaciones-dpto/puntos',{method:'POST',body:JSON.stringify(d)}),
+
+  listMeritos:   (vid?:number) => {
+    const qs = vid ? `?voluntario_id=${vid}` : '';
+    return request<Merito[]>(`/operaciones-dpto/meritos${qs}`);
+  },
+  createMerito:  (d: Partial<Merito>) => request<{ok:boolean}>('/operaciones-dpto/meritos',{method:'POST',body:JSON.stringify(d)}),
+};
+
 // Admin Users
 export const adminUsersApi = {
   list: () => request<AdminUser[]>('/admin/users'),
@@ -115,6 +146,8 @@ export const adminUsersApi = {
     request<{ ok: boolean }>(`/admin/users/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   updateGrado: (id: number, grado: string, cargo_directiva: string) =>
     request<{ ok: boolean }>(`/admin/users/${id}/grado`, { method: 'PATCH', body: JSON.stringify({ grado, cargo_directiva }) }),
+  recalculatePoints: () =>
+    request<{ ok: boolean }>('/admin/users/recalculate-points', { method: 'POST' }),
   delete: (id: number) =>
     request<{ ok: boolean }>(`/admin/users/${id}`, { method: 'DELETE' }),
 };
@@ -298,6 +331,76 @@ export interface SuscriptoresResponse {
   data: Suscriptor[];
   total: number;
   activos: number;
+}
+
+export interface Operacion {
+  id: number;
+  tipo: 'local' | 'nacional' | 'internacional';
+  clasificacion_ro: string;
+  calificacion_tipo: string;
+  calificacion_puntos: string;
+  titulo: string;
+  descripcion: string;
+  lugar: string;
+  fecha: string;
+  duracion_horas: number;
+  voluntario_id: number | null;
+  voluntario_nombre: string;
+  matricula: string;
+  oficial_responsable_id: number | null;
+  oficial_nombre: string;
+  oficial_role: string;
+  personal_participante: string; // JSON array de IDs
+  imagen_respaldo: string;
+  registrado_nombre: string;
+  validado_nombre: string;
+  estado: 'pendiente' | 'validado' | 'rechazado';
+  puntos_asignados: number;
+  observacion_validacion: string;
+  created_at: string;
+}
+export interface OpsResponse { data: Operacion[]; total: number; page: number; pages: number; }
+
+export interface Guardia {
+  id: number;
+  fecha: string;
+  turno: 'diurno' | 'nocturno' | '24h';
+  voluntario_id: number;
+  voluntario_nombre: string;
+  matricula: string;
+  codigo: string;
+  rol_guardia: string;
+  novedades: string;
+  operativos_count: number;
+  registrado_nombre: string;
+  created_at: string;
+}
+
+export interface PuntosResponse {
+  historial: { id:number; puntos:number; concepto:string; asignado_nombre:string; created_at:string }[];
+  total: number;
+}
+
+export interface Merito {
+  id: number;
+  voluntario_id: number;
+  voluntario_nombre: string;
+  matricula: string;
+  tipo: 'merito' | 'demerito' | 'antiguedad';
+  titulo: string;
+  descripcion: string;
+  puntos_extra: number;
+  fecha: string;
+  registrado_nombre: string;
+  created_at: string;
+}
+
+export interface OpsDptoResumen {
+  operaciones: { total:number; validadas:number; pendientes:number };
+  guardias: { total:number };
+  puntos_totales: number;
+  top5_puntos: { nombre:string; apellido_paterno:string; matricula:string; total_puntos:number }[];
+  recientes: Operacion[];
 }
 
 export interface GaleriaItem {

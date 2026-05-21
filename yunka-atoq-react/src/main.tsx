@@ -37,6 +37,14 @@ import UsersAdminPage from './pages/admin/UsersAdminPage';
 import PresidenteLayout from './layouts/PresidenteLayout';
 import PresidenteDashboard from './pages/presidente/PresidenteDashboard';
 import PresidenteVolunteers from './pages/presidente/PresidenteVolunteers';
+import OperacionesLayout from './layouts/OperacionesLayout';
+import OpsDashboard     from './pages/operaciones/OpsDashboard';
+import OpsRegistrar     from './pages/operaciones/OpsRegistrar';
+import OpsValidar       from './pages/operaciones/OpsValidar';
+import OpsPuntos        from './pages/operaciones/OpsPuntos';
+import OpsGuardia       from './pages/operaciones/OpsGuardia';
+import OpsLibro         from './pages/operaciones/OpsLibro';
+import OpsMeritos       from './pages/operaciones/OpsMeritos';
 
 import './index.css';
 
@@ -87,6 +95,19 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
             <Route path="/presidente" element={<PresidenteLayout />}>
               <Route index element={<PresidenteDashboard />} />
               <Route path="voluntarios" element={<PresidenteVolunteers />} />
+            </Route>
+          </Route>
+
+          {/* Departamento de Operaciones */}
+          <Route element={<ProtectedRoute allowedRoles={['admin','presidente','jefe_operaciones','coordinador']} />}>
+            <Route path="/operaciones" element={<OperacionesLayout />}>
+              <Route index element={<OpsDashboard />} />
+              <Route path="registrar" element={<OpsRegistrar />} />
+              <Route path="validar"   element={<OpsValidar />} />
+              <Route path="puntos"    element={<OpsPuntos />} />
+              <Route path="guardia"   element={<OpsGuardia />} />
+              <Route path="libro"     element={<OpsLibro />} />
+              <Route path="meritos"   element={<OpsMeritos />} />
             </Route>
           </Route>
         </Routes>

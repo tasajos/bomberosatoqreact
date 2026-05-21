@@ -17,6 +17,7 @@ import suscriptoresRoutes    from './routes/suscriptores.js';
 import contactoRoutes        from './routes/contacto.js';
 import adminUsersRoutes      from './routes/adminUsers.js';
 import resumenRoutes         from './routes/resumen.js';
+import operacionesDptoRoutes from './routes/operacionesDpto.js';
 import configRoutes          from './routes/config.js';
 
 dotenv.config();
@@ -47,6 +48,7 @@ app.use('/api/suscriptores',    suscriptoresRoutes);
 app.use('/api/contacto',        contactoRoutes);
 app.use('/api/admin/users',     adminUsersRoutes);
 app.use('/api/resumen',         resumenRoutes);
+app.use('/api/operaciones-dpto',operacionesDptoRoutes);
 app.use('/api/config',          configRoutes);
 
 app.get('/api/health', (_, res) => res.json({ status: 'ok', ts: new Date().toISOString() }));

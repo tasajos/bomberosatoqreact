@@ -6,6 +6,7 @@ import styles from './PresidenteLayout.module.css';
 const navItems = [
   { to: '/presidente',           label: 'Dashboard',     end: true },
   { to: '/presidente/voluntarios',label: 'Voluntarios'              },
+  { to: '/operaciones',           label: '🚒 Operaciones'           },
   { to: '/presidente/campanas',   label: 'Campañas'                 },
   { to: '/presidente/contactos',  label: 'Contacto'                 },
   { to: '/admin/noticias',        label: 'Noticias'                 },
