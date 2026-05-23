@@ -193,8 +193,14 @@ router.get('/perfil/:id/capacitaciones', verifyToken, async (req, res) => {
               c.nombre, c.tipo AS cap_tipo, c.institucion, c.instructor, c.fecha, c.horas
        FROM capacitacion_inscripciones i
        JOIN capacitaciones c ON c.id = i.capacitacion_id
-       WHERE i.voluntario_id = ? ORDER BY c.fecha DESC`,
-      [req.params.id]
+       WHERE i.voluntario_id = ?
+       UNION ALL
+       SELECT vc.id, 'completado' AS estado, vc.created_at AS fecha_inscripcion,
+              vc.nombre, vc.tipo AS cap_tipo, vc.institucion, NULL AS instructor, vc.fecha, vc.horas
+       FROM voluntario_cursos vc
+       WHERE vc.voluntario_id = ?
+       ORDER BY fecha DESC`,
+      [req.params.id, req.params.id]
     );
     res.json(rows);
   } catch(e) { console.error(e); res.status(500).json({ error: 'Error del servidor' }); }
@@ -210,11 +216,12 @@ router.get('/directorio', verifyToken, async (req, res) => {
         u.telefono, u.tipo_sangre, u.total_puntos, u.activo,
         COUNT(DISTINCT g.id)                                          AS guardias,
         COUNT(DISTINCT CASE WHEN o.estado='validado' THEN o.id END)   AS operaciones,
-        COUNT(DISTINCT ci.id)                                         AS capacitaciones
+        COUNT(DISTINCT ci.id) + COUNT(DISTINCT vc.id)                 AS capacitaciones
       FROM users u
       LEFT JOIN guardias g                    ON g.voluntario_id  = u.id
       LEFT JOIN operaciones o                 ON o.voluntario_id  = u.id
       LEFT JOIN capacitacion_inscripciones ci ON ci.voluntario_id = u.id
+      LEFT JOIN voluntario_cursos vc          ON vc.voluntario_id = u.id
       WHERE u.activo = 1
         AND u.role NOT IN ('postulante')
       GROUP BY u.id
