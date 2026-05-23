@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import pool from '../db.js';
 import { verifyToken, requireRole } from '../middleware/auth.js';
+import { notificarPostulacion } from '../mailer.js';
 
 const router = Router();
 
@@ -30,6 +31,10 @@ router.post('/postular', async (req, res) => {
     await pool.query(
       `INSERT INTO postulaciones (nombre, email, telefono, edad, mensaje) VALUES (?, ?, ?, ?, ?)`,
       [nombre, email, telefono || null, edad || null, mensaje || null]
+    );
+    // Notificación por correo — no bloquea la respuesta
+    notificarPostulacion({ nombre, email, telefono, edad, mensaje }).catch(e =>
+      console.error('Error enviando email de postulación:', e.message)
     );
     res.status(201).json({ ok: true, mensaje: 'Postulación recibida. Te contactaremos pronto.' });
   } catch (err) {

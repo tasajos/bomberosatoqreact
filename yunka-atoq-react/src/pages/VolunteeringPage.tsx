@@ -179,7 +179,7 @@ export default function VolunteeringPage() {
             </p>
             <div className={styles.contactBox}>
               <div className={styles.contactBoxLabel}>¿Dudas?</div>
-              <span className={styles.contactPhone}>+591 4 422 0000</span>
+              <span className={styles.contactPhone}>+591 70776212</span>
               <a href="mailto:voluntariado@yunkaatoq.bo" className={styles.contactEmail}>
                 voluntariado@yunkaatoq.bo
               </a>

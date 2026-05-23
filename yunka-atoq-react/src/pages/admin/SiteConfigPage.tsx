@@ -6,7 +6,7 @@ const FIELDS = [
   { key: 'cuartel_nombre',      label: 'Nombre del cuartel',       placeholder: 'Cuartel Yunka Atoq' },
   { key: 'cuartel_direccion',   label: 'Dirección',                placeholder: 'Av. Heroínas #1456' },
   { key: 'cuartel_barrio',      label: 'Barrio / Ciudad',          placeholder: 'Cercado · Cochabamba' },
-  { key: 'cuartel_telefono',    label: 'Teléfono de atención',     placeholder: '+591 4 422 0000' },
+  { key: 'cuartel_telefono',    label: 'Teléfono de atención',     placeholder: '+591 70776212' },
   { key: 'cuartel_horario',     label: 'Horario de atención',      placeholder: 'Lunes a viernes · 8:00 – 18:00' },
   { key: 'cuartel_emergencias', label: 'Número de emergencias',    placeholder: '68503758' },
   { key: 'cuartel_email',       label: 'Email de contacto',        placeholder: 'informaciones@bomberosatoq.org' },

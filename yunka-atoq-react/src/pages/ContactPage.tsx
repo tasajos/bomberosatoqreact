@@ -29,7 +29,7 @@ const DEFAULT_CONFIG: Config = {
   cuartel_nombre:     'Cuartel Yunka Atoq',
   cuartel_direccion:  'Av. Heroínas #1456',
   cuartel_barrio:     'Cercado · Cochabamba',
-  cuartel_telefono:   '+591 4 422 0000',
+  cuartel_telefono:   '+591 70776212',
   cuartel_horario:    'Lunes a viernes · 8:00 – 18:00',
   cuartel_emergencias:'68503758',
   cuartel_email:      'informaciones@bomberosatoq.org',
