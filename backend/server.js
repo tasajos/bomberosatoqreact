@@ -21,6 +21,7 @@ import operacionesDptoRoutes from './routes/operacionesDpto.js';
 import configRoutes          from './routes/config.js';
 import capacitacionesRoutes  from './routes/capacitaciones.js';
 import voluntarioRoutes      from './routes/voluntario.js';
+import milestonesRoutes      from './routes/milestones.js';
 
 dotenv.config();
 
@@ -54,6 +55,7 @@ app.use('/api/operaciones-dpto',operacionesDptoRoutes);
 app.use('/api/config',          configRoutes);
 app.use('/api/capacitaciones',  capacitacionesRoutes);
 app.use('/api/voluntario',      voluntarioRoutes);
+app.use('/api/milestones',      milestonesRoutes);
 
 app.get('/api/health', (_, res) => res.json({ status: 'ok', ts: new Date().toISOString() }));
 

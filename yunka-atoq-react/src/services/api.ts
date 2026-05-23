@@ -719,3 +719,24 @@ export const capacitacionesApi = {
   },
   removeCursoExterno: (id:number) => request<{ok:boolean}>(`/capacitaciones/voluntario/cursos/${id}`, { method:'DELETE' }),
 };
+
+// ── Milestones (hitos de historia) ───────────────────────────────
+
+export interface Milestone {
+  id: number;
+  orden: number;
+  fecha_label: string;
+  titulo: string;
+  descripcion: string | null;
+  created_at: string;
+}
+
+export const milestonesApi = {
+  list:   ()                    => request<Milestone[]>('/milestones'),
+  create: (data: Omit<Milestone,'id'|'created_at'>) =>
+    request<{id:number}>('/milestones', { method:'POST', body: JSON.stringify(data) }),
+  update: (id:number, data: Omit<Milestone,'id'|'created_at'>) =>
+    request<{ok:boolean}>(`/milestones/${id}`, { method:'PUT',  body: JSON.stringify(data) }),
+  remove: (id:number) =>
+    request<{ok:boolean}>(`/milestones/${id}`, { method:'DELETE' }),
+};

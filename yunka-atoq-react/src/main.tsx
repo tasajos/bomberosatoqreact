@@ -49,6 +49,7 @@ import OpsLibro         from './pages/operaciones/OpsLibro';
 import OpsMeritos       from './pages/operaciones/OpsMeritos';
 import MisCapacitaciones from './pages/MisCapacitaciones';
 import PostulacionesPage  from './pages/admin/PostulacionesPage';
+import MilestonesPage     from './pages/admin/MilestonesPage';
 import VoluntarioLayout     from './layouts/VoluntarioLayout';
 import VoluntarioDashboard  from './pages/voluntario/VoluntarioDashboard';
 
@@ -95,6 +96,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
               <Route path="configuracion"    element={<SiteConfigPage />} />
               <Route path="usuarios"         element={<UsersAdminPage />} />
               <Route path="postulaciones"    element={<PostulacionesPage />} />
+              <Route path="milestones"       element={<MilestonesPage />} />
             </Route>
           </Route>
 

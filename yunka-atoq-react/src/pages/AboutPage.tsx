@@ -1,64 +1,85 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { milestonesApi, type Milestone } from '../services/api';
 import styles from './AboutPage.module.css';
+
+const PAGE_SIZE = 6;
 
 const principles = [
   {
     num: '01',
-    title: 'Llegamos cuando otros se van',
-    desc: 'No discriminamos emergencia ni domicilio. La alarma suena y respondemos en menos de 12 minutos a cualquier punto del valle metropolitano.',
+    title: 'Respondemos, sin excusas',
+    desc: 'Cuando suena la alarma no preguntamos el barrio ni el apellido. Llegamos. Eso es todo.',
   },
   {
     num: '02',
-    title: 'Voluntad antes que recurso',
-    desc: 'Somos voluntarios. Eso no es un eslogan: nadie aquí cobra un boliviano por entrar a un incendio.',
+    title: 'Vocación, no contrato',
+    desc: 'Ninguno de nuestros bomberos cobra por entrar a un siniestro. El servicio es la recompensa y el compromiso es de por vida.',
   },
   {
     num: '03',
-    title: 'Transparencia o nada',
-    desc: 'Cada peso donado se publica. Auditoría externa anual, presupuesto abierto y reportes trimestrales en la web.',
+    title: 'Preparación constante',
+    desc: 'Entrenamos cada semana porque la emergencia no avisa. Nuestros voluntarios se capacitan en rescate, primeros auxilios e incendio forestal.',
   },
   {
     num: '04',
-    title: 'Comunidad antes que medalla',
-    desc: 'Preferimos prevenir mil emergencias que apagar una. Por eso entrenamos a la comunidad: escolares, juntas vecinales y empresas.',
+    title: 'Cochabamba es nuestra familia',
+    desc: 'Antes de apagar incendios, prevenimos. Trabajamos con colegios, juntas de vecinos y empresas para que la comunidad sepa qué hacer cuando el peligro llega.',
   },
 ];
 
-const timeline = [
-  { year: '2008', event: 'Fundación', desc: '14 vecinos del Distrito 9 organizaron la primera brigada tras el incendio del mercado La Pampa.' },
-  { year: '2010', event: 'Primera unidad', desc: 'Mack CF-600 donado por la comunidad tras 18 meses de rifas y kermeses.' },
-  { year: '2014', event: 'Cuartel central', desc: 'Inauguración del cuartel propio en Av. Heroínas 1456, Cercado.' },
-  { year: '2017', event: 'Cía. forestal', desc: 'Activación de la brigada forestal especializada en el Parque Tunari.' },
-  { year: '2019', event: '41 días en el Tunari', desc: '14.000 hectáreas salvadas durante el mega incendio del Tunari.' },
-  { year: '2025', event: 'Equipo USAR', desc: 'Activación del equipo de búsqueda y rescate en estructuras colapsadas.' },
-];
 
-const leadership = [
-  {
-    name: 'Cmte. Rosa Mendoza V.',
-    role: 'Comandante de Compañía',
-    desc: 'Ingeniera civil. 14 años en la compañía.',
-    photo: null,
-  },
-  {
-    name: 'Sub. Cmte. Diego Almaraz',
-    role: 'Sub-Comandante Operativo',
-    desc: 'Especialista en incendio forestal.',
-    photo: null,
-  },
-  {
-    name: 'Tte. Carla Iriarte L.',
-    role: 'Oficial de Capacitación',
-    desc: 'Instructora certificada NFPA.',
-    photo: null,
-  },
-  {
-    name: 'Tte. Marco Vargas P.',
-    role: 'Oficial de Equipamiento',
-    desc: 'Encargado del taller y flota.',
-    photo: null,
-  },
-];
+
+function MilestonesTimeline() {
+  const [items, setItems] = useState<Milestone[]>([]);
+  const [page, setPage]   = useState(0);
+
+  useEffect(() => {
+    milestonesApi.list().then(setItems).catch(() => {});
+  }, []);
+
+  const totalPages = Math.ceil(items.length / PAGE_SIZE);
+  const visible    = items.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE);
+
+  if (!items.length) return null;
+
+  return (
+    <>
+      <div className={styles.timelineTrack}>
+        {visible.map((m, i) => (
+          <div key={m.id} className={styles.timelineItem}>
+            <div className={styles.timelineYear}>
+              <span className={styles.timelineYearText}>{page * PAGE_SIZE + i + 1 < 10 ? `0${page * PAGE_SIZE + i + 1}` : page * PAGE_SIZE + i + 1}</span>
+            </div>
+            <div className={styles.timelineEvent}>{m.fecha_label}</div>
+            <p className={styles.timelineDesc}>{m.descripcion}</p>
+          </div>
+        ))}
+      </div>
+
+      {totalPages > 1 && (
+        <div className={styles.timelinePaginator}>
+          <button onClick={() => setPage(p => p - 1)} disabled={page === 0}
+            className={styles.timelinePageBtn}>←</button>
+
+          {Array.from({ length: totalPages }, (_, i) => (
+            <button key={i} onClick={() => setPage(i)}
+              className={`${styles.timelinePageBtn} ${i === page ? styles.timelinePageBtnActive : ''}`}>
+              {i + 1}
+            </button>
+          ))}
+
+          <button onClick={() => setPage(p => p + 1)} disabled={page === totalPages - 1}
+            className={styles.timelinePageBtn}>→</button>
+
+          <span className={styles.timelinePageInfo}>
+            {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, items.length)} de {items.length}
+          </span>
+        </div>
+      )}
+    </>
+  );
+}
 
 export default function AboutPage() {
   return (
@@ -107,59 +128,17 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Línea de tiempo */}
+      {/* Línea de tiempo — datos desde el administrador */}
       <section className={styles.timeline}>
         <div className={styles.timelineInner}>
           <div className="section-tag">Línea de tiempo</div>
           <h2 className={styles.timelineTitle}>
-            Del primer balde<br />al equipo USAR.
+            Nuestra historia,<br />hito a hito.
           </h2>
-
-          <div className={styles.timelineTrack}>
-            {timeline.map(({ year, event, desc }) => (
-              <div key={year} className={styles.timelineItem}>
-                <div className={styles.timelineYear}>
-                  <span className={styles.timelineYearText}>{year}</span>
-                </div>
-                <div className={styles.timelineEvent}>{event}</div>
-                <p className={styles.timelineDesc}>{desc}</p>
-              </div>
-            ))}
-          </div>
+          <MilestonesTimeline />
         </div>
       </section>
 
-      {/* Comandancia */}
-      <section className={styles.leadership}>
-        <div className={styles.leadershipInner}>
-          <div className={styles.leadershipHeader}>
-            <div>
-              <div className="section-tag">Comandancia</div>
-              <h2 className={styles.leadershipTitle}>Quien lleva el casco.</h2>
-            </div>
-            <span className={styles.leadershipPeriod}>Período 2025 — 2027</span>
-          </div>
-
-          <div className={styles.leadershipGrid}>
-            {leadership.map(({ name, role, desc, photo }) => (
-              <div key={name} className={styles.memberCard}>
-                <div className={styles.memberPhoto}>
-                  {photo
-                    ? <img src={photo} alt={name} />
-                    : <span className={styles.memberPhotoPlaceholder}>Retrato</span>
-                  }
-                  <span className={styles.memberBadge}>Oficial</span>
-                </div>
-                <div className={styles.memberInfo}>
-                  <div className={styles.memberName}>{name}</div>
-                  <div className={styles.memberRole}>{role}</div>
-                  <p className={styles.memberDesc}>{desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
     </main>
   );
 }

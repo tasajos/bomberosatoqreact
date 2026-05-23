@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import pool from '../db.js';
 import { verifyToken, requireRole } from '../middleware/auth.js';
+import { notificarContacto } from '../mailer.js';
 
 const router = Router();
 
@@ -15,6 +16,8 @@ router.post('/', async (req, res) => {
       'INSERT INTO contactos (nombre, correo, telefono, tema, mensaje) VALUES (?,?,?,?,?)',
       [nombre, correo, telefono || null, tema || null, mensaje]
     );
+    notificarContacto({ nombre, correo, telefono, tema, mensaje })
+      .catch(e => console.error('Error enviando email de contacto:', e.message));
     res.status(201).json({ ok: true, id: result.insertId, mensaje: 'Tu mensaje fue enviado. Te responderemos en 48 horas hábiles.' });
   } catch (err) {
     console.error(err);
