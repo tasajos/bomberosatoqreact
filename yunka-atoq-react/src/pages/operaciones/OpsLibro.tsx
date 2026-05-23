@@ -5,31 +5,45 @@ import styles from './Ops.module.css';
 function fmtDate(s: string) {
   const d = new Date(s.slice(0, 10) + 'T12:00:00');
   return isNaN(d.getTime()) ? s : new Intl.DateTimeFormat('es-BO', {
-    day: 'numeric', month: 'long', year: 'numeric',
+    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
   }).format(d);
 }
 
-const TURNO_ICON: Record<string, string> = { diurno: '🌞', nocturno: '🌙', '24h': '🕐' };
+const TURNO_ORDER = ['diurno', 'nocturno', '24h'];
+const TURNO_LABEL: Record<string, string> = {
+  diurno:   'Turno Diurno',
+  nocturno: 'Turno Nocturno',
+  '24h':    'Turno 24 Horas',
+};
+
+const ROL_COLORS: Record<string, { color: string; bg: string }> = {
+  'Jefe de guardia':        { color: '#991b1b', bg: '#fef2f2' },
+  'Oficial de guardia':     { color: '#1e40af', bg: '#eff6ff' },
+  'Maquinista':             { color: '#5b21b6', bg: '#f5f3ff' },
+  'Voluntario de servicio': { color: '#166534', bg: '#f0fdf4' },
+  'Apoyo logístico':        { color: '#92400e', bg: '#fffbeb' },
+  'Comunicaciones':         { color: '#155e75', bg: '#ecfeff' },
+  'Observador':             { color: '#374151', bg: '#f9fafb' },
+};
+
+type Grouped = Record<string, Record<string, Guardia[]>>;
 
 export default function OpsLibro() {
   const [guardias, setGuardias] = useState<Guardia[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [err, setErr] = useState('');
-  const [desde, setDesde] = useState(() => {
-    const d = new Date(); d.setDate(1);
-    return d.toISOString().slice(0, 10);
+  const [loading, setLoading]   = useState(true);
+  const [err, setErr]           = useState('');
+  const [desde, setDesde]       = useState(() => {
+    const d = new Date(); d.setDate(1); return d.toISOString().slice(0, 10);
   });
   const [hasta, setHasta] = useState(() => new Date().toISOString().slice(0, 10));
 
   const load = () => {
-    setLoading(true);
-    setErr('');
+    setLoading(true); setErr('');
     opsDptoApi.listGuardias({ fecha_desde: desde, fecha_hasta: hasta })
       .then(data => setGuardias(Array.isArray(data) ? data : []))
       .catch(e => setErr(e instanceof Error ? e.message : 'Error al cargar'))
       .finally(() => setLoading(false));
   };
-
   useEffect(() => { load(); }, [desde, hasta]);
 
   const handleDelete = async (id: number) => {
@@ -38,15 +52,19 @@ export default function OpsLibro() {
     load();
   };
 
-  const grouped = guardias.reduce((acc, g) => {
-    const key = g.fecha.slice(0, 10);
-    if (!acc[key]) acc[key] = [];
-    acc[key].push(g);
+  const grouped: Grouped = guardias.reduce((acc, g) => {
+    const fecha = g.fecha.slice(0, 10);
+    if (!acc[fecha]) acc[fecha] = {};
+    if (!acc[fecha][g.turno]) acc[fecha][g.turno] = [];
+    acc[fecha][g.turno].push(g);
     return acc;
-  }, {} as Record<string, Guardia[]>);
+  }, {} as Grouped);
+
+  const fechas = Object.keys(grouped).sort((a, b) => b.localeCompare(a));
 
   return (
     <div className={styles.page}>
+      {/* Header */}
       <div className={styles.pageHeader}>
         <div>
           <h1 className={styles.pageTitle}>Libro de Guardia</h1>
@@ -69,65 +87,162 @@ export default function OpsLibro() {
         </div>
       </div>
 
-      {err && <div className={styles.errorMsg}>{err}</div>}
+      {err    && <div className={styles.errorMsg}>{err}</div>}
       {loading && <p className={styles.empty}>Cargando libro de guardia…</p>}
       {!loading && !err && !guardias.length && (
         <p className={styles.empty}>No hay registros en el período seleccionado.</p>
       )}
 
-      {!loading && Object.entries(grouped).sort(([a], [b]) => b.localeCompare(a)).map(([fecha, items]) => (
-        <div key={fecha} className={styles.card} style={{ marginBottom: '1rem' }}>
-          <div className={styles.cardHeader} style={{ flexWrap: 'wrap', gap: '0.5rem' }}>
-            <span className={styles.cardTitle}>📅 {fmtDate(fecha)}</span>
-            <span style={{
-              fontFamily: 'var(--font-condensed)', fontSize: '0.72rem', fontWeight: 700,
-              color: '#94A3B8', letterSpacing: '0.08em',
+      {!loading && fechas.map(fecha => {
+        const turnosPorFecha = grouped[fecha];
+        const lugar   = Object.values(turnosPorFecha).flat()[0]?.novedades;
+        const totalVol = Object.values(turnosPorFecha).reduce((s, arr) => s + arr.length, 0);
+
+        return (
+          <div key={fecha} style={{ marginBottom: '2rem' }}>
+            {/* Encabezado de fecha */}
+            <div style={{
+              display: 'flex', alignItems: 'baseline', gap: '1rem',
+              marginBottom: '0.875rem', paddingBottom: '0.625rem',
+              borderBottom: '2px solid #0F172A',
             }}>
-              {items.length} voluntario{items.length > 1 ? 's' : ''}
-            </span>
-          </div>
-
-          {/* Cabecera tabla — oculta en móvil via CSS */}
-          <div className={`${styles.tableHeader} ${styles.libroGrid}`}>
-            <span>Voluntario</span>
-            <span>Turno</span>
-            <span>Rol</span>
-            <span>Lugar</span>
-            <span></span>
-          </div>
-
-          {items.map(g => (
-            <div key={g.id} className={`${styles.tableRow} ${styles.libroGrid}`}>
-              <div>
-                <span className={styles.cellMobileLabel}>Voluntario</span>
-                <div className={styles.cellName}>{g.voluntario_nombre}</div>
-                <div className={styles.cellSub}>{g.codigo} · {g.matricula}</div>
-              </div>
-              <div>
-                <span className={styles.cellMobileLabel}>Turno</span>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
-                  <span>{TURNO_ICON[g.turno]}</span>
-                  <span className={styles.cellSub}>{g.turno}</span>
-                </div>
-              </div>
-              <div>
-                <span className={styles.cellMobileLabel}>Rol</span>
-                <div className={styles.cellSub}>{g.rol_guardia || '—'}</div>
-              </div>
-              <div>
-                <span className={styles.cellMobileLabel}>Lugar</span>
-                <div className={styles.cellSub} style={{ fontSize: '0.78rem', lineHeight: 1.4 }}>
-                  {g.novedades || <span style={{ color: '#CBD5E1' }}>—</span>}
-                </div>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                <button className={`${styles.btnSm} ${styles.btnSmRed}`}
-                  onClick={() => handleDelete(g.id)}>🗑</button>
-              </div>
+              <h2 style={{
+                fontFamily: 'var(--font-condensed)', fontSize: '1.05rem',
+                fontWeight: 900, color: '#0F172A', margin: 0,
+                textTransform: 'uppercase', letterSpacing: '0.04em',
+              }}>
+                {fmtDate(fecha)}
+              </h2>
+              <span style={{
+                fontFamily: 'var(--font-condensed)', fontSize: '0.7rem',
+                fontWeight: 700, color: '#64748B', letterSpacing: '0.08em',
+              }}>
+                {totalVol} voluntario{totalVol !== 1 ? 's' : ''}
+                {lugar ? ` · ${lugar}` : ''}
+              </span>
             </div>
-          ))}
-        </div>
-      ))}
+
+            {/* Una tabla por turno */}
+            {TURNO_ORDER.filter(t => turnosPorFecha[t]).map(turno => {
+              const items = turnosPorFecha[turno];
+              return (
+                <div key={turno} style={{ marginBottom: '1.25rem' }}>
+                  {/* Subencabezado de turno */}
+                  <div style={{
+                    display: 'inline-block',
+                    fontFamily: 'var(--font-condensed)', fontSize: '0.68rem',
+                    fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase',
+                    color: '#475569', background: '#F1F5F9',
+                    padding: '0.25rem 0.75rem', borderRadius: '4px',
+                    marginBottom: '0.5rem',
+                  }}>
+                    {TURNO_LABEL[turno]}
+                  </div>
+
+                  {/* Tabla */}
+                  <div style={{
+                    background: 'white', border: '1px solid #E2E8F0',
+                    borderRadius: '10px', overflow: 'hidden',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+                  }}>
+                    {/* Cabecera */}
+                    <div style={{
+                      display: 'grid', gridTemplateColumns: '2rem 1fr 9rem 11rem 2.5rem',
+                      padding: '0.5rem 1.25rem',
+                      background: '#F8FAFC', borderBottom: '1px solid #E2E8F0',
+                    }}>
+                      {['#', 'Voluntario', 'Matrícula', 'Rol en guardia', ''].map((h, i) => (
+                        <span key={i} style={{
+                          fontFamily: 'var(--font-condensed)', fontSize: '0.62rem',
+                          fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase',
+                          color: '#94A3B8',
+                        }}>{h}</span>
+                      ))}
+                    </div>
+
+                    {/* Filas */}
+                    {items.map((g, idx) => {
+                      const rc = ROL_COLORS[g.rol_guardia];
+                      return (
+                        <div key={g.id} style={{
+                          display: 'grid', gridTemplateColumns: '2rem 1fr 9rem 11rem 2.5rem',
+                          padding: '0.75rem 1.25rem', alignItems: 'center',
+                          borderBottom: idx < items.length - 1 ? '1px solid #F8FAFC' : 'none',
+                          background: idx % 2 === 0 ? 'white' : '#FAFBFC',
+                          transition: 'background 0.12s',
+                        }}>
+                          <span style={{
+                            fontFamily: 'var(--font-condensed)', fontSize: '0.78rem',
+                            fontWeight: 700, color: '#CBD5E1',
+                          }}>{idx + 1}</span>
+
+                          <div style={{
+                            fontFamily: 'var(--font-condensed)', fontSize: '0.88rem',
+                            fontWeight: 700, color: '#1E293B',
+                          }}>
+                            {g.voluntario_nombre}
+                          </div>
+
+                          <div style={{
+                            fontSize: '0.8rem', color: '#64748B',
+                            fontFamily: 'var(--font-condensed)', fontWeight: 600,
+                          }}>
+                            {g.matricula || '—'}
+                          </div>
+
+                          <div>
+                            {g.rol_guardia ? (
+                              <span style={{
+                                display: 'inline-block',
+                                fontFamily: 'var(--font-condensed)', fontSize: '0.65rem',
+                                fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase',
+                                color: rc?.color ?? '#374151',
+                                background: rc?.bg ?? '#f9fafb',
+                                border: `1px solid ${rc?.color ?? '#374151'}25`,
+                                padding: '0.2rem 0.6rem', borderRadius: '4px',
+                              }}>
+                                {g.rol_guardia}
+                              </span>
+                            ) : (
+                              <span style={{ fontSize: '0.75rem', color: '#CBD5E1' }}>—</span>
+                            )}
+                          </div>
+
+                          <button
+                            onClick={() => handleDelete(g.id)}
+                            title="Eliminar"
+                            style={{
+                              width: '28px', height: '28px', borderRadius: '6px',
+                              background: 'transparent', border: '1px solid #E2E8F0',
+                              color: '#94A3B8', cursor: 'pointer', fontSize: '0.8rem',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              transition: 'all 0.15s',
+                            }}
+                            onMouseEnter={e => {
+                              const b = e.currentTarget;
+                              b.style.background = '#fef2f2';
+                              b.style.borderColor = '#fecaca';
+                              b.style.color = '#C41E1E';
+                            }}
+                            onMouseLeave={e => {
+                              const b = e.currentTarget;
+                              b.style.background = 'transparent';
+                              b.style.borderColor = '#E2E8F0';
+                              b.style.color = '#94A3B8';
+                            }}
+                          >
+                            🗑
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        );
+      })}
     </div>
   );
 }

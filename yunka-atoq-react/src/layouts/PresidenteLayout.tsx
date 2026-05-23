@@ -7,6 +7,8 @@ const navItems = [
   { to: '/presidente',           label: 'Dashboard',     end: true },
   { to: '/presidente/voluntarios',label: 'Voluntarios'              },
   { to: '/operaciones',           label: '🚒 Operaciones'           },
+  { to: '/presidente/capacitaciones',     label: 'Capacitaciones'      },
+  { to: '/presidente/mis-capacitaciones', label: 'Mis Inscripciones'  },
   { to: '/presidente/campanas',   label: 'Campañas'                 },
   { to: '/presidente/contactos',  label: 'Contacto'                 },
   { to: '/admin/noticias',        label: 'Noticias'                 },

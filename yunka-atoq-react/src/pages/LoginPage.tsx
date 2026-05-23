@@ -14,15 +14,23 @@ export default function LoginPage() {
   const navigate = useNavigate();
 
   if (authLoading) return null;
-  if (user) return <Navigate to={user.role === 'presidente' ? '/presidente' : '/admin/dashboard'} replace />;
+  if (user) {
+    const dest = user.role === 'presidente' ? '/presidente'
+               : user.role === 'voluntario' ? '/voluntario'
+               : '/admin/dashboard';
+    return <Navigate to={dest} replace />;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
     try {
-      await login(email, password);
-      navigate('/admin/dashboard');
+      const u = await login(email, password);
+      const dest = u.role === 'presidente' ? '/presidente'
+                 : u.role === 'voluntario' ? '/voluntario'
+                 : '/admin/dashboard';
+      navigate(dest);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Credenciales incorrectas');
     } finally {

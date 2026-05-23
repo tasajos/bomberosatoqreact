@@ -36,7 +36,8 @@ import SiteConfigPage from './pages/admin/SiteConfigPage';
 import UsersAdminPage from './pages/admin/UsersAdminPage';
 import PresidenteLayout from './layouts/PresidenteLayout';
 import PresidenteDashboard from './pages/presidente/PresidenteDashboard';
-import PresidenteVolunteers from './pages/presidente/PresidenteVolunteers';
+import PresidenteVolunteers     from './pages/presidente/PresidenteVolunteers';
+import PresidenteCapacitaciones from './pages/presidente/PresidenteCapacitaciones';
 import OperacionesLayout from './layouts/OperacionesLayout';
 import OpsDashboard     from './pages/operaciones/OpsDashboard';
 import OpsRegistrar     from './pages/operaciones/OpsRegistrar';
@@ -46,6 +47,9 @@ import OpsGuardia       from './pages/operaciones/OpsGuardia';
 import OpsVerGuardia    from './pages/operaciones/OpsVerGuardia';
 import OpsLibro         from './pages/operaciones/OpsLibro';
 import OpsMeritos       from './pages/operaciones/OpsMeritos';
+import MisCapacitaciones from './pages/MisCapacitaciones';
+import VoluntarioLayout     from './layouts/VoluntarioLayout';
+import VoluntarioDashboard  from './pages/voluntario/VoluntarioDashboard';
 
 import './index.css';
 
@@ -77,8 +81,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 
           <Route element={<ProtectedRoute allowedRoles={['voluntario', 'admin']} />}>
             <Route path="/admin" element={<AdminLayout />}>
-                <Route path="dashboard"  element={<DashboardPage />} />
-              <Route path="slider"     element={<SliderPage />} />
+              <Route path="dashboard"        element={<DashboardPage />} />
+              <Route path="mis-capacitaciones" element={<MisCapacitaciones />} />
+              <Route path="slider"           element={<SliderPage />} />
               <Route path="campanias"        element={<CampaignsPage />} />
               <Route path="reconocimientos"  element={<RecognitionsAdminPage />} />
               <Route path="servicios"        element={<ServicesAdminPage />} />
@@ -91,11 +96,21 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
             </Route>
           </Route>
 
+          {/* Vista del voluntario */}
+          <Route element={<ProtectedRoute allowedRoles={['voluntario']} />}>
+            <Route path="/voluntario" element={<VoluntarioLayout />}>
+              <Route index element={<VoluntarioDashboard />} />
+              <Route path="capacitaciones" element={<MisCapacitaciones />} />
+            </Route>
+          </Route>
+
           {/* Vista presidencial */}
           <Route element={<ProtectedRoute allowedRoles={['presidente']} />}>
             <Route path="/presidente" element={<PresidenteLayout />}>
               <Route index element={<PresidenteDashboard />} />
-              <Route path="voluntarios" element={<PresidenteVolunteers />} />
+              <Route path="voluntarios"        element={<PresidenteVolunteers />} />
+              <Route path="capacitaciones"     element={<PresidenteCapacitaciones />} />
+              <Route path="mis-capacitaciones" element={<MisCapacitaciones />} />
             </Route>
           </Route>
 
@@ -109,7 +124,8 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
               <Route path="guardia"     element={<OpsGuardia />} />
               <Route path="ver-guardia" element={<OpsVerGuardia />} />
               <Route path="libro"       element={<OpsLibro />} />
-              <Route path="meritos"   element={<OpsMeritos />} />
+              <Route path="meritos"        element={<OpsMeritos />} />
+              <Route path="capacitaciones" element={<MisCapacitaciones />} />
             </Route>
           </Route>
         </Routes>

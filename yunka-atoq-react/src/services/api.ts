@@ -541,3 +541,132 @@ export interface PostulacionData {
   edad?: number;
   mensaje?: string;
 }
+
+// ── Capacitaciones ────────────────────────────────────────────────
+
+export interface Capacitacion {
+  id: number;
+  nombre: string;
+  descripcion: string;
+  tipo: 'interna' | 'externa' | 'certificacion';
+  institucion: string;
+  instructor: string;
+  lugar: string;
+  fecha: string;
+  horas: number;
+  cupo: number;
+  estado: 'planificada' | 'activa' | 'cerrada';
+  invitacion_abierta: number;
+  inscritos: number;
+  completados: number;
+  created_at: string;
+}
+
+export interface CursoExterno {
+  id: number;
+  voluntario_id: number;
+  nombre: string;
+  institucion: string;
+  tipo: 'curso' | 'certificacion' | 'diplomado' | 'taller' | 'seminario';
+  fecha: string;
+  horas: number;
+  descripcion: string;
+  archivo_url: string | null;
+  created_at: string;
+}
+
+export interface Inscripcion {
+  id: number;
+  capacitacion_id: number;
+  voluntario_id: number;
+  nombre_voluntario: string;
+  matricula: string;
+  codigo: string;
+  especialidad: string;
+  estado: 'inscrito' | 'completado' | 'ausente';
+  notas: string;
+  fecha_inscripcion: string;
+}
+
+export interface VoluntarioPerfil {
+  usuario: {
+    id: number; nombre: string; apellido_paterno: string;
+    matricula: string; codigo: string; especialidad: string;
+    grado: string; cargo_directiva: string; total_puntos: number;
+    activo: number; created_at: string;
+  };
+  stats: { guardias: number; operaciones: number; apoyos: number; puntos: number };
+  meritos: { id:number; titulo:string; descripcion:string; puntos_extra:number; fecha:string }[];
+  sanciones: { id:number; titulo:string; descripcion:string; puntos_extra:number; fecha:string }[];
+  capacitaciones: {
+    id:number; capacitacion_id:number; estado:string; notas:string;
+    cap_nombre:string; cap_tipo:string; cap_institucion:string; instructor:string; cap_fecha:string; horas:number;
+  }[];
+  cursos_externos: CursoExterno[];
+}
+
+// ── Voluntario Dashboard ─────────────────────────────────────────
+
+export interface VoluntarioDashboardData {
+  usuario: {
+    id: number; nombre: string; apellido_paterno: string; apellido_materno: string;
+    matricula: string; codigo: string; especialidad: string;
+    grado: string; cargo_directiva: string; total_puntos: number;
+    activo: number; created_at: string; telefono: string; email: string;
+  };
+  stats: {
+    puntos: number; guardias: number; operaciones: number;
+    llamadas_atencion: number; caps_inscritas: number;
+    faltas: number; permisos: number; finanzas_balance: number;
+  };
+  guardias_recientes: {
+    id: number; fecha: string; turno: string; rol_guardia: string; novedades: string;
+  }[];
+  llamadas_lista: { id: number; titulo: string; descripcion: string; fecha: string; puntos_extra: number }[];
+  meritos_lista:  { id: number; titulo: string; descripcion: string; fecha: string; puntos_extra: number }[];
+  caps_abiertas: (Capacitacion & { ya_inscrito: number })[];
+  caps_mis: {
+    inscripcion_id: number; estado: string; notas: string;
+    nombre: string; cap_tipo: string; institucion: string; instructor: string; fecha: string; horas: number;
+  }[];
+}
+
+export const voluntarioApi = {
+  miPerfil: () => request<VoluntarioDashboardData>('/voluntario/mi-perfil'),
+};
+
+export const capacitacionesApi = {
+  list:         ()                  => request<Capacitacion[]>('/capacitaciones'),
+  create:       (d: Partial<Capacitacion>) => request<{id:number}>('/capacitaciones', { method:'POST', body:JSON.stringify(d) }),
+  update:       (id:number, d: Partial<Capacitacion>) => request<{ok:boolean}>(`/capacitaciones/${id}`, { method:'PUT', body:JSON.stringify(d) }),
+  remove:       (id:number)         => request<{ok:boolean}>(`/capacitaciones/${id}`, { method:'DELETE' }),
+
+  getInscripciones: (id:number)     => request<Inscripcion[]>(`/capacitaciones/${id}/inscripciones`),
+  addInscripcion:   (id:number, voluntario_id:number, notas?:string) =>
+    request<{id:number}>(`/capacitaciones/${id}/inscripciones`, { method:'POST', body:JSON.stringify({ voluntario_id, notas }) }),
+  updateInscripcion: (inscId:number, estado:string, notas?:string) =>
+    request<{ok:boolean}>(`/capacitaciones/inscripciones/${inscId}`, { method:'PUT', body:JSON.stringify({ estado, notas }) }),
+  removeInscripcion: (inscId:number) =>
+    request<{ok:boolean}>(`/capacitaciones/inscripciones/${inscId}`, { method:'DELETE' }),
+  invitarTodos:      (id:number) => request<{ok:boolean}>(`/capacitaciones/${id}/invitar-todos`,    { method:'POST' }),
+  cerrarInvitacion:  (id:number) => request<{ok:boolean}>(`/capacitaciones/${id}/cerrar-invitacion`,{ method:'POST' }),
+  getAbiertas:       ()          => request<(Capacitacion & { ya_inscrito: number })[]>('/capacitaciones/abiertas'),
+  inscribirse:       (id:number) => request<{ok:boolean}>(`/capacitaciones/${id}/inscribirse`,      { method:'POST' }),
+  desinscribirse:    (id:number) => request<{ok:boolean}>(`/capacitaciones/${id}/desinscribirse`,   { method:'DELETE' }),
+
+  getPerfilVoluntario: (id:number)  => request<VoluntarioPerfil>(`/capacitaciones/voluntario/${id}/perfil`),
+
+  getCursosExternos: (volId:number) => request<CursoExterno[]>(`/capacitaciones/voluntario/${volId}/cursos`),
+  addCursoExterno: (volId:number, fd:FormData) => {
+    const token = localStorage.getItem('ya_token');
+    return fetch(`${BASE_URL}/capacitaciones/voluntario/${volId}/cursos`, {
+      method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: fd,
+    }).then(async r => {
+      if (!r.ok) { const b = await r.json().catch(()=>({})); throw new Error(b.error||`Error ${r.status}`); }
+      return r.json() as Promise<{id:number}>;
+    });
+  },
+  removeCursoExterno: (id:number) => request<{ok:boolean}>(`/capacitaciones/voluntario/cursos/${id}`, { method:'DELETE' }),
+};

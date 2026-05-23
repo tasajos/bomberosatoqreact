@@ -20,6 +20,9 @@ const NAV = [
   { section: 'Reconocimientos', items: [
     { to: '/operaciones/meritos',   label: 'Méritos y Antigüedad',icon: '🏆' },
   ]},
+  { section: 'Capacitaciones', items: [
+    { to: '/operaciones/capacitaciones', label: 'Mis Capacitaciones', icon: '📚' },
+  ]},
 ];
 
 export default function OperacionesLayout() {

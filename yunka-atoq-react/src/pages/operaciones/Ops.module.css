@@ -145,11 +145,11 @@
 .guardiaGrid { grid-template-columns: 2fr 1.5fr 2fr; }
 .libroGrid   { grid-template-columns: 2fr 1.2fr 1fr 2fr auto; }
 
-/* Responsive guardia member row */
+/* Responsive guardia member row — ahora manejado inline en el componente */
 .miembroRow {
   display: grid;
-  grid-template-columns: 1fr 1fr auto;
-  gap: 0.75rem;
+  grid-template-columns: 40px 1fr 1fr auto;
+  gap: 0.875rem;
   align-items: center;
 }
 
