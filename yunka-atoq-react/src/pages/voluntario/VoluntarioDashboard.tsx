@@ -448,7 +448,7 @@ function DirectorioModal({ onClose }: { onClose: () => void }) {
         }}>
 
         {/* Header */}
-        <div style={{
+        <div className="ya-dir-hdr" style={{
           background: 'linear-gradient(135deg,#0F172A 0%,#1e3a5f 60%,#1e1b4b 100%)',
           padding: '1.75rem 2rem',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem',
@@ -472,7 +472,7 @@ function DirectorioModal({ onClose }: { onClose: () => void }) {
         </div>
 
         {/* Search */}
-        <div style={{ padding: '1.25rem 2rem', background: 'white', borderBottom: '1px solid #E2E8F0' }}>
+        <div className="ya-dir-search" style={{ padding: '1.25rem 2rem', background: 'white', borderBottom: '1px solid #E2E8F0' }}>
           <input
             type="text"
             placeholder="Buscar por nombre, matrícula, grado o especialidad…"
@@ -489,7 +489,7 @@ function DirectorioModal({ onClose }: { onClose: () => void }) {
         </div>
 
         {/* Grid */}
-        <div style={{ padding: '1.5rem 2rem 2rem' }}>
+        <div className="ya-dir-body" style={{ padding: '1.5rem 2rem 2rem' }}>
           {loading ? (
             <div style={{ textAlign: 'center', padding: '3rem', color: '#94A3B8', fontSize: '0.875rem' }}>
               Cargando directorio…
@@ -501,7 +501,7 @@ function DirectorioModal({ onClose }: { onClose: () => void }) {
           ) : (
             <div style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(min(300px, 100%), 1fr))',
               gap: '1rem',
             }}>
               {filtered.map((v, idx) => {
@@ -665,6 +665,11 @@ function DirectorioModal({ onClose }: { onClose: () => void }) {
           from { opacity: 0; transform: translateY(24px); }
           to   { opacity: 1; transform: translateY(0); }
         }
+        @media (max-width: 640px) {
+          .ya-dir-hdr    { padding: 1.25rem 1rem !important; }
+          .ya-dir-search { padding: 0.875rem 1rem !important; }
+          .ya-dir-body   { padding: 1rem !important; }
+        }
       `}</style>
 
       {detalle && (
@@ -740,6 +745,8 @@ function FilePersonalCard({
         </div>
       ) : (
         <>
+          <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' as any }}>
+          <div style={{ minWidth: '460px' }}>
           {/* Table header */}
           <div style={{
             display: 'grid',
@@ -840,6 +847,8 @@ function FilePersonalCard({
               );
             })}
           </div>
+          </div>{/* end minWidth */}
+          </div>{/* end overflow */}
 
           {/* Pagination */}
           {pages > 1 && (
@@ -957,10 +966,16 @@ export default function VoluntarioDashboard() {
   const initls = initials(usuario.nombre, usuario.apellido_paterno);
 
   return (
-    <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '2rem 1.25rem 3rem' }}>
+    <div className="ya-dash" style={{ maxWidth: '1100px', margin: '0 auto', padding: '2rem 1.25rem 3rem' }}>
+      <style>{`
+        @media (max-width: 560px) {
+          .ya-dash { padding: 1.25rem 1rem 2rem !important; }
+          .ya-hero { padding: 1.25rem !important; gap: 1rem !important; }
+        }
+      `}</style>
 
       {/* ── Hero profile card ─────────────────────────────────── */}
-      <div style={{
+      <div className="ya-hero" style={{
         background: 'linear-gradient(135deg, #0F172A 0%, #1e3a5f 50%, #1e1b4b 100%)',
         borderRadius: '20px', padding: '2rem 2.5rem', marginBottom: '1.5rem',
         display: 'flex', alignItems: 'center', gap: '2rem', flexWrap: 'wrap',

@@ -48,6 +48,7 @@ import OpsVerGuardia    from './pages/operaciones/OpsVerGuardia';
 import OpsLibro         from './pages/operaciones/OpsLibro';
 import OpsMeritos       from './pages/operaciones/OpsMeritos';
 import MisCapacitaciones from './pages/MisCapacitaciones';
+import PostulacionesPage  from './pages/admin/PostulacionesPage';
 import VoluntarioLayout     from './layouts/VoluntarioLayout';
 import VoluntarioDashboard  from './pages/voluntario/VoluntarioDashboard';
 
@@ -93,6 +94,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
               <Route path="contactos"        element={<ContactAdminPage />} />
               <Route path="configuracion"    element={<SiteConfigPage />} />
               <Route path="usuarios"         element={<UsersAdminPage />} />
+              <Route path="postulaciones"    element={<PostulacionesPage />} />
             </Route>
           </Route>
 
@@ -111,6 +113,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
               <Route path="voluntarios"        element={<PresidenteVolunteers />} />
               <Route path="capacitaciones"     element={<PresidenteCapacitaciones />} />
               <Route path="mis-capacitaciones" element={<MisCapacitaciones />} />
+              <Route path="postulaciones"      element={<PostulacionesPage />} />
             </Route>
           </Route>
 

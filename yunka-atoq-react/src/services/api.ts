@@ -95,6 +95,17 @@ export const noticiasApi = {
 };
 
 // Voluntarios
+export interface PostulacionItem {
+  id: number;
+  nombre: string;
+  email: string;
+  telefono: string | null;
+  edad: number | null;
+  mensaje: string | null;
+  revisado: number;
+  created_at: string;
+}
+
 export const voluntariosApi = {
   list: () => request<Voluntario[]>('/voluntarios'),
   postular: (data: PostulacionData) =>
@@ -102,6 +113,9 @@ export const voluntariosApi = {
       method: 'POST',
       body: JSON.stringify(data),
     }),
+  postulaciones: () => request<PostulacionItem[]>('/voluntarios/postulaciones'),
+  revisarPostulacion: (id: number) =>
+    request<{ ok: boolean }>(`/voluntarios/postulaciones/${id}/revisar`, { method: 'PATCH' }),
 };
 
 // Departamento de Operaciones

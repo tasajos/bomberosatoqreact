@@ -38,13 +38,24 @@ router.post('/postular', async (req, res) => {
   }
 });
 
-// GET /api/voluntarios/postulaciones - solo admin
-router.get('/postulaciones', verifyToken, requireRole('admin'), async (req, res) => {
+// GET /api/voluntarios/postulaciones - admin o presidente
+router.get('/postulaciones', verifyToken, requireRole('admin', 'presidente'), async (req, res) => {
   try {
     const [rows] = await pool.query(
       `SELECT * FROM postulaciones ORDER BY created_at DESC`
     );
     res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error del servidor' });
+  }
+});
+
+// PATCH /api/voluntarios/postulaciones/:id/revisar
+router.patch('/postulaciones/:id/revisar', verifyToken, requireRole('admin', 'presidente'), async (req, res) => {
+  try {
+    await pool.query(`UPDATE postulaciones SET revisado = 1 WHERE id = ?`, [req.params.id]);
+    res.json({ ok: true });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error del servidor' });

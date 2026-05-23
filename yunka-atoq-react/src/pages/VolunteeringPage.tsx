@@ -244,7 +244,7 @@ export default function VolunteeringPage() {
 
             <label className={styles.checkRow}>
               <input type="checkbox" checked={confirm} onChange={e => setConfirm(e.target.checked)} />
-              Confirmo que dispongo de al menos dos guardias semanales (12h) durante los próximos 3 años y comprendo que la formación es un compromiso real.
+              Confirmo que dispongo de tiempo los fines de semana para instruccion
             </label>
 
             {success
