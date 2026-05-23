@@ -115,6 +115,20 @@ router.get('/mi-perfil', verifyToken, async (req, res) => {
        WHERE i.voluntario_id=? ORDER BY c.fecha DESC LIMIT 5`, [vid]
     );
 
+    // File personal: todas las capacitaciones (sin límite) + cursos externos
+    const [file_caps] = await pool.query(
+      `SELECT i.id AS inscripcion_id, i.estado, i.fecha_inscripcion,
+              c.nombre, c.tipo AS cap_tipo, c.institucion, c.instructor, c.fecha, c.horas
+       FROM capacitacion_inscripciones i
+       JOIN capacitaciones c ON c.id = i.capacitacion_id
+       WHERE i.voluntario_id=? ORDER BY c.fecha DESC`, [vid]
+    );
+
+    const [cursos_externos] = await pool.query(
+      `SELECT id, nombre, institucion, tipo, fecha, horas, descripcion, archivo_url
+       FROM voluntario_cursos WHERE voluntario_id=? ORDER BY fecha DESC`, [vid]
+    ).catch(() => [[]]);
+
     res.json({
       usuario,
       stats: {
@@ -132,7 +146,81 @@ router.get('/mi-perfil', verifyToken, async (req, res) => {
       meritos_lista,
       caps_abiertas,
       caps_mis,
+      file_caps,
+      cursos_externos,
     });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'Error del servidor' });
+  }
+});
+
+// GET /api/voluntario/perfil/:id/puntos
+router.get('/perfil/:id/puntos', verifyToken, async (req, res) => {
+  try {
+    const [rows] = await pool.query(
+      `SELECT p.puntos, p.concepto, p.created_at,
+              CONCAT(a.nombre,' ',a.apellido_paterno) AS asignado_nombre
+       FROM puntos_voluntario p
+       LEFT JOIN users a ON p.asignado_por = a.id
+       WHERE p.voluntario_id = ? ORDER BY p.created_at DESC`,
+      [req.params.id]
+    );
+    const [[user]] = await pool.query('SELECT total_puntos FROM users WHERE id=?', [req.params.id]);
+    res.json({ historial: rows, total: user?.total_puntos ?? 0 });
+  } catch(e) { console.error(e); res.status(500).json({ error: 'Error del servidor' }); }
+});
+
+// GET /api/voluntario/perfil/:id/operaciones
+router.get('/perfil/:id/operaciones', verifyToken, async (req, res) => {
+  try {
+    const [rows] = await pool.query(
+      `SELECT o.id, o.titulo, o.tipo, o.fecha, o.estado, o.puntos_asignados, o.lugar, o.duracion_horas
+       FROM operaciones o
+       WHERE o.voluntario_id = ? AND o.estado = 'validado'
+       ORDER BY o.fecha DESC`,
+      [req.params.id]
+    );
+    res.json(rows);
+  } catch(e) { console.error(e); res.status(500).json({ error: 'Error del servidor' }); }
+});
+
+// GET /api/voluntario/perfil/:id/capacitaciones
+router.get('/perfil/:id/capacitaciones', verifyToken, async (req, res) => {
+  try {
+    const [rows] = await pool.query(
+      `SELECT i.id, i.estado, i.fecha_inscripcion,
+              c.nombre, c.tipo AS cap_tipo, c.institucion, c.instructor, c.fecha, c.horas
+       FROM capacitacion_inscripciones i
+       JOIN capacitaciones c ON c.id = i.capacitacion_id
+       WHERE i.voluntario_id = ? ORDER BY c.fecha DESC`,
+      [req.params.id]
+    );
+    res.json(rows);
+  } catch(e) { console.error(e); res.status(500).json({ error: 'Error del servidor' }); }
+});
+
+// GET /api/voluntario/directorio — todos los voluntarios activos con stats
+router.get('/directorio', verifyToken, async (req, res) => {
+  try {
+    const [rows] = await pool.query(`
+      SELECT
+        u.id, u.nombre, u.apellido_paterno, u.apellido_materno,
+        u.matricula, u.codigo, u.especialidad, u.grado, u.cargo_directiva,
+        u.telefono, u.tipo_sangre, u.total_puntos, u.activo,
+        COUNT(DISTINCT g.id)                                          AS guardias,
+        COUNT(DISTINCT CASE WHEN o.estado='validado' THEN o.id END)   AS operaciones,
+        COUNT(DISTINCT ci.id)                                         AS capacitaciones
+      FROM users u
+      LEFT JOIN guardias g                    ON g.voluntario_id  = u.id
+      LEFT JOIN operaciones o                 ON o.voluntario_id  = u.id
+      LEFT JOIN capacitacion_inscripciones ci ON ci.voluntario_id = u.id
+      WHERE u.activo = 1
+        AND u.role NOT IN ('postulante')
+      GROUP BY u.id
+      ORDER BY u.total_puntos DESC, u.apellido_paterno ASC
+    `);
+    res.json(rows);
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: 'Error del servidor' });

@@ -629,10 +629,45 @@ export interface VoluntarioDashboardData {
     inscripcion_id: number; estado: string; notas: string;
     nombre: string; cap_tipo: string; institucion: string; instructor: string; fecha: string; horas: number;
   }[];
+  file_caps: {
+    inscripcion_id: number; estado: string; fecha_inscripcion: string;
+    nombre: string; cap_tipo: string; institucion: string; instructor: string; fecha: string; horas: number;
+  }[];
+  cursos_externos: {
+    id: number; nombre: string; institucion: string;
+    tipo: string; fecha: string; horas: number; descripcion: string; archivo_url: string | null;
+  }[];
+}
+
+export interface DirectorioVoluntario {
+  id: number;
+  nombre: string; apellido_paterno: string; apellido_materno: string;
+  matricula: string; codigo: string; especialidad: string;
+  grado: string; cargo_directiva: string;
+  telefono: string; tipo_sangre: string;
+  total_puntos: number; activo: number;
+  guardias: number; operaciones: number; capacitaciones: number;
+}
+
+export interface PerfilPuntos {
+  historial: { puntos: number; concepto: string; created_at: string; asignado_nombre: string }[];
+  total: number;
+}
+export interface PerfilOperacion {
+  id: number; titulo: string; tipo: string; fecha: string;
+  estado: string; puntos_asignados: number; lugar: string; duracion_horas: number;
+}
+export interface PerfilCapacitacion {
+  id: number; estado: string; fecha_inscripcion: string;
+  nombre: string; cap_tipo: string; institucion: string; instructor: string; fecha: string; horas: number;
 }
 
 export const voluntarioApi = {
-  miPerfil: () => request<VoluntarioDashboardData>('/voluntario/mi-perfil'),
+  miPerfil:    () => request<VoluntarioDashboardData>('/voluntario/mi-perfil'),
+  directorio:  () => request<DirectorioVoluntario[]>('/voluntario/directorio'),
+  perfilPuntos:  (id: number) => request<PerfilPuntos>(`/voluntario/perfil/${id}/puntos`),
+  perfilOps:     (id: number) => request<PerfilOperacion[]>(`/voluntario/perfil/${id}/operaciones`),
+  perfilCaps:    (id: number) => request<PerfilCapacitacion[]>(`/voluntario/perfil/${id}/capacitaciones`),
 };
 
 export const capacitacionesApi = {
