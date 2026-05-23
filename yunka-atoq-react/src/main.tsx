@@ -43,6 +43,7 @@ import OpsRegistrar     from './pages/operaciones/OpsRegistrar';
 import OpsValidar       from './pages/operaciones/OpsValidar';
 import OpsPuntos        from './pages/operaciones/OpsPuntos';
 import OpsGuardia       from './pages/operaciones/OpsGuardia';
+import OpsVerGuardia    from './pages/operaciones/OpsVerGuardia';
 import OpsLibro         from './pages/operaciones/OpsLibro';
 import OpsMeritos       from './pages/operaciones/OpsMeritos';
 
@@ -105,8 +106,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
               <Route path="registrar" element={<OpsRegistrar />} />
               <Route path="validar"   element={<OpsValidar />} />
               <Route path="puntos"    element={<OpsPuntos />} />
-              <Route path="guardia"   element={<OpsGuardia />} />
-              <Route path="libro"     element={<OpsLibro />} />
+              <Route path="guardia"     element={<OpsGuardia />} />
+              <Route path="ver-guardia" element={<OpsVerGuardia />} />
+              <Route path="libro"       element={<OpsLibro />} />
               <Route path="meritos"   element={<OpsMeritos />} />
             </Route>
           </Route>

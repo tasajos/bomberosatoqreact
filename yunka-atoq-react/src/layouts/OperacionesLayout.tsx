@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { NavLink, Outlet, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import styles from './OperacionesLayout.module.css';
@@ -12,8 +13,9 @@ const NAV = [
     { to: '/operaciones/puntos',    label: 'Asignar Puntos',      icon: '⭐' },
   ]},
   { section: 'Guardia', items: [
-    { to: '/operaciones/guardia',   label: 'Rol de Guardia',      icon: '🛡️' },
-    { to: '/operaciones/libro',     label: 'Libro de Guardia',    icon: '📖' },
+    { to: '/operaciones/guardia',     label: 'Rol de Guardia',      icon: '🛡️' },
+    { to: '/operaciones/ver-guardia', label: 'Ver Rol de Guardia',  icon: '📋' },
+    { to: '/operaciones/libro',       label: 'Libro de Guardia',    icon: '📖' },
   ]},
   { section: 'Reconocimientos', items: [
     { to: '/operaciones/meritos',   label: 'Méritos y Antigüedad',icon: '🏆' },
@@ -23,13 +25,43 @@ const NAV = [
 export default function OperacionesLayout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const handleLogout = () => { logout(); navigate('/login'); };
+  const closeMenu = () => setMenuOpen(false);
+
+  const sidebarContent = (
+    <>
+      {NAV.map(section => (
+        <div key={section.section} className={styles.sideSection}>
+          <div className={styles.sideSectionLabel}>{section.section}</div>
+          {section.items.map(item => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              end={'end' in item ? item.end : undefined}
+              onClick={closeMenu}
+              className={({ isActive }) =>
+                `${styles.sideItem} ${isActive ? styles.sideItemActive : ''}`
+              }
+            >
+              <span className={styles.sideIcon}>{item.icon}</span>
+              {item.label}
+            </NavLink>
+          ))}
+          <div className={styles.sideDivider} />
+        </div>
+      ))}
+    </>
+  );
 
   return (
     <div className={styles.shell}>
       {/* Top bar */}
       <div className={styles.topBar}>
+        <button className={styles.hamburger} onClick={() => setMenuOpen(o => !o)} aria-label="Menú">
+          <span /><span /><span />
+        </button>
         <Link to="/" className={styles.topLogo}>
           <img src="/yunka_atoq_log.png" alt="Yunka Atoq" />
           <span>
@@ -46,27 +78,21 @@ export default function OperacionesLayout() {
       </div>
 
       <div className={styles.body}>
-        {/* Sidebar */}
+        {/* Sidebar desktop */}
         <aside className={styles.sidebar}>
-          {NAV.map(section => (
-            <div key={section.section} className={styles.sideSection}>
-              <div className={styles.sideSectionLabel}>{section.section}</div>
-              {section.items.map(item => (
-                <NavLink
-                  key={item.to}
-                  to={item.to}
-                  end={'end' in item ? item.end : undefined}
-                  className={({ isActive }) =>
-                    `${styles.sideItem} ${isActive ? styles.sideItemActive : ''}`
-                  }
-                >
-                  <span className={styles.sideIcon}>{item.icon}</span>
-                  {item.label}
-                </NavLink>
-              ))}
-              <div className={styles.sideDivider} />
-            </div>
-          ))}
+          {sidebarContent}
+        </aside>
+
+        {/* Drawer móvil */}
+        {menuOpen && (
+          <div className={styles.backdrop} onClick={closeMenu} />
+        )}
+        <aside className={`${styles.drawer} ${menuOpen ? styles.drawerOpen : ''}`}>
+          <div className={styles.drawerHeader}>
+            <span className={styles.drawerTitle}>Menú</span>
+            <button className={styles.drawerClose} onClick={closeMenu}>✕</button>
+          </div>
+          {sidebarContent}
         </aside>
 
         {/* Content */}
