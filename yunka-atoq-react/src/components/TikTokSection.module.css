@@ -1,0 +1,145 @@
+.section {
+  background: #0f0f0f;
+  padding: 4rem 0;
+}
+
+.inner {
+  max-width: 1280px;
+  margin-inline: auto;
+  padding-inline: var(--section-px);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2.5rem;
+  gap: 1rem;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+}
+
+.tikIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #ff0050, #00f2ea);
+  color: white;
+  flex-shrink: 0;
+}
+
+.title {
+  font-family: var(--font-condensed);
+  font-size: 1.35rem;
+  font-weight: 900;
+  color: #ffffff;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin: 0 0 0.15rem;
+}
+
+.handle {
+  font-family: var(--font-condensed);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #aaaaaa;
+  letter-spacing: 0.05em;
+  transition: color 0.2s;
+}
+
+.handle:hover {
+  color: #00f2ea;
+}
+
+.followBtn {
+  font-family: var(--font-condensed);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #ffffff;
+  border: 1.5px solid rgba(255,255,255,0.25);
+  padding: 0.55rem 1.25rem;
+  border-radius: 6px;
+  white-space: nowrap;
+  transition: border-color 0.2s, color 0.2s;
+  flex-shrink: 0;
+}
+
+.followBtn:hover {
+  border-color: #00f2ea;
+  color: #00f2ea;
+}
+
+.grid {
+  display: flex;
+  gap: 1.25rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 0.75rem;
+  scrollbar-width: none;
+}
+
+.grid::-webkit-scrollbar {
+  display: none;
+}
+
+.card {
+  flex: 0 0 325px;
+  scroll-snap-align: start;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #1a1a1a;
+}
+
+.iframe {
+  display: block;
+  width: 325px;
+  height: 580px;
+  border: none;
+}
+
+@media (max-width: 768px) {
+  .section {
+    padding: 2.5rem 0;
+  }
+
+  .header {
+    margin-bottom: 1.5rem;
+  }
+
+  .title {
+    font-size: 1rem;
+  }
+
+  .followBtn {
+    padding: 0.45rem 0.9rem;
+    font-size: 0.75rem;
+  }
+
+  .grid {
+    gap: 0.75rem;
+    padding-inline: var(--section-px);
+    margin-inline: calc(-1 * var(--section-px));
+    padding-bottom: 1rem;
+  }
+
+  .card {
+    flex: 0 0 72vw;
+    width: 72vw;
+    border-radius: 12px;
+  }
+
+  .iframe {
+    width: 72vw;
+    height: 460px;
+  }
+}
