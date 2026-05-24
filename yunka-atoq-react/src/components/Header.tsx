@@ -43,16 +43,15 @@ function Header() {
               {label}
             </NavLink>
           ))}
+          <div className={styles.actions}>
+            <Link to="/login" className={styles.accessLink} onClick={close}>
+              <span>🔒</span> Acceso Voluntarios
+            </Link>
+            <Link to="/donaciones" className={styles.donateBtn} onClick={close}>
+              Donar
+            </Link>
+          </div>
         </nav>
-
-        <div className={styles.actions}>
-          <Link to="/login" className={styles.accessLink}>
-            <span>🔒</span> Acceso Voluntarios
-          </Link>
-          <Link to="/donaciones" className={styles.donateBtn}>
-            Donar
-          </Link>
-        </div>
 
         <button
           className={`${styles.hamburger} ${open ? styles.hamburgerOpen : ''}`}
