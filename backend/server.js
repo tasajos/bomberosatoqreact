@@ -59,6 +59,13 @@ app.use('/api/milestones',      milestonesRoutes);
 
 app.get('/api/health', (_, res) => res.json({ status: 'ok', ts: new Date().toISOString() }));
 
+// Servir frontend estático (producción)
+const frontendDir = path.join(__dirname, '..', 'bomberosatoq.org');
+app.use(express.static(frontendDir));
+app.get('*', (req, res) => {
+  res.sendFile(path.join(frontendDir, 'index.html'));
+});
+
 app.listen(PORT, () => {
   console.log(`Yunka Atoq API corriendo en http://localhost:${PORT}`);
 });
