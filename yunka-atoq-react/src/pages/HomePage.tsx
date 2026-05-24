@@ -6,13 +6,15 @@ import ServicesSection from '../components/ServicesSection';
 import EspecialidadesSection from '../components/EspecialidadesSection';
 import RecognitionsSection from '../components/RecognitionsSection';
 import RecruitSection from '../components/RecruitSection';
+import TikTokSection from '../components/TikTokSection';
 
 function HomePage() {
   return (
     <>
-    <ImageSlider />
+      <ImageSlider />
       <HeroSection />
       <StatsBar />
+      <TikTokSection />
       <HistorySection />
       <RecognitionsSection />
       <ServicesSection />
