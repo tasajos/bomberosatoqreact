@@ -1,40 +1,15 @@
-// src/pages/AwardsPage.tsx
-import  { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import styles from "./AwardsPage.module.css";
-import { db } from "../firebaseConfig";
-import { ref, onValue } from "firebase/database";
-
-// 1. Actualizamos la interfaz para incluir la descripción detallada
-interface Award {
-  id: string;
-  titulo: string;
-  otorgado_por: string;
-  fecha: string;
-  imagen: string;
-  descripcion_detallada?: string; // Nuevo campo opcional
-}
+import { reconocimientosApi, type Reconocimiento } from "../services/api";
 
 export default function AwardsPage() {
-  const [awards, setAwards] = useState<Award[]>([]);
+  const [awards, setAwards] = useState<Reconocimiento[]>([]);
   const [loading, setLoading] = useState(true);
-  // 2. Nuevo estado para guardar el reconocimiento seleccionado
-  const [selectedAward, setSelectedAward] = useState<Award | null>(null);
+  const [selectedAward, setSelectedAward] = useState<Reconocimiento | null>(null);
   const [isZoomed, setIsZoomed] = useState(false);
 
   useEffect(() => {
-    const awardsRef = ref(db, "reconocimientos");
-    const unsubscribe = onValue(awardsRef, (snapshot) => {
-      const data = snapshot.val();
-      if (data) {
-        const awardsArray: Award[] = Object.keys(data).map((key) => ({
-          id: key,
-          ...data[key],
-        }));
-        setAwards(awardsArray);
-      }
-      setLoading(false);
-    });
-    return () => unsubscribe();
+    reconocimientosApi.list().then(setAwards).finally(() => setLoading(false));
   }, []);
 
   // Función para cerrar el modal
@@ -63,12 +38,12 @@ export default function AwardsPage() {
               onClick={() => setSelectedAward(award)}
             >
               <div className={styles.imageContainer}>
-                <img src={award.imagen} alt={award.titulo} />
+                <img src={award.badge} alt={award.titulo} />
               </div>
               <div className={styles.cardContent}>
                 <span className={styles.date}>{award.fecha}</span>
                 <h2 className={styles.awardTitle}>{award.titulo}</h2>
-                <p className={styles.awardIssuer}>Otorgado por: <strong>{award.otorgado_por}</strong></p>
+                <p className={styles.awardIssuer}>Otorgado por: <strong>{award.institucion}</strong></p>
               </div>
             </div>
           ))}
@@ -80,17 +55,14 @@ export default function AwardsPage() {
         <div className={styles.modalBackdrop} onClick={handleCloseModal}>
           <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
             <button className={styles.closeButton} onClick={handleCloseModal}>&times;</button>
-            <img src={selectedAward.imagen} alt={selectedAward.titulo} className={styles.modalImage}
-onClick={(e) => {
-    e.stopPropagation(); // Evita que se cierre el modal principal
-    setIsZoomed(true); // Activa el modo zoom
-  }} />
+            <img src={selectedAward.badge} alt={selectedAward.titulo} className={styles.modalImage}
+              onClick={(e) => { e.stopPropagation(); setIsZoomed(true); }} />
 
             <h2 className={styles.modalTitle}>{selectedAward.titulo}</h2>
-            <p className={styles.modalIssuer}>Otorgado por: <strong>{selectedAward.otorgado_por}</strong></p>
+            <p className={styles.modalIssuer}>Otorgado por: <strong>{selectedAward.institucion}</strong></p>
             <span className={styles.modalDate}>{selectedAward.fecha}</span>
-            {selectedAward.descripcion_detallada && (
-              <p className={styles.modalDescription}>{selectedAward.descripcion_detallada}</p>
+            {selectedAward.texto_completo && (
+              <p className={styles.modalDescription}>{selectedAward.texto_completo}</p>
             )}
           </div>
         </div>
@@ -98,10 +70,10 @@ onClick={(e) => {
  {/* 5. Vista de Zoom (Lightbox) */}
   {isZoomed && selectedAward && (
     <div className={styles.zoomBackdrop} onClick={() => setIsZoomed(false)}>
-      <img 
-        src={selectedAward.imagen} 
-        alt={`Zoom de ${selectedAward.titulo}`} 
-        className={styles.zoomedImage} 
+      <img
+        src={selectedAward.badge}
+        alt={`Zoom de ${selectedAward.titulo}`}
+        className={styles.zoomedImage}
       />
     </div>
   )}
