@@ -253,6 +253,29 @@ router.post('/meritos', verifyToken, requireRole(...OPS_ROLES), async (req, res)
   } catch(err) { console.error(err); res.status(500).json({ error:'Error del servidor' }); }
 });
 
+// GET /api/operaciones-dpto/por-voluntario/:id — todas las operaciones donde participó (responsable o participante)
+router.get('/por-voluntario/:id', verifyToken, requireRole(...OPS_ROLES), async (req, res) => {
+  const vid = Number(req.params.id);
+  if (!vid) return res.status(400).json({ error: 'ID inválido' });
+  try {
+    const [rows] = await pool.query(
+      `SELECT o.*,
+         CONCAT(v.nombre,' ',v.apellido_paterno) AS voluntario_nombre, v.matricula,
+         CONCAT(of2.nombre,' ',of2.apellido_paterno) AS oficial_nombre
+       FROM operaciones o
+       LEFT JOIN users v   ON o.voluntario_id = v.id
+       LEFT JOIN users of2 ON o.oficial_responsable_id = of2.id
+       WHERE o.voluntario_id = ?
+          OR (o.personal_participante IS NOT NULL
+              AND o.personal_participante != ''
+              AND JSON_CONTAINS(o.personal_participante, ?))
+       ORDER BY o.fecha DESC`,
+      [vid, String(vid)]
+    );
+    res.json({ data: rows });
+  } catch(err) { console.error(err); res.status(500).json({ error: 'Error del servidor' }); }
+});
+
 // GET /api/operaciones-dpto/resumen — dashboard ejecutivo del departamento
 router.get('/resumen', verifyToken, requireRole(...OPS_ROLES), async (req, res) => {
   try {

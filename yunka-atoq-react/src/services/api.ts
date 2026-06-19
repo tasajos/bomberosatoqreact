@@ -141,6 +141,8 @@ export const opsDptoApi = {
   addPuntos:     (d:{voluntario_id:number;puntos:number;concepto:string}) =>
     request<{ok:boolean}>('/operaciones-dpto/puntos',{method:'POST',body:JSON.stringify(d)}),
 
+  porVoluntario: (vid:number) => request<OpsResponse>(`/operaciones-dpto/por-voluntario/${vid}`),
+
   listMeritos:   (vid?:number) => {
     const qs = vid ? `?voluntario_id=${vid}` : '';
     return request<Merito[]>(`/operaciones-dpto/meritos${qs}`);

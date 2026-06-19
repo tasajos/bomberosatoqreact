@@ -15,7 +15,7 @@ function VolModal({ vol, onClose }: { vol: VolTop5; onClose: () => void }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    opsDptoApi.listOps({ voluntario_id: String(vol.id), limit: '50' })
+    opsDptoApi.porVoluntario(vol.id)
       .then(r => setOps(r.data))
       .catch(() => {})
       .finally(() => setLoading(false));
