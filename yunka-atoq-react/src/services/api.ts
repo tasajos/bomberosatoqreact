@@ -148,6 +148,8 @@ export const opsDptoApi = {
     return request<Merito[]>(`/operaciones-dpto/meritos${qs}`);
   },
   createMerito:  (d: Partial<Merito>) => request<{ok:boolean}>('/operaciones-dpto/meritos',{method:'POST',body:JSON.stringify(d)}),
+
+  voluntariosRanking: () => request<VolRanking[]>('/operaciones-dpto/voluntarios-ranking'),
 };
 
 // Admin Users
@@ -418,6 +420,22 @@ export interface OpsDptoResumen {
   puntos_totales: number;
   top5_puntos: { id:number; nombre:string; apellido_paterno:string; matricula:string; total_puntos:number }[];
   recientes: Operacion[];
+}
+
+export interface VolRanking {
+  id: number;
+  nombre: string;
+  apellido_paterno: string;
+  matricula: string;
+  codigo: string;
+  grado: string;
+  cargo_directiva: string;
+  especialidad: string;
+  total_puntos: number;
+  antiguedad_anios: number;
+  ops_validadas: number;
+  meritos_count: number;
+  demeritos_count: number;
 }
 
 export interface GaleriaItem {

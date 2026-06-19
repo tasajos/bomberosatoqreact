@@ -18,7 +18,8 @@ const NAV = [
     { to: '/operaciones/libro',       label: 'Libro de Guardia',    icon: '📖' },
   ]},
   { section: 'Reconocimientos', items: [
-    { to: '/operaciones/meritos',   label: 'Méritos y Antigüedad',icon: '🏆' },
+    { to: '/operaciones/meritos',             label: 'Méritos y Antigüedad', icon: '🏆' },
+    { to: '/operaciones/voluntarios-ranking', label: 'Ranking Voluntarios',  icon: '👥' },
   ]},
   { section: 'Capacitaciones', items: [
     { to: '/operaciones/capacitaciones', label: 'Mis Capacitaciones', icon: '📚' },

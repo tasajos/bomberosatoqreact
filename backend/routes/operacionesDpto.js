@@ -276,6 +276,24 @@ router.get('/por-voluntario/:id', verifyToken, requireRole(...OPS_ROLES), async 
   } catch(err) { console.error(err); res.status(500).json({ error: 'Error del servidor' }); }
 });
 
+// GET /api/operaciones-dpto/voluntarios-ranking — ranking completo de voluntarios con stats
+router.get('/voluntarios-ranking', verifyToken, requireRole(...OPS_ROLES), async (req, res) => {
+  try {
+    const [rows] = await pool.query(`
+      SELECT u.id, u.nombre, u.apellido_paterno, u.matricula, u.codigo,
+             u.grado, u.cargo_directiva, u.especialidad,
+             u.total_puntos, COALESCE(u.antiguedad_anios, 0) AS antiguedad_anios,
+             (SELECT COUNT(*) FROM operaciones o WHERE o.voluntario_id = u.id AND o.estado='validado') AS ops_validadas,
+             (SELECT COUNT(*) FROM meritos m WHERE m.voluntario_id = u.id AND m.tipo='merito')    AS meritos_count,
+             (SELECT COUNT(*) FROM meritos m WHERE m.voluntario_id = u.id AND m.tipo='demerito')  AS demeritos_count
+      FROM users u
+      WHERE u.activo = 1
+      ORDER BY u.total_puntos DESC, u.nombre ASC
+    `);
+    res.json(rows);
+  } catch(err) { console.error(err); res.status(500).json({ error: 'Error del servidor' }); }
+});
+
 // GET /api/operaciones-dpto/resumen — dashboard ejecutivo del departamento
 router.get('/resumen', verifyToken, requireRole(...OPS_ROLES), async (req, res) => {
   try {

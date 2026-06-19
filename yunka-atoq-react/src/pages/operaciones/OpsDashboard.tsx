@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { opsDptoApi, type OpsDptoResumen, type Operacion } from '../../services/api';
+import { opsDptoApi, type OpsDptoResumen, type Operacion, type Merito } from '../../services/api';
+
+type PuntoHistorial = { id:number; puntos:number; concepto:string; asignado_nombre:string; created_at:string };
 import styles from './Ops.module.css';
 
 function fmt(n: number) { return new Intl.NumberFormat('es-BO').format(n); }
@@ -11,18 +13,32 @@ function fmtDate(s: string) {
 type VolTop5 = { id:number; nombre:string; apellido_paterno:string; matricula:string; total_puntos:number };
 
 function VolModal({ vol, onClose }: { vol: VolTop5; onClose: () => void }) {
-  const [ops, setOps] = useState<Operacion[]>([]);
+  const [ops,     setOps]     = useState<Operacion[]>([]);
+  const [puntos,  setPuntos]  = useState<PuntoHistorial[]>([]);
+  const [meritos, setMeritos] = useState<Merito[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    opsDptoApi.porVoluntario(vol.id)
-      .then(r => setOps(r.data))
-      .catch(() => {})
-      .finally(() => setLoading(false));
+    Promise.all([
+      opsDptoApi.porVoluntario(vol.id),
+      opsDptoApi.getPuntos(vol.id),
+      opsDptoApi.listMeritos(vol.id),
+    ]).then(([opsR, ptsR, merR]) => {
+      setOps(opsR.data);
+      setPuntos(ptsR.historial);
+      setMeritos(merR);
+    }).catch(() => {}).finally(() => setLoading(false));
   }, [vol.id]);
 
   const tipoColor = (t: string) =>
     t==='nacional'?'#2563eb':t==='internacional'?'#7c3aed':'#16a34a';
+
+  const meritoColor = (t: string) =>
+    t==='merito'?'#16a34a':t==='demerito'?'#C41E1E':'#7c3aed';
+
+  const ptsDesdOps    = ops.filter(o => o.estado === 'validado').reduce((s,o) => s + (o.puntos_asignados||0), 0);
+  const ptsDesdPuntos = puntos.reduce((s,p) => s + p.puntos, 0);
+  const ptsDesdMer    = meritos.reduce((s,m) => s + (m.puntos_extra||0), 0);
 
   return (
     <div className={styles.modalOverlay} onClick={onClose}>
@@ -42,47 +58,119 @@ function VolModal({ vol, onClose }: { vol: VolTop5; onClose: () => void }) {
 
         {/* Body */}
         <div className={styles.modalBody}>
-          {loading && (
-            <p className={styles.empty}>Cargando operaciones…</p>
-          )}
+          {loading && <p className={styles.empty}>Cargando…</p>}
 
-          {!loading && ops.length === 0 && (
-            <p className={styles.empty}>Este voluntario no tiene operaciones registradas.</p>
-          )}
-
-          {!loading && ops.length > 0 && (
+          {!loading && (
             <>
-              <div className={styles.modalCount}>
-                {ops.length} operación{ops.length !== 1 ? 'es' : ''} registrada{ops.length !== 1 ? 's' : ''}
-              </div>
-              <div className={styles.modalOpsTable}>
-                <div className={`${styles.modalTableHead}`}>
-                  <span>Tipo</span>
-                  <span>Título</span>
-                  <span>Fecha</span>
-                  <span>Pts</span>
-                  <span>Estado</span>
-                </div>
-                {ops.map(op => (
-                  <div key={op.id} className={styles.modalTableRow}>
-                    <span
-                      className={styles.opsTipo}
-                      style={{ background: tipoColor(op.tipo)+'22', color: tipoColor(op.tipo) }}
-                    >
-                      {op.tipo}
-                    </span>
-                    <div>
-                      <div className={styles.modalOpTitle}>{op.titulo}</div>
-                      {op.lugar && <div className={styles.modalOpSub}>{op.lugar}</div>}
+              {/* Desglose de puntos */}
+              {(ptsDesdOps > 0 || ptsDesdPuntos !== 0 || ptsDesdMer > 0) && (
+                <div className={styles.modalBreakdown}>
+                  {ptsDesdOps > 0 && (
+                    <div className={styles.modalBreakdownItem}>
+                      <span className={styles.modalBreakdownLabel}>🚒 Operaciones</span>
+                      <span className={styles.modalBreakdownPts}>+{ptsDesdOps}</span>
                     </div>
-                    <span className={styles.modalOpDate}>{fmtDate(op.fecha)}</span>
-                    <span className={styles.modalOpPts}>
-                      {op.puntos_asignados > 0 ? `+${op.puntos_asignados}` : '—'}
-                    </span>
-                    <span className={`${styles.opsEstado} ${styles['estado_'+op.estado]}`}>{op.estado}</span>
+                  )}
+                  {ptsDesdMer !== 0 && (
+                    <div className={styles.modalBreakdownItem}>
+                      <span className={styles.modalBreakdownLabel}>🏅 Méritos / Deméritos</span>
+                      <span className={styles.modalBreakdownPts} style={{color: ptsDesdMer < 0 ? '#C41E1E' : '#16a34a'}}>
+                        {ptsDesdMer > 0 ? `+${ptsDesdMer}` : ptsDesdMer}
+                      </span>
+                    </div>
+                  )}
+                  {ptsDesdPuntos !== 0 && (
+                    <div className={styles.modalBreakdownItem}>
+                      <span className={styles.modalBreakdownLabel}>⭐ Asignaciones directas</span>
+                      <span className={styles.modalBreakdownPts} style={{color: ptsDesdPuntos < 0 ? '#C41E1E' : '#5b21b6'}}>
+                        {ptsDesdPuntos > 0 ? `+${ptsDesdPuntos}` : ptsDesdPuntos}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* ── Operaciones ── */}
+              <div className={styles.modalSectionTitle}>🚒 Operaciones</div>
+              {ops.length === 0 ? (
+                <p className={styles.modalEmpty}>Sin operaciones registradas.</p>
+              ) : (
+                <div className={styles.modalOpsTable}>
+                  <div className={styles.modalTableHead}>
+                    <span>Tipo</span><span>Título</span><span>Fecha</span><span>Pts</span><span>Estado</span>
                   </div>
-                ))}
-              </div>
+                  {ops.map(op => (
+                    <div key={op.id} className={styles.modalTableRow}>
+                      <span className={styles.opsTipo}
+                        style={{ background: tipoColor(op.tipo)+'22', color: tipoColor(op.tipo) }}>
+                        {op.tipo}
+                      </span>
+                      <div>
+                        <div className={styles.modalOpTitle}>{op.titulo}</div>
+                        {op.lugar && <div className={styles.modalOpSub}>{op.lugar}</div>}
+                      </div>
+                      <span className={styles.modalOpDate}>{fmtDate(op.fecha)}</span>
+                      <span className={styles.modalOpPts}>
+                        {op.puntos_asignados > 0 ? `+${op.puntos_asignados}` : '—'}
+                      </span>
+                      <span className={`${styles.opsEstado} ${styles['estado_'+op.estado]}`}>{op.estado}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* ── Méritos / Reconocimientos ── */}
+              {meritos.length > 0 && (
+                <>
+                  <div className={styles.modalSectionTitle} style={{marginTop:'1.25rem'}}>🏅 Méritos y reconocimientos</div>
+                  <div className={styles.modalOpsTable}>
+                    <div className={styles.modalTableHead} style={{gridTemplateColumns:'80px 1fr 110px 52px'}}>
+                      <span>Tipo</span><span>Título</span><span>Fecha</span><span>Pts</span>
+                    </div>
+                    {meritos.map(m => (
+                      <div key={m.id} className={styles.modalTableRow} style={{gridTemplateColumns:'80px 1fr 110px 52px'}}>
+                        <span className={styles.opsTipo}
+                          style={{ background: meritoColor(m.tipo)+'22', color: meritoColor(m.tipo) }}>
+                          {m.tipo}
+                        </span>
+                        <div>
+                          <div className={styles.modalOpTitle}>{m.titulo}</div>
+                          {m.descripcion && <div className={styles.modalOpSub}>{m.descripcion}</div>}
+                        </div>
+                        <span className={styles.modalOpDate}>{fmtDate(m.fecha)}</span>
+                        <span className={styles.modalOpPts} style={{color: meritoColor(m.tipo)}}>
+                          {(m.puntos_extra||0) > 0 ? `+${m.puntos_extra}` : m.puntos_extra || '—'}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+
+              {/* ── Asignaciones directas ── */}
+              {puntos.length > 0 && (
+                <>
+                  <div className={styles.modalSectionTitle} style={{marginTop:'1.25rem'}}>⭐ Asignaciones directas</div>
+                  <div className={styles.modalOpsTable}>
+                    <div className={styles.modalTableHead} style={{gridTemplateColumns:'1fr 130px 52px'}}>
+                      <span>Concepto</span><span>Asignado por</span><span>Pts</span>
+                    </div>
+                    {puntos.map(p => (
+                      <div key={p.id} className={styles.modalTableRow} style={{gridTemplateColumns:'1fr 130px 52px'}}>
+                        <div className={styles.modalOpTitle}>{p.concepto}</div>
+                        <span className={styles.modalOpDate}>{p.asignado_nombre}</span>
+                        <span className={styles.modalOpPts} style={{color: p.puntos < 0 ? '#C41E1E' : '#5b21b6'}}>
+                          {p.puntos > 0 ? `+${p.puntos}` : p.puntos}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+
+              {ops.length === 0 && meritos.length === 0 && puntos.length === 0 && (
+                <p className={styles.empty}>Este voluntario no tiene actividad registrada.</p>
+              )}
             </>
           )}
         </div>
@@ -139,7 +227,7 @@ export default function OpsDashboard() {
         <div className={styles.card}>
           <div className={styles.cardHeader}>
             <span className={styles.cardTitle}>🏆 Top 5 voluntarios por puntos</span>
-            <span className={styles.cardHint}>Clic para ver sus operaciones</span>
+            <Link to="/operaciones/voluntarios-ranking" className={styles.cardLink}>Ver todos →</Link>
           </div>
           <div className={styles.rankList}>
             {(data?.top5_puntos ?? []).map((v,i) => (

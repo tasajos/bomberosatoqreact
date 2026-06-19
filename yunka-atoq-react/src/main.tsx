@@ -47,6 +47,7 @@ import OpsGuardia       from './pages/operaciones/OpsGuardia';
 import OpsVerGuardia    from './pages/operaciones/OpsVerGuardia';
 import OpsLibro         from './pages/operaciones/OpsLibro';
 import OpsMeritos       from './pages/operaciones/OpsMeritos';
+import OpsVoluntarios   from './pages/operaciones/OpsVoluntarios';
 import MisCapacitaciones from './pages/MisCapacitaciones';
 import PostulacionesPage  from './pages/admin/PostulacionesPage';
 import MilestonesPage     from './pages/admin/MilestonesPage';
@@ -129,8 +130,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
               <Route path="guardia"     element={<OpsGuardia />} />
               <Route path="ver-guardia" element={<OpsVerGuardia />} />
               <Route path="libro"       element={<OpsLibro />} />
-              <Route path="meritos"        element={<OpsMeritos />} />
-              <Route path="capacitaciones" element={<MisCapacitaciones />} />
+              <Route path="meritos"              element={<OpsMeritos />} />
+              <Route path="voluntarios-ranking"  element={<OpsVoluntarios />} />
+              <Route path="capacitaciones"       element={<MisCapacitaciones />} />
             </Route>
           </Route>
         </Routes>
