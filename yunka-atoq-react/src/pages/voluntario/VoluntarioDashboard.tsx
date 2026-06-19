@@ -134,7 +134,6 @@ function DetalleModal({
 
   const cfg   = DETALLE_CFG[tipo];
   const inits = `${vol.nombre[0] ?? ''}${vol.apellido_paterno[0] ?? ''}`.toUpperCase();
-  const grad  = CARD_GRADIENTS[vol.id % CARD_GRADIENTS.length];
 
   const itemCount = tipo === 'puntos' ? (puntosData?.historial.length ?? 0)
     : tipo === 'ops' ? (opsData?.length ?? 0)
@@ -504,7 +503,7 @@ function DirectorioModal({ onClose }: { onClose: () => void }) {
               gridTemplateColumns: 'repeat(auto-fill, minmax(min(300px, 100%), 1fr))',
               gap: '1rem',
             }}>
-              {filtered.map((v, idx) => {
+              {filtered.map((v) => {
                 const grad  = CARD_GRADIENTS[v.id % CARD_GRADIENTS.length];
                 const inits = `${v.nombre[0] ?? ''}${v.apellido_paterno[0] ?? ''}`.toUpperCase();
                 const sangre = v.tipo_sangre?.trim();

@@ -35,11 +35,6 @@ function initials(u: AdminUser) {
   return `${u.nombre[0] ?? ''}${u.apellido_paterno[0] ?? ''}`.toUpperCase();
 }
 
-function fmtDate(s: string | null) {
-  if (!s) return '—';
-  return new Intl.DateTimeFormat('es-BO', { day:'numeric', month:'short', year:'numeric' }).format(new Date(s));
-}
-
 function genPassword() {
   const chars = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$';
   return Array.from({ length: 12 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');

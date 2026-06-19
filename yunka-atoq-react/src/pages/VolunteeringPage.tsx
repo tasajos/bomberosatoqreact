@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef, FormEvent } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import type { FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import styles from './VolunteeringPage.module.css';
 import { voluntariosApi } from '../services/api';

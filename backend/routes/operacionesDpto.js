@@ -260,7 +260,7 @@ router.get('/resumen', verifyToken, requireRole(...OPS_ROLES), async (req, res) 
     const [[ops]]   = await pool.query(`SELECT COUNT(*) as total, SUM(CASE WHEN estado='validado' THEN 1 ELSE 0 END) as validadas, SUM(CASE WHEN estado='pendiente' THEN 1 ELSE 0 END) as pendientes FROM operaciones WHERE YEAR(fecha)=?`, [year]);
     const [[gds]]   = await pool.query(`SELECT COUNT(*) as total FROM guardias WHERE YEAR(fecha)=?`, [year]);
     const [[pts]]   = await pool.query(`SELECT SUM(puntos) as total FROM puntos_voluntario`);
-    const [top5]    = await pool.query(`SELECT u.nombre,u.apellido_paterno,u.matricula,u.total_puntos FROM users u WHERE u.activo=1 ORDER BY u.total_puntos DESC LIMIT 5`);
+    const [top5]    = await pool.query(`SELECT u.id,u.nombre,u.apellido_paterno,u.matricula,u.total_puntos FROM users u WHERE u.activo=1 ORDER BY u.total_puntos DESC LIMIT 5`);
     const [recOps]  = await pool.query(`SELECT o.*, CONCAT(v.nombre,' ',v.apellido_paterno) AS voluntario_nombre FROM operaciones o LEFT JOIN users v ON o.voluntario_id=v.id ORDER BY o.fecha DESC LIMIT 5`);
     res.json({
       operaciones: { total: ops.total, validadas: ops.validadas, pendientes: ops.pendientes },

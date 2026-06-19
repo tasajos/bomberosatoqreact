@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import styles from './ContactPage.module.css';
 import { contactoApi, configApi } from '../services/api';
 
@@ -68,7 +67,6 @@ export default function ContactPage() {
     }
   };
 
-  const mapSrc = `https://www.google.com/maps/embed/v1/place?key=&q=${cfg.cuartel_lat},${cfg.cuartel_lng}&zoom=16`;
   const mapFallback = `https://maps.google.com/maps?q=${cfg.cuartel_lat},${cfg.cuartel_lng}&z=16&output=embed`;
 
   return (

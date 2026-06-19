@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef, DragEvent } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import type { DragEvent } from 'react';
 import { Link } from 'react-router-dom';
 import styles from './SliderPage.module.css';
 import FocalPointPicker from '../../components/admin/FocalPointPicker';

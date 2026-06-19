@@ -316,6 +316,7 @@ export interface AdminUser {
   role: string;
   activo: number;
   created_at: string;
+  total_puntos?: number;
 }
 
 export interface ContactoItem {
@@ -413,7 +414,7 @@ export interface OpsDptoResumen {
   operaciones: { total:number; validadas:number; pendientes:number };
   guardias: { total:number };
   puntos_totales: number;
-  top5_puntos: { nombre:string; apellido_paterno:string; matricula:string; total_puntos:number }[];
+  top5_puntos: { id:number; nombre:string; apellido_paterno:string; matricula:string; total_puntos:number }[];
   recientes: Operacion[];
 }
 

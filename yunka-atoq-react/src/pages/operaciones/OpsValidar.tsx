@@ -55,7 +55,7 @@ function ValidarModal({ op, voluntarios, onClose, onDone }:{
         {/* Header */}
         <div style={{padding:'1.25rem 1.5rem',borderBottom:'1px solid #F1F5F9',
           display:'flex',alignItems:'center',justifyContent:'space-between',flexShrink:0}}>
-          <span style={{fontFamily:'var(--font-condensed)',fontSize:'1rem',fontWeight:900,color:'#0F172A'}}>
+          <span style={{fontFamily:'var(--font-body)',fontSize:'1rem',fontWeight:700,color:'#1E293B'}}>
             Validar operación
           </span>
           <button onClick={onClose} style={{background:'none',border:'none',cursor:'pointer',color:'#64748B',fontSize:'1.1rem'}}>✕</button>
@@ -68,8 +68,8 @@ function ValidarModal({ op, voluntarios, onClose, onDone }:{
           {/* Imagen de respaldo */}
           {op.imagen_respaldo && (
             <div>
-              <div style={{fontFamily:'var(--font-condensed)',fontSize:'0.68rem',fontWeight:700,
-                letterSpacing:'0.12em',textTransform:'uppercase',color:'#94A3B8',marginBottom:'0.5rem'}}>
+              <div style={{fontFamily:'var(--font-body)',fontSize:'0.75rem',fontWeight:700,
+                letterSpacing:'0.06em',textTransform:'uppercase',color:'#64748B',marginBottom:'0.5rem'}}>
                 🖼️ Imagen de respaldo
               </div>
               <a href={op.imagen_respaldo.startsWith('/uploads/') ? `${API_BASE}${op.imagen_respaldo}` : op.imagen_respaldo}
@@ -97,7 +97,7 @@ function ValidarModal({ op, voluntarios, onClose, onDone }:{
               <span className={`${styles.cellBadge} ${styles[TIPO_COLS[op.tipo]]}`} style={{marginTop:'2px',flexShrink:0}}>
                 {op.tipo}
               </span>
-              <div style={{fontFamily:'var(--font-condensed)',fontSize:'0.95rem',fontWeight:800,color:'#0F172A',lineHeight:1.2}}>
+              <div style={{fontFamily:'var(--font-body)',fontSize:'0.95rem',fontWeight:700,color:'#1E293B',lineHeight:1.35}}>
                 {op.titulo}
               </div>
             </div>
@@ -121,22 +121,22 @@ function ValidarModal({ op, voluntarios, onClose, onDone }:{
           <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'0.625rem'}}>
             {op.oficial_nombre && (
               <div style={{background:'#F0F9FF',border:'1px solid #BAE6FD',borderRadius:'8px',padding:'0.75rem'}}>
-                <div style={{fontFamily:'var(--font-condensed)',fontSize:'0.6rem',fontWeight:700,
-                  letterSpacing:'0.1em',textTransform:'uppercase',color:'#0369a1',marginBottom:'0.25rem'}}>
+                <div style={{fontFamily:'var(--font-body)',fontSize:'0.7rem',fontWeight:700,
+                  letterSpacing:'0.06em',textTransform:'uppercase',color:'#0369a1',marginBottom:'0.3rem'}}>
                   🎖️ Oficial responsable
                 </div>
-                <div style={{fontFamily:'var(--font-condensed)',fontSize:'0.875rem',fontWeight:800,color:'#0F172A'}}>
+                <div style={{fontFamily:'var(--font-body)',fontSize:'0.9rem',fontWeight:700,color:'#1E293B'}}>
                   {op.oficial_nombre}
                 </div>
               </div>
             )}
             {op.voluntario_nombre && (
               <div style={{background:'#F0FDF4',border:'1px solid #86EFAC',borderRadius:'8px',padding:'0.75rem'}}>
-                <div style={{fontFamily:'var(--font-condensed)',fontSize:'0.6rem',fontWeight:700,
-                  letterSpacing:'0.1em',textTransform:'uppercase',color:'#16a34a',marginBottom:'0.25rem'}}>
+                <div style={{fontFamily:'var(--font-body)',fontSize:'0.7rem',fontWeight:700,
+                  letterSpacing:'0.06em',textTransform:'uppercase',color:'#16a34a',marginBottom:'0.3rem'}}>
                   🧑‍🚒 Voluntario responsable
                 </div>
-                <div style={{fontFamily:'var(--font-condensed)',fontSize:'0.875rem',fontWeight:800,color:'#0F172A'}}>
+                <div style={{fontFamily:'var(--font-body)',fontSize:'0.9rem',fontWeight:700,color:'#1E293B'}}>
                   {op.voluntario_nombre}
                 </div>
                 <div style={{fontSize:'0.68rem',color:'#64748B'}}>{op.matricula}</div>
@@ -146,11 +146,11 @@ function ValidarModal({ op, voluntarios, onClose, onDone }:{
 
           {/* Personal participante */}
           <div>
-            <div style={{fontFamily:'var(--font-condensed)',fontSize:'0.68rem',fontWeight:700,
-              letterSpacing:'0.12em',textTransform:'uppercase',color:'#94A3B8',
-              marginBottom:'0.5rem',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+            <div style={{fontFamily:'var(--font-body)',fontSize:'0.75rem',fontWeight:700,
+              letterSpacing:'0.06em',textTransform:'uppercase',color:'#64748B',
+              marginBottom:'0.625rem',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
               <span>👥 Personal que participó</span>
-              <span style={{color:participantes.length>0?'#C41E1E':'#94A3B8'}}>
+              <span style={{fontWeight:600,color:participantes.length>0?'#C41E1E':'#94A3B8'}}>
                 {participantes.length} persona{participantes.length!==1?'s':''}
               </span>
             </div>
@@ -167,22 +167,22 @@ function ValidarModal({ op, voluntarios, onClose, onDone }:{
                     padding:'0.625rem 0.875rem',borderRadius:'7px',
                     background:'#C41E1E',
                   }}>
-                    <div style={{fontFamily:'var(--font-condensed)',fontSize:'0.8rem',fontWeight:800,
-                      color:'white',lineHeight:1.2,marginBottom:'0.3rem'}}>
+                    <div style={{fontFamily:'var(--font-body)',fontSize:'0.82rem',fontWeight:700,
+                      color:'white',lineHeight:1.3,marginBottom:'0.35rem'}}>
                       {v.nombre} {v.apellido_paterno}
                     </div>
                     <div style={{display:'flex',gap:'0.3rem',flexWrap:'wrap'}}>
                       {v.matricula && (
-                        <span style={{fontFamily:'var(--font-condensed)',fontSize:'0.58rem',fontWeight:700,
-                          background:'rgba(255,255,255,0.2)',color:'white',
-                          padding:'0.12rem 0.4rem',borderRadius:'3px'}}>
+                        <span style={{fontFamily:'var(--font-body)',fontSize:'0.65rem',fontWeight:700,
+                          background:'rgba(255,255,255,0.22)',color:'white',
+                          padding:'0.18rem 0.45rem',borderRadius:'4px'}}>
                           {v.matricula}
                         </span>
                       )}
                       {v.codigo && (
-                        <span style={{fontFamily:'var(--font-condensed)',fontSize:'0.58rem',fontWeight:700,
+                        <span style={{fontFamily:'var(--font-body)',fontSize:'0.65rem',fontWeight:700,
                           background:'rgba(255,255,255,0.15)',color:'rgba(255,255,255,0.9)',
-                          padding:'0.12rem 0.4rem',borderRadius:'3px'}}>
+                          padding:'0.18rem 0.45rem',borderRadius:'4px'}}>
                           {v.codigo}
                         </span>
                       )}
@@ -203,8 +203,8 @@ function ValidarModal({ op, voluntarios, onClose, onDone }:{
                   border:`1.5px solid ${estado===e?(e==='validado'?'#16a34a':'#C41E1E'):'#E2E8F0'}`,
                   background:estado===e?(e==='validado'?'rgba(22,163,74,0.08)':'rgba(196,30,30,0.08)'):'transparent',
                   color:estado===e?(e==='validado'?'#16a34a':'#C41E1E'):'#64748B',
-                  fontFamily:'var(--font-condensed)',fontSize:'0.82rem',fontWeight:700,
-                  textTransform:'uppercase',letterSpacing:'0.05em',
+                  fontFamily:'var(--font-body)',fontSize:'0.85rem',fontWeight:700,
+                  textTransform:'uppercase',letterSpacing:'0.04em',
                 }}>
                   {e==='validado'?'✅ Validar':'❌ Rechazar'}
                 </button>
@@ -317,7 +317,7 @@ export default function OpsValidar() {
               </div>
               <span className={`${styles.cellBadge} ${styles[TIPO_COLS[op.tipo]]}`}>{op.tipo}</span>
               <div style={{display:'flex',alignItems:'center',gap:'0.375rem'}}>
-                <span style={{fontFamily:'var(--font-condensed)',fontSize:'0.875rem',fontWeight:900,
+                <span style={{fontFamily:'var(--font-body)',fontSize:'0.9rem',fontWeight:700,
                   color: parIds.length>0?'#C41E1E':'#CBD5E1'}}>
                   {parIds.length}
                 </span>

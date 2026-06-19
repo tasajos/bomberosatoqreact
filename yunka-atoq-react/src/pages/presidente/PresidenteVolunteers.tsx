@@ -27,7 +27,6 @@ function DetailPanel({ user, onClose, onSaved }: { user: AdminUser; onClose: () 
   const [grado,     setGrado]     = useState(user.grado     ?? '');
   const [directiva, setDirectiva] = useState(user.cargo_directiva ?? '');
   const [saving,    setSaving]    = useState(false);
-  const [saved,     setSaved]     = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
   const edad = calcEdad(user.fecha_nacimiento);

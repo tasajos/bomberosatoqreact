@@ -1,5 +1,4 @@
 // src/components/WelcomeModal.tsx
-import React from "react";
 import styles from './WelcomeModal.module.css';
 
 interface WelcomeModalProps {

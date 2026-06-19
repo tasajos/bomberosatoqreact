@@ -185,16 +185,16 @@ export default function OpsRegistrar() {
                     >
                       <div style={{ display:'flex', alignItems:'center', gap:'0.5rem', marginBottom:'0.35rem' }}>
                         <span style={{ fontSize:'1.1rem' }}>{cl.icon}</span>
-                        <span style={{ fontFamily:'var(--font-condensed)', fontSize:'0.8rem', fontWeight:800, color: sel ? cl.color : '#0F172A' }}>
+                        <span style={{ fontFamily:'var(--font-body)', fontSize:'0.9rem', fontWeight:700, color: sel ? cl.color : '#1E293B' }}>
                           {cl.label}
                         </span>
                         {sel && (
-                          <span style={{ marginLeft:'auto', background:cl.color, color:'white', fontFamily:'var(--font-condensed)', fontSize:'0.58rem', fontWeight:700, letterSpacing:'0.08em', padding:'0.15rem 0.4rem', borderRadius:'3px' }}>
-                            SELECCIONADO
+                          <span style={{ marginLeft:'auto', background:cl.color, color:'white', fontFamily:'var(--font-body)', fontSize:'0.62rem', fontWeight:700, letterSpacing:'0.05em', padding:'0.2rem 0.55rem', borderRadius:'4px' }}>
+                            Seleccionado
                           </span>
                         )}
                       </div>
-                      <p style={{ fontSize:'0.72rem', color:'#64748B', lineHeight:1.4, margin:0 }}>{cl.desc}</p>
+                      <p style={{ fontFamily:'var(--font-body)', fontSize:'0.8rem', color:'#64748B', lineHeight:1.5, margin:0 }}>{cl.desc}</p>
                     </button>
                   );
                 })}
@@ -211,9 +211,9 @@ export default function OpsRegistrar() {
               {/* Tabla seleccionable */}
               <div style={{ border:'1px solid #E2E8F0', borderRadius:'8px', overflow:'hidden', marginTop:'0.25rem' }}>
                 {/* Encabezado */}
-                <div style={{ display:'grid', gridTemplateColumns:'1fr auto', padding:'0.5rem 1rem', background:'#1E40AF' }}>
-                  <span style={{ fontFamily:'var(--font-condensed)', fontSize:'0.68rem', fontWeight:700, letterSpacing:'0.1em', color:'white', textTransform:'uppercase' }}>Calificación</span>
-                  <span style={{ fontFamily:'var(--font-condensed)', fontSize:'0.68rem', fontWeight:700, letterSpacing:'0.1em', color:'white', textTransform:'uppercase' }}>Puntaje</span>
+                <div style={{ display:'grid', gridTemplateColumns:'1fr auto', padding:'0.7rem 1.25rem', background:'#1E293B' }}>
+                  <span style={{ fontFamily:'var(--font-body)', fontSize:'0.72rem', fontWeight:700, letterSpacing:'0.07em', color:'white', textTransform:'uppercase' }}>Calificación</span>
+                  <span style={{ fontFamily:'var(--font-body)', fontSize:'0.72rem', fontWeight:700, letterSpacing:'0.07em', color:'white', textTransform:'uppercase' }}>Puntaje</span>
                 </div>
                 {/* Filas */}
                 {CALIFICACION_RO.map((item, i) => {
@@ -237,18 +237,19 @@ export default function OpsRegistrar() {
                         transition: 'all 0.15s',
                       }}
                     >
-                      <div style={{ display:'flex', alignItems:'center', gap:'0.5rem' }}>
+                      <div style={{ display:'flex', alignItems:'center', gap:'0.625rem' }}>
                         {sel && (
-                          <span style={{ color: ptColor, fontSize:'0.85rem', flexShrink:0 }}>✓</span>
+                          <span style={{ color: ptColor, fontSize:'0.9rem', flexShrink:0, fontWeight:700 }}>✓</span>
                         )}
                         <span style={{
-                          fontFamily:'var(--font-condensed)', fontSize:'0.82rem',
-                          fontWeight: sel ? 800 : 600,
+                          fontFamily:'var(--font-body)', fontSize:'0.875rem',
+                          fontWeight: sel ? 700 : 500,
                           color: sel ? ptColor : '#374151',
+                          lineHeight: 1.35,
                         }}>{item.c}</span>
                       </div>
                       <span style={{
-                        fontFamily:'var(--font-condensed)', fontSize:'0.875rem', fontWeight:900,
+                        fontFamily:'var(--font-condensed)', fontSize:'0.95rem', fontWeight:900,
                         color: sel ? ptColor : (isNeg?'#C41E1E':'#16a34a'),
                         whiteSpace:'nowrap', textAlign:'right',
                       }}>
@@ -259,13 +260,13 @@ export default function OpsRegistrar() {
                 })}
               </div>
               {form.calificacion_tipo && (
-                <div style={{ marginTop:'0.5rem', display:'flex', alignItems:'center', justifyContent:'space-between',
-                  background:'#F0FDF4', border:'1px solid #86EFAC', borderRadius:'6px', padding:'0.5rem 0.875rem' }}>
-                  <span style={{ fontFamily:'var(--font-condensed)', fontSize:'0.78rem', fontWeight:700, color:'#166534' }}>
+                <div style={{ marginTop:'0.625rem', display:'flex', alignItems:'center', justifyContent:'space-between',
+                  background:'#F0FDF4', border:'1px solid #86EFAC', borderRadius:'8px', padding:'0.625rem 1rem' }}>
+                  <span style={{ fontFamily:'var(--font-body)', fontSize:'0.82rem', fontWeight:600, color:'#166534' }}>
                     ✓ Seleccionado: {form.calificacion_tipo}
                   </span>
                   <button type="button" onClick={() => { set('calificacion_tipo',''); set('calificacion_puntos',''); }}
-                    style={{ background:'none', border:'none', color:'#64748B', cursor:'pointer', fontSize:'0.8rem' }}>
+                    style={{ background:'none', border:'none', color:'#94A3B8', cursor:'pointer', fontSize:'0.875rem', fontFamily:'var(--font-body)' }}>
                     × Quitar
                   </button>
                 </div>
@@ -333,9 +334,9 @@ export default function OpsRegistrar() {
 
         {/* ── Personal participante ── */}
         <div className={styles.formCard}>
-          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'1rem' }}>
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'1.25rem' }}>
             <div className={styles.sectionLabel} style={{margin:0}}>👥 Personal que participó</div>
-            <span style={{ fontFamily:'var(--font-condensed)', fontSize:'0.72rem', fontWeight:700,
+            <span style={{ fontFamily:'var(--font-body)', fontSize:'0.82rem', fontWeight:600,
               color: personal.length > 0 ? '#C41E1E' : '#94A3B8' }}>
               {personal.length} seleccionado{personal.length !== 1 ? 's' : ''}
             </span>
@@ -370,30 +371,30 @@ export default function OpsRegistrar() {
                     {sel ? '✓' : ''}
                   </div>
 
-                  <div style={{ fontFamily:'var(--font-condensed)', fontSize:'0.85rem', fontWeight:800,
-                    color: sel ? 'white' : '#0F172A',
-                    paddingRight:'1.5rem', lineHeight:1.2, marginBottom:'0.3rem',
+                  <div style={{ fontFamily:'var(--font-body)', fontSize:'0.875rem', fontWeight:700,
+                    color: sel ? 'white' : '#1E293B',
+                    paddingRight:'1.5rem', lineHeight:1.3, marginBottom:'0.35rem',
                   }}>
                     {v.nombre} {v.apellido_paterno}
                   </div>
 
-                  <div style={{ display:'flex', gap:'0.375rem', flexWrap:'wrap' }}>
+                  <div style={{ display:'flex', gap:'0.35rem', flexWrap:'wrap' }}>
                     {v.matricula && (
                       <span style={{
-                        fontFamily:'var(--font-condensed)', fontSize:'0.62rem', fontWeight:700,
-                        letterSpacing:'0.06em',
-                        background: sel ? 'rgba(255,255,255,0.2)' : '#F1F5F9',
+                        fontFamily:'var(--font-body)', fontSize:'0.67rem', fontWeight:700,
+                        letterSpacing:'0.04em',
+                        background: sel ? 'rgba(255,255,255,0.22)' : '#F1F5F9',
                         color: sel ? 'white' : '#64748B',
-                        padding:'0.15rem 0.45rem', borderRadius:'3px',
+                        padding:'0.2rem 0.5rem', borderRadius:'4px',
                       }}>{v.matricula}</span>
                     )}
                     {v.codigo && (
                       <span style={{
-                        fontFamily:'var(--font-condensed)', fontSize:'0.62rem', fontWeight:700,
-                        letterSpacing:'0.06em',
-                        background: sel ? 'rgba(255,255,255,0.2)' : '#FEF3C7',
+                        fontFamily:'var(--font-body)', fontSize:'0.67rem', fontWeight:700,
+                        letterSpacing:'0.04em',
+                        background: sel ? 'rgba(255,255,255,0.22)' : '#FEF3C7',
                         color: sel ? 'white' : '#92400E',
-                        padding:'0.15rem 0.45rem', borderRadius:'3px',
+                        padding:'0.2rem 0.5rem', borderRadius:'4px',
                       }}>{v.codigo}</span>
                     )}
                   </div>
@@ -423,15 +424,15 @@ export default function OpsRegistrar() {
 
           {!imgFile && (
             <label style={{
-              display:'flex', flexDirection:'column', alignItems:'center', gap:'0.5rem',
-              padding:'1.75rem', border:'1.5px dashed #CBD5E1', borderRadius:'10px',
-              background:'#F8FAFC', cursor:'pointer',
+              display:'flex', flexDirection:'column', alignItems:'center', gap:'0.625rem',
+              padding:'2.25rem', border:'2px dashed #CBD5E1', borderRadius:'12px',
+              background:'#F8FAFC', cursor:'pointer', transition:'border-color 0.18s',
             }}>
-              <span style={{ fontSize:'2.25rem' }}>📷</span>
-              <span style={{ fontFamily:'var(--font-condensed)', fontSize:'0.9rem', fontWeight:700, color:'#374151' }}>
+              <span style={{ fontSize:'2.5rem', lineHeight:1 }}>📷</span>
+              <span style={{ fontFamily:'var(--font-body)', fontSize:'0.925rem', fontWeight:700, color:'#374151' }}>
                 Subir foto o imagen de respaldo
               </span>
-              <span style={{ fontSize:'0.75rem', color:'#94A3B8' }}>JPG, PNG, WEBP, PDF · Máx. 15 MB</span>
+              <span style={{ fontFamily:'var(--font-body)', fontSize:'0.78rem', color:'#94A3B8' }}>JPG, PNG, WEBP, PDF · Máx. 15 MB</span>
               <input ref={fileRef} type="file" accept="image/*,.pdf" style={{ display:'none' }}
                 onChange={e => { if(e.target.files?.[0]) handleFile(e.target.files[0]); }} />
             </label>

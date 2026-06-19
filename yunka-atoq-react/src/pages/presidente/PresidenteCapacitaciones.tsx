@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import {
   capacitacionesApi, adminUsersApi, API_BASE,
   type Capacitacion, type Inscripcion, type VoluntarioPerfil,
-  type AdminUser, type CursoExterno,
+  type AdminUser,
 } from '../../services/api';
 import pStyles from './PresidenteCapacitaciones.module.css';
 

@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import styles from './RecognitionsSection.module.css';
 import { reconocimientosApi, type Reconocimiento, API_BASE } from '../services/api';
 

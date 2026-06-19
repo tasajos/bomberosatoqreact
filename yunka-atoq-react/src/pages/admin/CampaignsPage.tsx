@@ -59,21 +59,6 @@ function CampaniaModal({ camp, onClose, onSaved }: ModalProps) {
     set('imagen_url', null);
   };
 
-  const handleUploadImg = async () => {
-    if (!imgFile) return;
-    setUploading(true);
-    try {
-      const { url } = await campaniasApi.uploadImage(imgFile);
-      set('imagen_url', url);
-      setImgFile(null);
-      setImgPreview('');
-    } catch (e: unknown) {
-      setErr(e instanceof Error ? e.message : 'Error al subir imagen');
-    } finally {
-      setUploading(false);
-    }
-  };
-
   const handleSave = async () => {
     if (!form.nombre.trim()) { setErr('El nombre es obligatorio.'); return; }
     if (!form.meta || Number(form.meta) <= 0) { setErr('La meta debe ser mayor a 0.'); return; }

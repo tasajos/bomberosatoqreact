@@ -174,12 +174,14 @@ router.get('/perfil/:id/puntos', verifyToken, async (req, res) => {
 // GET /api/voluntario/perfil/:id/operaciones
 router.get('/perfil/:id/operaciones', verifyToken, async (req, res) => {
   try {
+    const id = req.params.id;
     const [rows] = await pool.query(
       `SELECT o.id, o.titulo, o.tipo, o.fecha, o.estado, o.puntos_asignados, o.lugar, o.duracion_horas
        FROM operaciones o
-       WHERE o.voluntario_id = ? AND o.estado = 'validado'
+       WHERE o.estado = 'validado'
+         AND (o.voluntario_id = ? OR JSON_CONTAINS(o.personal_participante, CAST(? AS JSON)))
        ORDER BY o.fecha DESC`,
-      [req.params.id]
+      [id, id]
     );
     res.json(rows);
   } catch(e) { console.error(e); res.status(500).json({ error: 'Error del servidor' }); }
