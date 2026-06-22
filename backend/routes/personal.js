@@ -32,7 +32,7 @@ async function initTables() {
       id             INT PRIMARY KEY AUTO_INCREMENT,
       voluntario_id  INT NOT NULL,
       fecha          DATE NOT NULL,
-      estado         ENUM('presente','falta','permiso','comision') NOT NULL DEFAULT 'presente',
+      estado         ENUM('presente','tarde','falta','permiso','comision') NOT NULL DEFAULT 'presente',
       observacion    TEXT,
       registrado_por INT,
       created_at     DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -66,6 +66,24 @@ async function initTables() {
       FOREIGN KEY (voluntario_id) REFERENCES users(id) ON DELETE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
   `);
+  // Columna de estado del personal (idempotente: lanza si ya existe → se ignora)
+  await pool.query(
+    `ALTER TABLE users ADD COLUMN estado_personal
+     ENUM('activo','baja','pasiva','cooperador','comision') NOT NULL DEFAULT 'activo' AFTER activo`
+  ).catch(() => {});
+
+  // Limpieza: dejar una sola entrada de REGISTRO de asistencia por (voluntario, día).
+  // No afecta entradas de reapertura ni de otro tipo.
+  await pool.query(`
+    DELETE l FROM voluntario_log l
+    JOIN (
+      SELECT voluntario_id, RIGHT(detalle,10) AS dia, MAX(id) AS keep_id
+      FROM voluntario_log
+      WHERE accion='asistencia' AND detalle LIKE 'Asistencia%registrada para el %'
+      GROUP BY voluntario_id, RIGHT(detalle,10)
+    ) k ON l.voluntario_id = k.voluntario_id AND RIGHT(l.detalle,10) = k.dia
+    WHERE l.accion='asistencia' AND l.detalle LIKE 'Asistencia%registrada para el %' AND l.id <> k.keep_id
+  `).catch(() => {});
 }
 initTables().catch(e => console.error('personal init:', e));
 
@@ -77,6 +95,23 @@ async function logAccion(vid, accion, detalle, userId) {
       [vid, accion, detalle, userId]
     );
   } catch (e) { console.error('log:', e); }
+}
+
+// Bitácora de asistencia: solo UNA entrada por (voluntario, día).
+// Al re-registrar/editar el mismo día se reemplaza la anterior.
+async function logAsistenciaUnica(vid, estado, fecha, userId) {
+  try {
+    // Solo reemplaza la entrada de "registro" de ese día (no toca reaperturas u otros)
+    await pool.query(
+      `DELETE FROM voluntario_log WHERE voluntario_id=? AND accion='asistencia' AND detalle LIKE ?`,
+      [vid, `Asistencia%registrada para el ${fecha}`]
+    );
+    await pool.query(
+      `INSERT INTO voluntario_log (voluntario_id, accion, detalle, registrado_por)
+       VALUES (?, 'asistencia', ?, ?)`,
+      [vid, `Asistencia ${estado} registrada para el ${fecha}`, userId]
+    );
+  } catch (e) { console.error('logAsist:', e); }
 }
 
 // ══════════════════════════════════════════════════════════════════
@@ -92,7 +127,7 @@ router.get('/', verifyToken, requireRole(...PERSONAL_ROLES), async (req, res) =>
         u.fecha_nacimiento, u.carnet_identidad, u.domicilio,
         u.contacto_nombre, u.contacto_telefono,
         u.total_puntos, COALESCE(u.antiguedad_anios, 0) AS antiguedad_anios,
-        u.activo, u.created_at,
+        u.activo, COALESCE(u.estado_personal,'activo') AS estado, u.created_at,
         (SELECT COUNT(*) FROM operaciones o WHERE o.voluntario_id = u.id AND o.estado='validado') AS ops_validadas,
         (SELECT COUNT(*) FROM meritos m WHERE m.voluntario_id = u.id AND m.tipo='merito')    AS meritos_count,
         (SELECT COUNT(*) FROM meritos m WHERE m.voluntario_id = u.id AND m.tipo='demerito')  AS demeritos_count,
@@ -120,7 +155,8 @@ router.get('/:id', verifyToken, requireRole(...PERSONAL_ROLES), async (req, res)
       SELECT id, nombre, apellido_paterno, apellido_materno, fecha_nacimiento,
              carnet_identidad, domicilio, telefono, contacto_nombre, contacto_telefono,
              codigo, matricula, especialidad, tipo_sangre, grado, cargo_directiva,
-             email, role, activo, total_puntos, COALESCE(antiguedad_anios,0) AS antiguedad_anios, created_at
+             email, role, activo, COALESCE(estado_personal,'activo') AS estado,
+             total_puntos, COALESCE(antiguedad_anios,0) AS antiguedad_anios, created_at
       FROM users WHERE id=?`, [vid]
     );
     if (!usuario) return res.status(404).json({ error: 'Usuario no encontrado' });
@@ -167,7 +203,7 @@ router.get('/:id', verifyToken, requireRole(...PERSONAL_ROLES), async (req, res)
     ).catch(() => [[]]);
 
     // Resumen de asistencia
-    const resumen = { presente: 0, falta: 0, permiso: 0, comision: 0 };
+    const resumen = { presente: 0, tarde: 0, falta: 0, permiso: 0, comision: 0 };
     for (const a of asistencias) resumen[a.estado] = (resumen[a.estado] || 0) + 1;
 
     res.json({ usuario, meritos, asistencias, documentos, operaciones, puntos_historial, log, resumen_asistencia: resumen });
@@ -234,6 +270,27 @@ router.put('/:id', verifyToken, requireRole(...PERSONAL_ROLES), async (req, res)
 });
 
 // ══════════════════════════════════════════════════════════════════
+// ESTADO DEL PERSONAL (activo/baja/pasiva/cooperador/comision)
+// ══════════════════════════════════════════════════════════════════
+const ESTADOS_PERSONAL = ['activo', 'baja', 'pasiva', 'cooperador', 'comision'];
+
+router.patch('/:id/estado', verifyToken, requireRole(...PERSONAL_ROLES), async (req, res) => {
+  const vid = Number(req.params.id);
+  const { estado, detalle } = req.body;
+  if (!vid || !ESTADOS_PERSONAL.includes(estado)) return res.status(400).json({ error: 'Estado inválido' });
+  try {
+    const [[antes]] = await pool.query(`SELECT COALESCE(estado_personal,'activo') AS estado FROM users WHERE id=?`, [vid]);
+    await pool.query('UPDATE users SET estado_personal=? WHERE id=?', [estado, vid]);
+    const det = (detalle || '').toString().trim();
+    const msg = estado === 'comision' && det
+      ? `Pasa a comisión — ${det}`
+      : `Estado del personal: "${antes?.estado || '—'}" → "${estado}"${det ? ` — ${det}` : ''}`;
+    await logAccion(vid, 'estado', msg, req.user.id);
+    res.json({ ok: true });
+  } catch (err) { console.error(err); res.status(500).json({ error: 'Error del servidor' }); }
+});
+
+// ══════════════════════════════════════════════════════════════════
 // MÉRITOS / DEMÉRITOS  (misma tabla meritos)
 // ══════════════════════════════════════════════════════════════════
 router.post('/:id/meritos', verifyToken, requireRole(...PERSONAL_ROLES), async (req, res) => {
@@ -279,16 +336,16 @@ router.post('/:id/asistencia', verifyToken, requireRole(...PERSONAL_ROLES), asyn
   const vid = Number(req.params.id);
   const { fecha, estado, observacion } = req.body;
   if (!vid || !fecha) return res.status(400).json({ error: 'Fecha requerida' });
-  const e = ['presente', 'falta', 'permiso', 'comision'].includes(estado) ? estado : 'presente';
+  const e = ['presente', 'tarde', 'falta', 'permiso', 'comision'].includes(estado) ? estado : 'presente';
   try {
-    await pool.query(
-      `INSERT INTO instruccion_asistencia (voluntario_id,fecha,estado,observacion,registrado_por)
-       VALUES (?,?,?,?,?)
-       ON DUPLICATE KEY UPDATE estado=VALUES(estado), observacion=VALUES(observacion), registrado_por=VALUES(registrado_por)`,
+    // Un solo registro por día: si ya existe no se sobrescribe (no editable)
+    const [r] = await pool.query(
+      `INSERT IGNORE INTO instruccion_asistencia (voluntario_id,fecha,estado,observacion,registrado_por)
+       VALUES (?,?,?,?,?)`,
       [vid, fecha, e, observacion || '', req.user.id]
     );
-    await logAccion(vid, 'asistencia', `Asistencia ${e} registrada para el ${fecha}`, req.user.id);
-    res.status(201).json({ ok: true });
+    if (r.affectedRows > 0) await logAsistenciaUnica(vid, e, fecha, req.user.id);
+    res.status(201).json({ ok: true, guardado: r.affectedRows > 0 });
   } catch (err) { console.error(err); res.status(500).json({ error: 'Error del servidor' }); }
 });
 
@@ -296,6 +353,63 @@ router.delete('/asistencia/:aid', verifyToken, requireRole(...PERSONAL_ROLES), a
   try {
     await pool.query('DELETE FROM instruccion_asistencia WHERE id=?', [req.params.aid]);
     res.json({ ok: true });
+  } catch (err) { console.error(err); res.status(500).json({ error: 'Error del servidor' }); }
+});
+
+// GET /api/personal/asistencia/dia?fecha=YYYY-MM-DD — registros existentes de un día (precarga)
+router.get('/asistencia/dia', verifyToken, requireRole(...PERSONAL_ROLES), async (req, res) => {
+  const { fecha } = req.query;
+  if (!fecha) return res.status(400).json({ error: 'Fecha requerida' });
+  try {
+    const [rows] = await pool.query(
+      `SELECT voluntario_id, estado, observacion FROM instruccion_asistencia WHERE fecha=?`, [fecha]
+    );
+    res.json(rows);
+  } catch (err) { console.error(err); res.status(500).json({ error: 'Error del servidor' }); }
+});
+
+// POST /api/personal/asistencia/reabrir — borra la asistencia del día para volver a registrarla
+router.post('/asistencia/reabrir', verifyToken, requireRole(...PERSONAL_ROLES), async (req, res) => {
+  const { fecha } = req.body;
+  if (!fecha) return res.status(400).json({ error: 'Fecha requerida' });
+  try {
+    const [afectados] = await pool.query(
+      'SELECT voluntario_id FROM instruccion_asistencia WHERE fecha=?', [fecha]
+    );
+    await pool.query('DELETE FROM instruccion_asistencia WHERE fecha=?', [fecha]);
+    for (const a of afectados) {
+      // Reemplaza el registro previo de ese día y deja constancia de la reapertura
+      await pool.query(
+        `DELETE FROM voluntario_log WHERE voluntario_id=? AND accion='asistencia' AND detalle LIKE ?`,
+        [a.voluntario_id, `Asistencia%registrada para el ${fecha}`]
+      );
+      await logAccion(a.voluntario_id, 'asistencia',
+        `Día ${fecha} reabierto para volver a registrar asistencia`, req.user.id);
+    }
+    res.json({ ok: true, reabiertos: afectados.length });
+  } catch (err) { console.error(err); res.status(500).json({ error: 'Error del servidor' }); }
+});
+
+// POST /api/personal/asistencia/lote — registrar asistencia masiva de un día
+router.post('/asistencia/lote', verifyToken, requireRole(...PERSONAL_ROLES), async (req, res) => {
+  const { fecha, registros } = req.body;
+  if (!fecha || !Array.isArray(registros)) return res.status(400).json({ error: 'Datos incompletos' });
+  try {
+    let count = 0, omitidos = 0;
+    for (const r of registros) {
+      const vid = Number(r.voluntario_id);
+      if (!vid) continue;
+      const e = ['presente', 'tarde', 'falta', 'permiso', 'comision'].includes(r.estado) ? r.estado : 'presente';
+      // Un solo registro por día: los ya registrados no se sobrescriben
+      const [ins] = await pool.query(
+        `INSERT IGNORE INTO instruccion_asistencia (voluntario_id,fecha,estado,observacion,registrado_por)
+         VALUES (?,?,?,?,?)`,
+        [vid, fecha, e, r.observacion || '', req.user.id]
+      );
+      if (ins.affectedRows > 0) { await logAsistenciaUnica(vid, e, fecha, req.user.id); count++; }
+      else omitidos++;
+    }
+    res.status(201).json({ ok: true, registros: count, omitidos });
   } catch (err) { console.error(err); res.status(500).json({ error: 'Error del servidor' }); }
 });
 

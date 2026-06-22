@@ -743,6 +743,8 @@ export const capacitacionesApi = {
 
 // ── Personal (vista presidencial / jefatura de personal) ─────────
 
+export type EstadoPersonal = 'activo' | 'baja' | 'pasiva' | 'cooperador' | 'comision';
+
 export interface PersonalItem {
   id: number;
   nombre: string;
@@ -765,6 +767,7 @@ export interface PersonalItem {
   total_puntos: number;
   antiguedad_anios: number;
   activo: number;
+  estado: EstadoPersonal;
   created_at: string;
   ops_validadas: number;
   meritos_count: number;
@@ -778,7 +781,7 @@ export interface AsistenciaInstruccion {
   id: number;
   voluntario_id: number;
   fecha: string;
-  estado: 'presente' | 'falta' | 'permiso' | 'comision';
+  estado: 'presente' | 'tarde' | 'falta' | 'permiso' | 'comision';
   observacion: string;
   registrado_nombre: string;
   created_at: string;
@@ -808,7 +811,7 @@ export interface PuntoHistorialItem {
 
 export interface VoluntarioLogItem {
   id: number;
-  accion: 'edicion' | 'merito' | 'demerito' | 'asistencia' | 'documento' | 'grado';
+  accion: 'edicion' | 'merito' | 'demerito' | 'asistencia' | 'documento' | 'grado' | 'estado';
   detalle: string;
   registrado_nombre: string;
   created_at: string;
@@ -821,7 +824,7 @@ export interface PersonalDetalle {
     telefono: string; contacto_nombre: string; contacto_telefono: string;
     codigo: string; matricula: string; especialidad: string; tipo_sangre: string;
     grado: string; cargo_directiva: string; email: string; role: string;
-    activo: number; total_puntos: number; antiguedad_anios: number; created_at: string;
+    activo: number; estado: EstadoPersonal; total_puntos: number; antiguedad_anios: number; created_at: string;
   };
   meritos: Merito[];
   asistencias: AsistenciaInstruccion[];
@@ -829,7 +832,7 @@ export interface PersonalDetalle {
   operaciones: { id:number; titulo:string; tipo:string; fecha:string; estado:string; puntos_asignados:number; lugar:string }[];
   puntos_historial: PuntoHistorialItem[];
   log: VoluntarioLogItem[];
-  resumen_asistencia: { presente: number; falta: number; permiso: number; comision: number };
+  resumen_asistencia: { presente: number; tarde: number; falta: number; permiso: number; comision: number };
 }
 
 export type PersonalEditData = {
@@ -844,12 +847,20 @@ export const personalApi = {
   detalle: (id: number) => request<PersonalDetalle>(`/personal/${id}`),
   update:  (id: number, d: PersonalEditData) =>
     request<{ ok: boolean; cambios?: number; sin_cambios?: boolean }>(`/personal/${id}`, { method: 'PUT', body: JSON.stringify(d) }),
+  updateEstado: (id: number, estado: EstadoPersonal, detalle?: string) =>
+    request<{ ok: boolean }>(`/personal/${id}/estado`, { method: 'PATCH', body: JSON.stringify({ estado, detalle }) }),
   addMerito: (id: number, d: { tipo: string; titulo: string; descripcion?: string; puntos_extra?: number; fecha: string }) =>
     request<{ ok: boolean }>(`/personal/${id}/meritos`, { method: 'POST', body: JSON.stringify(d) }),
   addAsistencia: (id: number, d: { fecha: string; estado: string; observacion?: string }) =>
-    request<{ ok: boolean }>(`/personal/${id}/asistencia`, { method: 'POST', body: JSON.stringify(d) }),
+    request<{ ok: boolean; guardado: boolean }>(`/personal/${id}/asistencia`, { method: 'POST', body: JSON.stringify(d) }),
   deleteAsistencia: (aid: number) =>
     request<{ ok: boolean }>(`/personal/asistencia/${aid}`, { method: 'DELETE' }),
+  asistenciaDia: (fecha: string) =>
+    request<{ voluntario_id: number; estado: AsistenciaInstruccion['estado']; observacion: string }[]>(`/personal/asistencia/dia?fecha=${fecha}`),
+  addAsistenciaLote: (fecha: string, registros: { voluntario_id: number; estado: string; observacion?: string }[]) =>
+    request<{ ok: boolean; registros: number; omitidos: number }>(`/personal/asistencia/lote`, { method: 'POST', body: JSON.stringify({ fecha, registros }) }),
+  reabrirAsistencia: (fecha: string) =>
+    request<{ ok: boolean; reabiertos: number }>(`/personal/asistencia/reabrir`, { method: 'POST', body: JSON.stringify({ fecha }) }),
   addDocumento: (id: number, fd: FormData) => {
     const token = getToken();
     return fetch(`${BASE_URL}/personal/${id}/documentos`, {
