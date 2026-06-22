@@ -22,6 +22,7 @@ import configRoutes          from './routes/config.js';
 import capacitacionesRoutes  from './routes/capacitaciones.js';
 import voluntarioRoutes      from './routes/voluntario.js';
 import milestonesRoutes      from './routes/milestones.js';
+import personalRoutes        from './routes/personal.js';
 
 dotenv.config();
 
@@ -56,6 +57,7 @@ app.use('/api/config',          configRoutes);
 app.use('/api/capacitaciones',  capacitacionesRoutes);
 app.use('/api/voluntario',      voluntarioRoutes);
 app.use('/api/milestones',      milestonesRoutes);
+app.use('/api/personal',        personalRoutes);
 
 app.get('/api/health', (_, res) => res.json({ status: 'ok', ts: new Date().toISOString() }));
 

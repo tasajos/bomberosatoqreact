@@ -37,6 +37,7 @@ import UsersAdminPage from './pages/admin/UsersAdminPage';
 import PresidenteLayout from './layouts/PresidenteLayout';
 import PresidenteDashboard from './pages/presidente/PresidenteDashboard';
 import PresidenteVolunteers     from './pages/presidente/PresidenteVolunteers';
+import PresidentePersonal       from './pages/presidente/PresidentePersonal';
 import PresidenteCapacitaciones from './pages/presidente/PresidenteCapacitaciones';
 import OperacionesLayout from './layouts/OperacionesLayout';
 import OpsDashboard     from './pages/operaciones/OpsDashboard';
@@ -114,6 +115,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
             <Route path="/presidente" element={<PresidenteLayout />}>
               <Route index element={<PresidenteDashboard />} />
               <Route path="voluntarios"        element={<PresidenteVolunteers />} />
+              <Route path="personal"           element={<PresidentePersonal />} />
               <Route path="capacitaciones"     element={<PresidenteCapacitaciones />} />
               <Route path="mis-capacitaciones" element={<MisCapacitaciones />} />
               <Route path="postulaciones"      element={<PostulacionesPage />} />

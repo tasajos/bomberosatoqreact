@@ -741,6 +741,130 @@ export const capacitacionesApi = {
   removeCursoExterno: (id:number) => request<{ok:boolean}>(`/capacitaciones/voluntario/cursos/${id}`, { method:'DELETE' }),
 };
 
+// ── Personal (vista presidencial / jefatura de personal) ─────────
+
+export interface PersonalItem {
+  id: number;
+  nombre: string;
+  apellido_paterno: string;
+  apellido_materno: string;
+  matricula: string;
+  codigo: string;
+  grado: string;
+  cargo_directiva: string;
+  especialidad: string;
+  role: string;
+  telefono: string;
+  email: string;
+  tipo_sangre: string;
+  fecha_nacimiento: string | null;
+  carnet_identidad: string;
+  domicilio: string;
+  contacto_nombre: string;
+  contacto_telefono: string;
+  total_puntos: number;
+  antiguedad_anios: number;
+  activo: number;
+  created_at: string;
+  ops_validadas: number;
+  meritos_count: number;
+  demeritos_count: number;
+  asist_presente: number;
+  asist_falta: number;
+  docs_count: number;
+}
+
+export interface AsistenciaInstruccion {
+  id: number;
+  voluntario_id: number;
+  fecha: string;
+  estado: 'presente' | 'falta' | 'permiso' | 'comision';
+  observacion: string;
+  registrado_nombre: string;
+  created_at: string;
+}
+
+export interface DocumentoVoluntario {
+  id: number;
+  voluntario_id: number;
+  nombre: string;
+  categoria: 'identidad' | 'certificado' | 'medico' | 'administrativo' | 'formacion' | 'otro';
+  descripcion: string;
+  archivo_url: string;
+  mime: string;
+  tamano: number;
+  registrado_nombre: string;
+  created_at: string;
+}
+
+export interface PuntoHistorialItem {
+  id: number;
+  puntos: number;
+  concepto: string;
+  operacion_id: number | null;
+  asignado_nombre: string;
+  created_at: string;
+}
+
+export interface VoluntarioLogItem {
+  id: number;
+  accion: 'edicion' | 'merito' | 'demerito' | 'asistencia' | 'documento' | 'grado';
+  detalle: string;
+  registrado_nombre: string;
+  created_at: string;
+}
+
+export interface PersonalDetalle {
+  usuario: {
+    id: number; nombre: string; apellido_paterno: string; apellido_materno: string;
+    fecha_nacimiento: string | null; carnet_identidad: string; domicilio: string;
+    telefono: string; contacto_nombre: string; contacto_telefono: string;
+    codigo: string; matricula: string; especialidad: string; tipo_sangre: string;
+    grado: string; cargo_directiva: string; email: string; role: string;
+    activo: number; total_puntos: number; antiguedad_anios: number; created_at: string;
+  };
+  meritos: Merito[];
+  asistencias: AsistenciaInstruccion[];
+  documentos: DocumentoVoluntario[];
+  operaciones: { id:number; titulo:string; tipo:string; fecha:string; estado:string; puntos_asignados:number; lugar:string }[];
+  puntos_historial: PuntoHistorialItem[];
+  log: VoluntarioLogItem[];
+  resumen_asistencia: { presente: number; falta: number; permiso: number; comision: number };
+}
+
+export type PersonalEditData = {
+  nombre?: string; apellido_paterno?: string; apellido_materno?: string;
+  fecha_nacimiento?: string | null; carnet_identidad?: string; tipo_sangre?: string;
+  telefono?: string; email?: string; domicilio?: string;
+  contacto_nombre?: string; contacto_telefono?: string; especialidad?: string;
+};
+
+export const personalApi = {
+  list:    () => request<PersonalItem[]>('/personal'),
+  detalle: (id: number) => request<PersonalDetalle>(`/personal/${id}`),
+  update:  (id: number, d: PersonalEditData) =>
+    request<{ ok: boolean; cambios?: number; sin_cambios?: boolean }>(`/personal/${id}`, { method: 'PUT', body: JSON.stringify(d) }),
+  addMerito: (id: number, d: { tipo: string; titulo: string; descripcion?: string; puntos_extra?: number; fecha: string }) =>
+    request<{ ok: boolean }>(`/personal/${id}/meritos`, { method: 'POST', body: JSON.stringify(d) }),
+  addAsistencia: (id: number, d: { fecha: string; estado: string; observacion?: string }) =>
+    request<{ ok: boolean }>(`/personal/${id}/asistencia`, { method: 'POST', body: JSON.stringify(d) }),
+  deleteAsistencia: (aid: number) =>
+    request<{ ok: boolean }>(`/personal/asistencia/${aid}`, { method: 'DELETE' }),
+  addDocumento: (id: number, fd: FormData) => {
+    const token = getToken();
+    return fetch(`${BASE_URL}/personal/${id}/documentos`, {
+      method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: fd,
+    }).then(async r => {
+      if (!r.ok) { const b = await r.json().catch(() => ({})); throw new Error(b.error || `Error ${r.status}`); }
+      return r.json() as Promise<{ id: number; archivo_url: string }>;
+    });
+  },
+  deleteDocumento: (did: number) =>
+    request<{ ok: boolean }>(`/personal/documentos/${did}`, { method: 'DELETE' }),
+};
+
 // ── Milestones (hitos de historia) ───────────────────────────────
 
 export interface Milestone {
