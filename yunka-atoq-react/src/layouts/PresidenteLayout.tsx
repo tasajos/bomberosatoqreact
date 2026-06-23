@@ -9,6 +9,7 @@ const navItems = [
   { to: '/presidente/personal',      label: 'Personal'       },
   { to: '/presidente/postulaciones', label: 'Postulaciones'  },
   { to: '/operaciones',           label: '🚒 Operaciones'           },
+  { to: '/ordenes-emergencia',    label: '🚨 Órdenes'               },
   { to: '/presidente/capacitaciones',     label: 'Capacitaciones'      },
   { to: '/presidente/mis-capacitaciones', label: 'Mis Inscripciones'  },
   { to: '/presidente/campanas',   label: 'Campañas'                 },

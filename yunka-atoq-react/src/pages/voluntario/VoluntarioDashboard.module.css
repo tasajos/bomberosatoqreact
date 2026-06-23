@@ -1,0 +1,219 @@
+/* ════════════════════════════════════════════════════════════════
+   Panel del Voluntario — consola de monitoreo
+   Paleta: azul #2F6BFF / guindo #B01E3C / tinta #14213D sobre #EEF2F9
+   Fuentes: Space Grotesk (números/títulos), IBM Plex Sans (texto),
+   IBM Plex Mono (etiquetas).
+   ════════════════════════════════════════════════════════════════ */
+
+.page {
+  font-family: 'IBM Plex Sans', system-ui, sans-serif; color: #14213D;
+  max-width: 1240px; margin: 0 auto; padding: 24px 28px 40px;
+}
+
+.loading, .errorBox { font-family: 'IBM Plex Sans', sans-serif; text-align: center; padding: 4rem 2rem; font-size: 0.95rem; }
+.loading { color: #8A95B0; }
+.errorBox { color: #B01E3C; }
+
+@keyframes ya-pulse { 0% { transform: scale(1); opacity: 1; } 70% { transform: scale(2.6); opacity: 0; } 100% { opacity: 0; } }
+@keyframes ya-blink { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
+@keyframes ya-glow { 0%,100% { box-shadow: 0 0 0 0 rgba(176,30,60,0); } 50% { box-shadow: 0 0 0 5px rgba(176,30,60,0.10); } }
+
+/* ── Banner de emergencia / estado ───────────────────────────── */
+.banner { border-radius: 18px; padding: 18px 22px; margin-bottom: 18px; }
+.bannerAlert {
+  position: relative; overflow: hidden;
+  background: linear-gradient(110deg, rgba(176,30,60,0.10), rgba(176,30,60,0.03));
+  border: 1px solid rgba(176,30,60,0.32); box-shadow: 0 6px 20px rgba(176,30,60,0.08);
+  animation: ya-glow 2.4s infinite;
+}
+.bannerCalm {
+  background: linear-gradient(110deg, rgba(47,107,255,0.08), rgba(47,107,255,0.02));
+  border: 1px solid rgba(47,107,255,0.28); display: flex; align-items: center; gap: 14px;
+}
+.bannerHead { display: flex; align-items: center; gap: 11px; flex-wrap: wrap; }
+.dotWrap { position: relative; width: 12px; height: 12px; flex: none; }
+.dot { position: absolute; inset: 0; border-radius: 50%; background: #E11D48; }
+.dotPing { position: absolute; inset: 0; border-radius: 50%; background: #E11D48; animation: ya-pulse 1.6s infinite; }
+.dotGreen { width: 11px; height: 11px; border-radius: 50%; background: #1F9D6B; box-shadow: 0 0 10px rgba(31,157,107,0.5); flex: none; }
+.bannerKicker { font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 2px; color: #B01E3C; }
+.bannerCode { margin-left: auto; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #fff; background: #B01E3C; padding: 5px 10px; border-radius: 8px; }
+.bannerBody { margin-top: 12px; display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+.bannerTitle { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 24px; line-height: 1.1; color: #14213D; }
+.bannerSub { font-size: 14px; color: #8A5560; margin-top: 6px; }
+.bannerCalmTitle { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 18px; color: #14213D; }
+.bannerCalmSub { font-size: 13px; color: #5E6B8A; margin-top: 3px; }
+.bannerBtn {
+  border: none; cursor: pointer; background: linear-gradient(120deg,#E11D48,#B01E3C); color: #fff;
+  font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 14px;
+  padding: 12px 20px; border-radius: 12px; box-shadow: 0 8px 20px rgba(176,30,60,0.30);
+  text-decoration: none; display: inline-block; transition: filter 0.15s;
+}
+.bannerBtn:hover { filter: brightness(1.06); }
+
+/* ── Grid principal ──────────────────────────────────────────── */
+.mainGrid { display: grid; grid-template-columns: 0.95fr 1.05fr; gap: 16px; margin-bottom: 16px; }
+.rightCol { display: flex; flex-direction: column; gap: 16px; }
+
+/* Tarjeta de puntaje con gauge */
+.card { border-radius: 18px; background: #fff; border: 1px solid rgba(20,40,90,0.10); box-shadow: 0 2px 10px rgba(20,40,90,0.05); padding: 20px; }
+.cardHead { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.cardKicker { font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 2px; color: #8A95B0; }
+.cardLink { background: none; border: none; color: #2F6BFF; font-size: 12px; cursor: pointer; font-family: 'IBM Plex Sans', sans-serif; text-decoration: none; }
+
+.gaugeRow { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+.gaugeWrap { position: relative; width: 124px; height: 124px; flex: none; }
+.gaugeCenter { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.gaugeNum { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 30px; color: #14213D; line-height: 1; }
+.gaugeLabel { font-size: 10px; color: #8A95B0; font-family: 'IBM Plex Mono', monospace; letter-spacing: 1px; margin-top: 2px; }
+.gaugeLegend { display: flex; flex-direction: column; gap: 12px; flex: 1; min-width: 160px; }
+.legendRow { display: flex; align-items: center; gap: 10px; }
+.legendDot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+.legendText { font-size: 13px; color: #5E6B8A; }
+.legendVal { margin-left: auto; font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 18px; color: #14213D; }
+.legendDivider { height: 1px; background: rgba(20,40,90,0.10); }
+.legendNet { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 20px; color: #2F6BFF; }
+
+/* Próxima guardia (azul) */
+.guardiaCard { border-radius: 18px; background: linear-gradient(160deg,#2F6BFF,#1741B8); border: 1px solid rgba(47,107,255,0.4); padding: 18px; box-shadow: 0 8px 22px rgba(47,107,255,0.22); }
+.guardiaKicker { font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 2px; color: #C9DAFF; }
+.guardiaTitle { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 20px; margin-top: 8px; color: #fff; }
+.guardiaSub { font-size: 13px; color: #DCE6FF; margin-top: 5px; }
+
+/* Mosaico de stats */
+.statGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.statTile { border-radius: 14px; background: #fff; border: 1px solid rgba(20,40,90,0.10); box-shadow: 0 1px 4px rgba(20,40,90,0.05); padding: 14px; position: relative; overflow: hidden; }
+.statTile::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--accent, #2F6BFF); }
+.statTileNum { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 23px; letter-spacing: .5px; color: #14213D; line-height: 1; }
+.statTileLabel { font-size: 11px; color: #7A86A4; margin-top: 5px; line-height: 1.25; }
+.statTileNote { font-size: 10px; color: #B6BFD2; margin-top: 2px; }
+
+/* ── Section card genérica ───────────────────────────────────── */
+.colsTwo { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; margin-bottom: 16px; }
+.sectionCard { border-radius: 18px; background: #fff; border: 1px solid rgba(20,40,90,0.10); box-shadow: 0 2px 10px rgba(20,40,90,0.05); padding: 20px; }
+.sectionHead { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+.sectionIcon { width: 30px; height: 30px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 0.95rem; color: #fff; flex: none; }
+.sectionTitle { font-family: 'Space Grotesk', sans-serif; font-size: 1rem; font-weight: 700; color: #14213D; margin: 0; }
+.sectionCount { font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 500; color: #fff; min-width: 1.3rem; height: 1.3rem; padding: 0 0.4rem; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; background: #8A95B0; }
+.sectionLink { margin-left: auto; font-size: 12px; font-weight: 500; color: #2F6BFF; text-decoration: none; }
+
+.empty { text-align: center; padding: 2.25rem 1rem; }
+.emptyIcon { font-size: 1.9rem; margin-bottom: 0.4rem; }
+.emptyText { font-size: 0.85rem; font-weight: 500; color: #5E6B8A; }
+.emptyHint { font-size: 0.74rem; color: #8A95B0; margin-top: 0.25rem; }
+
+.list { display: flex; flex-direction: column; gap: 10px; }
+.listItem { display: flex; align-items: center; gap: 13px; padding: 11px 12px; border-radius: 12px; background: #F5F8FD; transition: background 0.15s; }
+.listItem:hover { background: #EDF2FB; }
+.listPill { width: 38px; height: 38px; flex: none; border-radius: 10px; display: flex; align-items: center; justify-content: center; text-align: center; font-family: 'IBM Plex Mono', monospace; font-size: 9px; font-weight: 600; letter-spacing: .04em; line-height: 1.15; padding: 0.2rem; }
+.listMain { flex: 1; min-width: 0; }
+.listName { font-family: 'Space Grotesk', sans-serif; font-size: 13px; font-weight: 600; color: #14213D; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.listSub { font-size: 11px; color: #8A95B0; margin-top: 0.12rem; }
+.tagRow { display: flex; gap: 0.35rem; flex-wrap: wrap; margin-bottom: 0.35rem; }
+.tag { font-family: 'IBM Plex Mono', monospace; font-size: 9px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; padding: 0.15rem 0.5rem; border-radius: 5px; }
+
+/* Méritos / llamadas */
+.noteItem { display: flex; gap: 0.8rem; align-items: flex-start; padding: 0.8rem 0.95rem; border-radius: 12px; }
+.noteMerito { background: rgba(47,107,255,0.06); border: 1px solid rgba(47,107,255,0.18); }
+.noteWarn { background: rgba(176,30,60,0.05); border: 1px solid rgba(176,30,60,0.18); }
+.noteIcon { font-size: 1.1rem; margin-top: 0.1rem; flex: none; }
+.noteTitleMerito { font-family: 'Space Grotesk', sans-serif; font-size: 0.86rem; font-weight: 600; color: #1741B8; }
+.noteTitleWarn { font-family: 'Space Grotesk', sans-serif; font-size: 0.86rem; font-weight: 600; color: #B01E3C; }
+.noteDesc { font-size: 0.74rem; color: #5E6B8A; margin-top: 0.15rem; }
+.noteMeta { font-size: 0.7rem; color: #8A95B0; margin-top: 0.15rem; }
+
+/* ── Capacitaciones disponibles ──────────────────────────────── */
+.capSection { margin-bottom: 16px; }
+.capGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
+.capCard { position: relative; overflow: hidden; background: #fff; border: 1px solid rgba(20,40,90,0.10); border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 0.55rem; box-shadow: 0 2px 10px rgba(20,40,90,0.05); transition: transform 0.18s, box-shadow 0.18s; }
+.capCard::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg,#2F6BFF,#5B8BFF); }
+.capCard:hover { transform: translateY(-3px); box-shadow: 0 12px 26px rgba(47,107,255,0.16); }
+.capCardInscrito { border-color: rgba(31,157,107,0.5); }
+.capName { font-family: 'Space Grotesk', sans-serif; font-size: 1.02rem; font-weight: 700; color: #14213D; line-height: 1.25; }
+.capDetails { display: flex; flex-direction: column; gap: 0.25rem; }
+.capDetail { font-size: 0.78rem; color: #5E6B8A; display: flex; align-items: center; gap: 0.4rem; }
+.capDetailInst { color: #2F6BFF; font-weight: 500; }
+.capFooter { margin-top: auto; padding-top: 0.8rem; border-top: 1px solid rgba(20,40,90,0.07); display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+.capInscritos { font-size: 0.72rem; color: #8A95B0; }
+
+.btn { font-family: 'Space Grotesk', sans-serif; font-size: 0.78rem; font-weight: 600; padding: 0.5rem 1.1rem; border-radius: 10px; border: none; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s, filter 0.15s; white-space: nowrap; }
+.btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.btnJoin { background: linear-gradient(120deg,#2F6BFF,#1741B8); color: #fff; box-shadow: 0 4px 12px rgba(47,107,255,0.30); }
+.btnJoin:hover:not(:disabled) { filter: brightness(1.06); transform: translateY(-1px); }
+.btnLeave { background: #fff; color: #B01E3C; border: 1.5px solid rgba(176,30,60,0.3); }
+.btnLeave:hover:not(:disabled) { background: rgba(176,30,60,0.05); }
+
+.badgeInscrito { font-family: 'IBM Plex Mono', monospace; font-size: 9px; font-weight: 600; letter-spacing: 0.04em; padding: 0.2rem 0.55rem; border-radius: 999px; background: rgba(31,157,107,0.12); color: #1F9D6B; }
+.badgeTipo { font-family: 'IBM Plex Mono', monospace; font-size: 9px; font-weight: 600; letter-spacing: 0.04em; padding: 0.2rem 0.55rem; border-radius: 999px; }
+
+.toast { background: rgba(31,157,107,0.08); border: 1px solid rgba(31,157,107,0.3); border-radius: 12px; padding: 0.85rem 1.15rem; font-size: 0.88rem; color: #0F7A53; margin-bottom: 16px; }
+
+/* ── Vista Méritos ───────────────────────────────────────────── */
+.meritGrid { display: grid; grid-template-columns: 0.85fr 1.15fr; gap: 16px; }
+.meritRight { display: flex; flex-direction: column; gap: 16px; }
+.scoreCard {
+  border-radius: 18px; background: linear-gradient(160deg,#2F6BFF,#1741B8); border: 1px solid rgba(47,107,255,0.4);
+  box-shadow: 0 8px 24px rgba(47,107,255,0.22); padding: 24px;
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+}
+.scoreGauge { position: relative; width: 170px; height: 170px; }
+.scoreCenter { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.scoreNum { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 46px; color: #fff; line-height: 1; }
+.scoreLabel { font-size: 11px; color: #C9DAFF; font-family: 'IBM Plex Mono', monospace; letter-spacing: 1px; margin-top: 2px; }
+.scoreNivel { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 20px; margin-top: 14px; color: #fff; }
+.scoreNeto { font-size: 13px; color: #C9DAFF; margin-top: 4px; }
+.scoreTiles { display: flex; gap: 10px; margin-top: 18px; width: 100%; }
+.scoreTile { flex: 1; border-radius: 12px; padding: 12px; }
+.scoreTileM { background: rgba(255,255,255,0.16); }
+.scoreTileD { background: rgba(176,30,60,0.30); }
+.scoreTileNum { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 22px; color: #fff; }
+.scoreTileLabel { font-size: 11px; color: #C9DAFF; }
+.scoreTileLabelD { font-size: 11px; color: #FFD0D9; }
+.barCardHead { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
+.barList { display: flex; flex-direction: column; gap: 14px; }
+.barTop { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px; }
+.barLabel { color: #3F4B68; }
+.barValB { font-family: 'Space Grotesk', sans-serif; font-weight: 700; color: #2F6BFF; }
+.barValR { font-family: 'Space Grotesk', sans-serif; font-weight: 700; color: #B01E3C; }
+.barTrack { height: 7px; border-radius: 4px; background: rgba(20,40,90,0.07); overflow: hidden; }
+.barFill { height: 100%; border-radius: 4px; }
+
+/* ── Vista File personal ─────────────────────────────────────── */
+.fileCover { border-radius: 18px; overflow: hidden; border: 1px solid rgba(20,40,90,0.10); box-shadow: 0 2px 12px rgba(20,40,90,0.06); margin-bottom: 16px; }
+.fileBanner { height: 96px; background: linear-gradient(120deg,#2F6BFF,#1741B8); }
+.fileHeader { padding: 0 24px 22px; background: #fff; display: flex; gap: 18px; align-items: flex-end; flex-wrap: wrap; }
+.fileAvatar {
+  width: 96px; height: 96px; flex: none; border-radius: 22px; margin-top: -44px;
+  background: linear-gradient(160deg,#B01E3C,#7E1228); border: 4px solid #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 34px; color: #fff;
+  box-shadow: 0 10px 24px rgba(176,30,60,0.30);
+}
+.fileHeaderInfo { flex: 1; min-width: 200px; padding-bottom: 4px; }
+.fileName { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 24px; color: #14213D; }
+.fileSub { font-size: 13px; color: #8A95B0; margin-top: 3px; }
+.fileStatus { display: flex; align-items: center; gap: 8px; padding: 9px 14px; border-radius: 11px; background: #F5F8FD; border: 1px solid rgba(20,40,90,0.08); }
+.fileStatusText { font-size: 12px; color: #3F4B68; font-family: 'IBM Plex Mono', monospace; letter-spacing: .5px; }
+.fileGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.fileCol { display: flex; flex-direction: column; gap: 16px; }
+.dataRow { display: flex; justify-content: space-between; gap: 12px; padding: 11px 0; border-bottom: 1px solid rgba(20,40,90,0.06); }
+.dataKey { font-size: 13px; color: #8A95B0; }
+.dataVal { font-size: 13px; font-weight: 600; color: #14213D; text-align: right; }
+.chipWrap { display: flex; flex-wrap: wrap; gap: 9px; }
+.chipItem { display: inline-flex; align-items: center; gap: 7px; padding: 9px 13px; border-radius: 10px; background: rgba(47,107,255,0.07); border: 1px solid rgba(47,107,255,0.20); font-size: 12px; color: #1C2A4D; }
+.chipDot { width: 6px; height: 6px; border-radius: 50%; background: #2F6BFF; flex: none; }
+.equipoRow { display: flex; align-items: center; gap: 11px; padding: 10px 12px; border-radius: 11px; background: #F5F8FD; }
+.equipoDot { width: 7px; height: 7px; border-radius: 50%; background: #1F9D6B; flex: none; }
+.equipoText { font-size: 13px; color: #14213D; flex: 1; }
+.equipoCod { font-size: 11px; color: #8A95B0; font-family: 'IBM Plex Mono', monospace; }
+
+@media (max-width: 1180px) {
+  .mainGrid { grid-template-columns: 1fr; }
+  .meritGrid { grid-template-columns: 1fr; }
+  .fileGrid { grid-template-columns: 1fr; }
+}
+@media (max-width: 880px) {
+  .page { padding: 16px 14px 26px; }
+}
+@media (max-width: 560px) {
+  .statGrid { grid-template-columns: 1fr 1fr; }
+}

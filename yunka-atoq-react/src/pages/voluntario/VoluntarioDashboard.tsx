@@ -1,6 +1,125 @@
-import { useState, useEffect } from 'react';
-import { voluntarioApi, capacitacionesApi, type VoluntarioDashboardData, type DirectorioVoluntario, type PerfilPuntos, type PerfilOperacion, type PerfilCapacitacion } from '../../services/api';
+import { useState, useEffect, type CSSProperties } from 'react';
+import { Link } from 'react-router-dom';
+import { voluntarioApi, capacitacionesApi, ordenesApi, API_BASE, type VoluntarioDashboardData, type DirectorioVoluntario, type PerfilPuntos, type PerfilOperacion, type PerfilCapacitacion, type OrdenOperacion, type NivelDificultad, type EstadoOrden } from '../../services/api';
+import EmergenciaMap, { type MapImage } from '../../components/EmergenciaMap';
 import { RankBadgeSVG, GRADOS } from '../../utils/rankBadge';
+import ord from './OrdenesVoluntario.module.css';
+import s from './VoluntarioDashboard.module.css';
+
+const NIVEL_ORDEN: Record<NivelDificultad, { label: string; icon: string; accent: string; tint: string; ink: string }> = {
+  baja:    { label: 'Baja',    icon: '🟢', accent: 'linear-gradient(135deg,#34d399,#10b981)', tint: '#ecfdf5', ink: '#047857' },
+  media:   { label: 'Media',   icon: '🟡', accent: 'linear-gradient(135deg,#fbbf24,#f59e0b)', tint: '#fffbeb', ink: '#b45309' },
+  alta:    { label: 'Alta',    icon: '🟠', accent: 'linear-gradient(135deg,#fb923c,#f97316)', tint: '#fff7ed', ink: '#c2410c' },
+  critica: { label: 'Crítica', icon: '🔴', accent: 'linear-gradient(135deg,#fb7185,#ef4444)', tint: '#fef2f2', ink: '#dc2626' },
+};
+
+const ESTADO_ORDEN: Record<EstadoOrden, string> = {
+  activa: 'Activa', en_curso: 'En curso', finalizada: 'Finalizada', cancelada: 'Cancelada',
+};
+
+function nivelVars(nv: { accent: string; tint: string; ink: string }): CSSProperties {
+  return { '--accent': nv.accent, '--tint': nv.tint, '--ink': nv.ink } as CSSProperties;
+}
+
+// ── Modal de detalle de orden de operación ────────────────────────
+
+function OrdenModal({
+  orden, busy, onToggle, onClose,
+}: {
+  orden: OrdenOperacion;
+  busy: boolean;
+  onToggle: (o: OrdenOperacion) => void;
+  onClose: () => void;
+}) {
+  const [lightbox, setLightbox] = useState<string | null>(null);
+  const nv = NIVEL_ORDEN[orden.nivel_dificultad];
+  const puedeInscribirse = orden.estado === 'activa' || orden.estado === 'en_curso';
+  const mapImages: MapImage[] = orden.imagenes
+    .filter(im => im.lat != null && im.lng != null)
+    .map(im => ({ id: im.id, url: im.url, lat: im.lat, lng: im.lng, descripcion: im.descripcion }));
+
+  return (
+    <div className={ord.overlay} onClick={onClose}>
+      <div className={ord.modal} onClick={e => e.stopPropagation()}>
+        {/* Header */}
+        <div className={ord.modalHead} style={nivelVars(nv)}>
+          <button className={ord.modalClose} onClick={onClose}>✕</button>
+          <div className={ord.modalBadges}>
+            <span className={ord.modalBadge}>{nv.icon} Dificultad {nv.label}</span>
+            <span className={ord.modalBadge}>{ESTADO_ORDEN[orden.estado]}</span>
+          </div>
+          <h2 className={ord.modalTitle}>{orden.titulo}</h2>
+          <div className={ord.modalSub}>
+            {orden.direccion || 'Sin dirección'}
+            {orden.creado_nombre ? ` · Publicado por ${orden.creado_nombre}` : ''}
+          </div>
+        </div>
+
+        {/* Body */}
+        <div className={ord.modalBody}>
+          <div className={ord.stats}>
+            <div className={ord.stat}>
+              <div className={ord.statNum}>{orden.inscritos}</div>
+              <div className={ord.statLabel}>Inscritos</div>
+            </div>
+            <div className={ord.stat}>
+              <div className={ord.statNum}>{orden.voluntarios_requeridos || '—'}</div>
+              <div className={ord.statLabel}>Requeridos</div>
+            </div>
+          </div>
+
+          {orden.descripcion && <p className={ord.desc}>{orden.descripcion}</p>}
+
+          {orden.equipos_necesarios && (
+            <div className={ord.block}>
+              <div className={ord.blockLabel}>🧰 Equipos / recursos necesarios</div>
+              <div className={ord.blockText}>{orden.equipos_necesarios}</div>
+            </div>
+          )}
+
+          {orden.lat != null && orden.lng != null && (
+            <div className={ord.mapWrap}>
+              <div className={ord.mapLabel}>🗺️ Ubicación</div>
+              <EmergenciaMap
+                emergencia={{ lat: orden.lat, lng: orden.lng }}
+                center={[orden.lat, orden.lng]}
+                images={mapImages}
+                height="280px"
+              />
+            </div>
+          )}
+
+          {orden.imagenes.length > 0 && (
+            <div className={ord.gallery}>
+              {orden.imagenes.map(im => (
+                <img key={im.id} className={ord.galleryImg} src={`${API_BASE}${im.url}`} alt={im.descripcion || ''}
+                  onClick={() => setLightbox(`${API_BASE}${im.url}`)} />
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className={ord.modalFooter}>
+          <span className={ord.modalFootInfo}>
+            👥 {orden.inscritos} voluntario{orden.inscritos !== 1 ? 's' : ''} inscrito{orden.inscritos !== 1 ? 's' : ''}
+          </span>
+          <button
+            disabled={!puedeInscribirse || busy}
+            onClick={() => onToggle(orden)}
+            className={`${ord.btn} ${ord.btnBig} ${!puedeInscribirse ? ord.btnDisabled : orden.ya_inscrito ? ord.btnLeave : ord.btnJoin}`}
+          >{busy ? '…' : !puedeInscribirse ? 'Cerrada' : orden.ya_inscrito ? '✓ Inscrito — Cancelar' : '🙋 Inscribirme'}</button>
+        </div>
+      </div>
+
+      {lightbox && (
+        <div className={ord.lightbox} onClick={(e) => { e.stopPropagation(); setLightbox(null); }}>
+          <img src={lightbox} alt="" />
+        </div>
+      )}
+    </div>
+  );
+}
 
 // ── helpers ───────────────────────────────────────────────────────
 
@@ -18,9 +137,6 @@ function fmtDateShort(s?: string) {
     : new Intl.DateTimeFormat('es-BO', { day: 'numeric', month: 'short' }).format(d);
 }
 
-function initials(nombre: string, apellido: string) {
-  return `${nombre?.[0] ?? ''}${apellido?.[0] ?? ''}`.toUpperCase();
-}
 
 
 // ── Tipo capacitación ─────────────────────────────────────────────
@@ -50,52 +166,60 @@ const INS_COLOR: Record<string, { color: string; bg: string }> = {
   ausente:    { color: '#991b1b', bg: '#fee2e2' },
 };
 
-// ── Stat card ─────────────────────────────────────────────────────
+// ── Stat tile ─────────────────────────────────────────────────────
 
-type StatCardProps = {
-  label: string; value: number | string; icon: string;
-  color?: string; bg?: string; note?: string;
-};
-
-function StatCard({ label, value, icon, color = '#0F172A', bg = '#F8FAFC', note }: StatCardProps) {
+function StatCard({ label, value, accent = '#2F6BFF', note }: {
+  label: string; value: number | string; accent?: string; note?: string;
+}) {
   return (
-    <div style={{
-      background: bg, border: '1.5px solid #E2E8F0', borderRadius: '14px',
-      padding: '1.1rem 1.25rem', minWidth: '120px', flex: '1 1 110px',
-      display: 'flex', flexDirection: 'column', gap: '0.35rem',
-    }}>
-      <div style={{ fontSize: '1.35rem', lineHeight: 1 }}>{icon}</div>
-      <div style={{
-        fontFamily: 'var(--font-condensed)', fontSize: '1.65rem', fontWeight: 900,
-        color, lineHeight: 1,
-      }}>{value}</div>
-      <div style={{ fontFamily: 'var(--font-condensed)', fontSize: '0.65rem', fontWeight: 700,
-        textTransform: 'uppercase', letterSpacing: '0.08em', color: '#64748B' }}>
-        {label}
+    <div className={s.statTile} style={{ ['--accent' as string]: accent } as CSSProperties}>
+      <div className={s.statTileNum}>{value}</div>
+      <div className={s.statTileLabel}>{label}</div>
+      {note && <div className={s.statTileNote}>{note}</div>}
+    </div>
+  );
+}
+
+// ── Gauge (índice / puntaje) ──────────────────────────────────────
+
+function Gauge({ value, max, centerNum, centerLabel }: {
+  value: number; max: number; centerNum: number | string; centerLabel: string;
+}) {
+  const R = 52;
+  const C = +(2 * Math.PI * R).toFixed(1);
+  const pct = Math.max(0, Math.min(1, max > 0 ? value / max : 0));
+  const offset = +(C * (1 - pct)).toFixed(1);
+  return (
+    <div className={s.gaugeWrap}>
+      <svg width="124" height="124" viewBox="0 0 120 120" style={{ transform: 'rotate(-90deg)' }}>
+        <circle cx="60" cy="60" r={R} fill="none" stroke="rgba(20,40,90,0.10)" strokeWidth="11" />
+        <circle cx="60" cy="60" r={R} fill="none" stroke="url(#yagauge)" strokeWidth="11" strokeLinecap="round"
+          strokeDasharray={C} strokeDashoffset={offset} />
+        <defs>
+          <linearGradient id="yagauge" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stopColor="#2F6BFF" /><stop offset="1" stopColor="#5B8BFF" />
+          </linearGradient>
+        </defs>
+      </svg>
+      <div className={s.gaugeCenter}>
+        <span className={s.gaugeNum}>{centerNum}</span>
+        <span className={s.gaugeLabel}>{centerLabel}</span>
       </div>
-      {note && (
-        <div style={{ fontSize: '0.7rem', color: '#94A3B8', marginTop: '0.1rem' }}>{note}</div>
-      )}
     </div>
   );
 }
 
 // ── Section header ────────────────────────────────────────────────
 
-function SectionTitle({ title, count }: { title: string; count?: number }) {
+function SectionHead({ title, icon, color, count, link, linkLabel }: {
+  title: string; icon: string; color: string; count?: number; link?: string; linkLabel?: string;
+}) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', marginBottom: '1rem' }}>
-      <h2 style={{
-        fontFamily: 'var(--font-condensed)', fontSize: '1rem', fontWeight: 900,
-        color: '#0F172A', margin: 0, textTransform: 'uppercase', letterSpacing: '0.06em',
-      }}>{title}</h2>
-      {count !== undefined && (
-        <span style={{
-          fontFamily: 'var(--font-condensed)', fontSize: '0.65rem', fontWeight: 800,
-          background: '#E2E8F0', color: '#475569', borderRadius: '999px',
-          padding: '0.15rem 0.5rem',
-        }}>{count}</span>
-      )}
+    <div className={s.sectionHead}>
+      <span className={s.sectionIcon} style={{ background: color }}>{icon}</span>
+      <h2 className={s.sectionTitle}>{title}</h2>
+      {count !== undefined && <span className={s.sectionCount} style={{ background: color }}>{count}</span>}
+      {link && <Link to={link} className={s.sectionLink}>{linkLabel ?? 'Ver'} →</Link>}
     </div>
   );
 }
@@ -170,15 +294,15 @@ function DetalleModal({
             width: '44px', height: '44px', borderRadius: '50%', flexShrink: 0,
             background: 'rgba(255,255,255,0.2)', border: '2px solid rgba(255,255,255,0.3)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontFamily: 'var(--font-condensed)', fontSize: '1rem', fontWeight: 900, color: 'white',
+            fontFamily: 'Poppins, sans-serif', fontSize: '1rem', fontWeight: 600, color: 'white',
           }}>{inits}</div>
 
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontFamily: 'var(--font-condensed)', fontSize: '0.65rem', fontWeight: 700,
+            <div style={{ fontFamily: 'Poppins, sans-serif', fontSize: '0.65rem', fontWeight: 500,
               textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.65)', marginBottom: '0.2rem' }}>
               {cfg.icon} {cfg.label}
             </div>
-            <div style={{ fontFamily: 'var(--font-condensed)', fontSize: '1.1rem', fontWeight: 900,
+            <div style={{ fontFamily: 'Poppins, sans-serif', fontSize: '1.1rem', fontWeight: 600,
               color: 'white', lineHeight: 1.1 }}>
               {vol.nombre} {vol.apellido_paterno}
             </div>
@@ -214,11 +338,11 @@ function DetalleModal({
                     border: '1.5px solid #fde68a', borderRadius: '12px',
                     padding: '1rem 1.25rem', marginBottom: '1rem',
                   }}>
-                    <span style={{ fontFamily: 'var(--font-condensed)', fontSize: '0.75rem', fontWeight: 700,
+                    <span style={{ fontFamily: 'Poppins, sans-serif', fontSize: '0.75rem', fontWeight: 500,
                       textTransform: 'uppercase', letterSpacing: '0.08em', color: '#92400e' }}>
                       Total acumulado
                     </span>
-                    <span style={{ fontFamily: 'var(--font-condensed)', fontSize: '2rem', fontWeight: 900,
+                    <span style={{ fontFamily: 'Poppins, sans-serif', fontSize: '2rem', fontWeight: 600,
                       color: '#92400e' }}>
                       {puntosData?.total ?? 0} pts
                     </span>
@@ -238,14 +362,14 @@ function DetalleModal({
                             width: '40px', height: '40px', borderRadius: '10px', flexShrink: 0,
                             background: p.puntos >= 0 ? '#fef3c7' : '#fee2e2',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            fontFamily: 'var(--font-condensed)', fontSize: '0.9rem', fontWeight: 900,
+                            fontFamily: 'Poppins, sans-serif', fontSize: '0.9rem', fontWeight: 600,
                             color: p.puntos >= 0 ? '#92400e' : '#991b1b',
                           }}>
                             {p.puntos >= 0 ? '+' : ''}{p.puntos}
                           </div>
                           <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ fontFamily: 'var(--font-condensed)', fontSize: '0.82rem',
-                              fontWeight: 800, color: '#0F172A', overflow: 'hidden',
+                            <div style={{ fontFamily: 'Poppins, sans-serif', fontSize: '0.82rem',
+                              fontWeight: 600, color: '#0F172A', overflow: 'hidden',
                               textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                               {p.concepto}
                             </div>
@@ -276,20 +400,20 @@ function DetalleModal({
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <div style={{ display: 'flex', gap: '0.35rem', marginBottom: '0.3rem', flexWrap: 'wrap' }}>
                               <span style={{
-                                fontFamily: 'var(--font-condensed)', fontSize: '0.58rem', fontWeight: 800,
+                                fontFamily: 'Poppins, sans-serif', fontSize: '0.58rem', fontWeight: 600,
                                 textTransform: 'uppercase', letterSpacing: '0.08em',
                                 color: '#1e40af', background: '#eff6ff',
                                 padding: '0.1rem 0.45rem', borderRadius: '3px',
                               }}>{op.tipo}</span>
                               <span style={{
-                                fontFamily: 'var(--font-condensed)', fontSize: '0.58rem', fontWeight: 800,
+                                fontFamily: 'Poppins, sans-serif', fontSize: '0.58rem', fontWeight: 600,
                                 textTransform: 'uppercase', letterSpacing: '0.08em',
                                 color: '#065f46', background: '#d1fae5',
                                 padding: '0.1rem 0.45rem', borderRadius: '3px',
                               }}>validado</span>
                             </div>
-                            <div style={{ fontFamily: 'var(--font-condensed)', fontSize: '0.87rem',
-                              fontWeight: 800, color: '#0F172A', lineHeight: 1.2 }}>
+                            <div style={{ fontFamily: 'Poppins, sans-serif', fontSize: '0.87rem',
+                              fontWeight: 600, color: '#0F172A', lineHeight: 1.2 }}>
                               {op.titulo}
                             </div>
                             <div style={{ fontSize: '0.7rem', color: '#94A3B8', marginTop: '0.25rem' }}>
@@ -303,12 +427,12 @@ function DetalleModal({
                               flexShrink: 0, background: '#fef3c7', borderRadius: '8px',
                               padding: '0.35rem 0.625rem', textAlign: 'center',
                             }}>
-                              <div style={{ fontFamily: 'var(--font-condensed)', fontSize: '1rem',
-                                fontWeight: 900, color: '#92400e', lineHeight: 1 }}>
+                              <div style={{ fontFamily: 'Poppins, sans-serif', fontSize: '1rem',
+                                fontWeight: 600, color: '#92400e', lineHeight: 1 }}>
                                 +{op.puntos_asignados}
                               </div>
-                              <div style={{ fontFamily: 'var(--font-condensed)', fontSize: '0.55rem',
-                                fontWeight: 700, textTransform: 'uppercase', color: '#b45309' }}>pts</div>
+                              <div style={{ fontFamily: 'Poppins, sans-serif', fontSize: '0.55rem',
+                                fontWeight: 500, textTransform: 'uppercase', color: '#b45309' }}>pts</div>
                             </div>
                           )}
                         </div>
@@ -334,20 +458,20 @@ function DetalleModal({
                         }}>
                           <div style={{ display: 'flex', gap: '0.35rem', marginBottom: '0.3rem', flexWrap: 'wrap' }}>
                             <span style={{
-                              fontFamily: 'var(--font-condensed)', fontSize: '0.58rem', fontWeight: 800,
+                              fontFamily: 'Poppins, sans-serif', fontSize: '0.58rem', fontWeight: 600,
                               textTransform: 'uppercase', letterSpacing: '0.08em',
                               color: tc.color, background: tc.bg,
                               padding: '0.1rem 0.45rem', borderRadius: '3px',
                             }}>{tc.label}</span>
                             <span style={{
-                              fontFamily: 'var(--font-condensed)', fontSize: '0.58rem', fontWeight: 800,
+                              fontFamily: 'Poppins, sans-serif', fontSize: '0.58rem', fontWeight: 600,
                               textTransform: 'uppercase', letterSpacing: '0.08em',
                               color: sc.color, background: sc.bg,
                               padding: '0.1rem 0.45rem', borderRadius: '3px',
                             }}>{c.estado}</span>
                           </div>
-                          <div style={{ fontFamily: 'var(--font-condensed)', fontSize: '0.87rem',
-                            fontWeight: 800, color: '#0F172A', lineHeight: 1.2 }}>
+                          <div style={{ fontFamily: 'Poppins, sans-serif', fontSize: '0.87rem',
+                            fontWeight: 600, color: '#0F172A', lineHeight: 1.2 }}>
                             {c.nombre}
                           </div>
                           <div style={{ fontSize: '0.7rem', color: '#94A3B8', marginTop: '0.25rem' }}>
@@ -373,8 +497,8 @@ function EmptyList({ msg }: { msg: string }) {
   return (
     <div style={{ textAlign: 'center', padding: '3rem 1rem' }}>
       <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📭</div>
-      <div style={{ fontFamily: 'var(--font-condensed)', fontSize: '0.85rem',
-        fontWeight: 700, color: '#94A3B8' }}>{msg}</div>
+      <div style={{ fontFamily: 'Poppins, sans-serif', fontSize: '0.85rem',
+        fontWeight: 500, color: '#94A3B8' }}>{msg}</div>
     </div>
   );
 }
@@ -454,7 +578,7 @@ function DirectorioModal({ onClose }: { onClose: () => void }) {
         }}>
           <div>
             <h2 style={{
-              fontFamily: 'var(--font-condensed)', fontSize: '1.5rem', fontWeight: 900,
+              fontFamily: 'Poppins, sans-serif', fontSize: '1.5rem', fontWeight: 600,
               color: 'white', margin: 0, letterSpacing: '0.04em',
             }}>Directorio de Voluntarios</h2>
             <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.78rem', margin: '0.25rem 0 0' }}>
@@ -480,7 +604,7 @@ function DirectorioModal({ onClose }: { onClose: () => void }) {
             style={{
               width: '100%', padding: '0.65rem 1rem',
               border: '1.5px solid #E2E8F0', borderRadius: '10px',
-              fontFamily: 'var(--font-condensed)', fontSize: '0.85rem',
+              fontFamily: 'Poppins, sans-serif', fontSize: '0.85rem',
               color: '#0F172A', background: '#F8FAFC', outline: 'none',
               boxSizing: 'border-box',
             }}
@@ -545,7 +669,7 @@ function DirectorioModal({ onClose }: { onClose: () => void }) {
                         background: 'rgba(255,255,255,0.2)',
                         border: '2px solid rgba(255,255,255,0.3)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontFamily: 'var(--font-condensed)', fontSize: '1.25rem', fontWeight: 900,
+                        fontFamily: 'Poppins, sans-serif', fontSize: '1.25rem', fontWeight: 600,
                         color: 'white', boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
                         position: 'relative', zIndex: 1,
                       }}>{inits}</div>
@@ -553,7 +677,7 @@ function DirectorioModal({ onClose }: { onClose: () => void }) {
                       {/* Name + grade */}
                       <div style={{ flex: 1, minWidth: 0, position: 'relative', zIndex: 1 }}>
                         <div style={{
-                          fontFamily: 'var(--font-condensed)', fontSize: '1rem', fontWeight: 900,
+                          fontFamily: 'Poppins, sans-serif', fontSize: '1rem', fontWeight: 600,
                           color: 'white', lineHeight: 1.2,
                           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                         }}>{nombreFull}</div>
@@ -566,7 +690,7 @@ function DirectorioModal({ onClose }: { onClose: () => void }) {
                         {v.grado && (
                           <div style={{
                             display: 'inline-block', marginTop: '0.35rem',
-                            fontFamily: 'var(--font-condensed)', fontSize: '0.6rem', fontWeight: 800,
+                            fontFamily: 'Poppins, sans-serif', fontSize: '0.6rem', fontWeight: 600,
                             textTransform: 'uppercase', letterSpacing: '0.1em',
                             color: 'rgba(255,255,255,0.9)',
                             background: 'rgba(255,255,255,0.18)',
@@ -592,7 +716,7 @@ function DirectorioModal({ onClose }: { onClose: () => void }) {
                         {sangre && (
                           <span style={{
                             display: 'flex', alignItems: 'center', gap: '0.25rem',
-                            fontFamily: 'var(--font-condensed)', fontSize: '0.7rem', fontWeight: 800,
+                            fontFamily: 'Poppins, sans-serif', fontSize: '0.7rem', fontWeight: 600,
                             color: sc.color, background: sc.bg,
                             padding: '0.2rem 0.6rem', borderRadius: '6px',
                           }}>
@@ -639,11 +763,11 @@ function DirectorioModal({ onClose }: { onClose: () => void }) {
                           >
                             <div style={{ fontSize: '0.9rem', marginBottom: '0.15rem' }}>{s.icon}</div>
                             <div style={{
-                              fontFamily: 'var(--font-condensed)', fontSize: '1.1rem', fontWeight: 900,
+                              fontFamily: 'Poppins, sans-serif', fontSize: '1.1rem', fontWeight: 600,
                               color: s.color, lineHeight: 1,
                             }}>{s.value}</div>
                             <div style={{
-                              fontFamily: 'var(--font-condensed)', fontSize: '0.55rem', fontWeight: 700,
+                              fontFamily: 'Poppins, sans-serif', fontSize: '0.55rem', fontWeight: 500,
                               textTransform: 'uppercase', letterSpacing: '0.06em',
                               color: '#94A3B8', marginTop: '0.15rem',
                             }}>{s.label}</div>
@@ -719,11 +843,11 @@ function FilePersonalCard({
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
           <h2 style={{
-            fontFamily: 'var(--font-condensed)', fontSize: '1rem', fontWeight: 900,
+            fontFamily: 'Poppins, sans-serif', fontSize: '1rem', fontWeight: 600,
             color: '#0F172A', margin: 0, textTransform: 'uppercase', letterSpacing: '0.06em',
           }}>File Personal</h2>
           <span style={{
-            fontFamily: 'var(--font-condensed)', fontSize: '0.65rem', fontWeight: 800,
+            fontFamily: 'Poppins, sans-serif', fontSize: '0.65rem', fontWeight: 600,
             background: '#E2E8F0', color: '#475569', borderRadius: '999px', padding: '0.15rem 0.5rem',
           }}>{total}</span>
         </div>
@@ -735,7 +859,7 @@ function FilePersonalCard({
       {total === 0 ? (
         <div style={{ textAlign: 'center', padding: '2.5rem 1rem' }}>
           <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📂</div>
-          <div style={{ fontFamily: 'var(--font-condensed)', fontSize: '0.85rem', fontWeight: 700, color: '#475569' }}>
+          <div style={{ fontFamily: 'Poppins, sans-serif', fontSize: '0.85rem', fontWeight: 500, color: '#475569' }}>
             Sin registros en el file personal
           </div>
           <div style={{ fontSize: '0.75rem', color: '#94A3B8', marginTop: '0.25rem' }}>
@@ -755,7 +879,7 @@ function FilePersonalCard({
           }}>
             {['Capacitación / Curso', 'Institución', 'Fecha', 'Horas', ''].map((h, i) => (
               <div key={i} style={{
-                fontFamily: 'var(--font-condensed)', fontSize: '0.6rem', fontWeight: 800,
+                fontFamily: 'Poppins, sans-serif', fontSize: '0.6rem', fontWeight: 600,
                 textTransform: 'uppercase', letterSpacing: '0.08em', color: '#94A3B8',
               }}>{h}</div>
             ))}
@@ -785,20 +909,20 @@ function FilePersonalCard({
                   <div style={{ minWidth: 0 }}>
                     <div style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap', marginBottom: '0.2rem' }}>
                       <span style={{
-                        fontFamily: 'var(--font-condensed)', fontSize: '0.58rem', fontWeight: 800,
+                        fontFamily: 'Poppins, sans-serif', fontSize: '0.58rem', fontWeight: 600,
                         textTransform: 'uppercase', letterSpacing: '0.08em',
                         color: tipoCfg.color, background: tipoCfg.bg,
                         padding: '0.1rem 0.45rem', borderRadius: '3px',
                       }}>{tipoCfg.label}</span>
                       <span style={{
-                        fontFamily: 'var(--font-condensed)', fontSize: '0.58rem', fontWeight: 800,
+                        fontFamily: 'Poppins, sans-serif', fontSize: '0.58rem', fontWeight: 600,
                         textTransform: 'uppercase', letterSpacing: '0.08em',
                         color: instCfg.color, background: instCfg.bg,
                         padding: '0.1rem 0.45rem', borderRadius: '3px',
                       }}>{estadoLabel}</span>
                     </div>
                     <div style={{
-                      fontFamily: 'var(--font-condensed)', fontSize: '0.82rem', fontWeight: 800,
+                      fontFamily: 'Poppins, sans-serif', fontSize: '0.82rem', fontWeight: 600,
                       color: '#0F172A', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                     }}>{item.nombre}</div>
                   </div>
@@ -818,7 +942,7 @@ function FilePersonalCard({
 
                   {/* Horas */}
                   <div style={{
-                    fontFamily: 'var(--font-condensed)', fontSize: '0.75rem', fontWeight: 700,
+                    fontFamily: 'Poppins, sans-serif', fontSize: '0.75rem', fontWeight: 500,
                     color: item.horas > 0 ? '#1e40af' : '#94A3B8',
                   }}>
                     {item.horas > 0 ? `${item.horas} h` : '—'}
@@ -831,7 +955,7 @@ function FilePersonalCard({
                         href={`${API_BASE}${(item as FileExt).archivo_url}`}
                         target="_blank" rel="noopener noreferrer"
                         style={{
-                          fontFamily: 'var(--font-condensed)', fontSize: '0.63rem', fontWeight: 800,
+                          fontFamily: 'Poppins, sans-serif', fontSize: '0.63rem', fontWeight: 600,
                           textTransform: 'uppercase', letterSpacing: '0.06em',
                           color: '#1e40af', background: '#eff6ff',
                           border: '1px solid #bfdbfe', borderRadius: '4px',
@@ -859,7 +983,7 @@ function FilePersonalCard({
                 onClick={() => setPage(p => Math.max(0, p - 1))}
                 disabled={page === 0}
                 style={{
-                  fontFamily: 'var(--font-condensed)', fontSize: '0.72rem', fontWeight: 700,
+                  fontFamily: 'Poppins, sans-serif', fontSize: '0.72rem', fontWeight: 500,
                   textTransform: 'uppercase', letterSpacing: '0.06em',
                   padding: '0.4rem 0.875rem', borderRadius: '6px',
                   border: '1.5px solid #E2E8F0', background: 'white',
@@ -875,7 +999,7 @@ function FilePersonalCard({
                     style={{
                       width: '28px', height: '28px', borderRadius: '6px',
                       border: '1.5px solid',
-                      fontFamily: 'var(--font-condensed)', fontSize: '0.72rem', fontWeight: 800,
+                      fontFamily: 'Poppins, sans-serif', fontSize: '0.72rem', fontWeight: 600,
                       cursor: 'pointer',
                       borderColor: i === page ? '#C41E1E' : '#E2E8F0',
                       background: i === page ? '#C41E1E' : 'white',
@@ -890,7 +1014,7 @@ function FilePersonalCard({
                 onClick={() => setPage(p => Math.min(pages - 1, p + 1))}
                 disabled={page === pages - 1}
                 style={{
-                  fontFamily: 'var(--font-condensed)', fontSize: '0.72rem', fontWeight: 700,
+                  fontFamily: 'Poppins, sans-serif', fontSize: '0.72rem', fontWeight: 500,
                   textTransform: 'uppercase', letterSpacing: '0.06em',
                   padding: '0.4rem 0.875rem', borderRadius: '6px',
                   border: '1.5px solid #E2E8F0', background: 'white',
@@ -916,6 +1040,9 @@ export default function VoluntarioDashboard() {
   const [busy, setBusy]       = useState<number | null>(null);
   const [msg, setMsg]         = useState('');
   const [showDir, setShowDir] = useState(false);
+  const [ordenes, setOrdenes] = useState<OrdenOperacion[]>([]);
+  const [busyOrden, setBusyOrden] = useState<number | null>(null);
+  const [ordenSelId, setOrdenSelId] = useState<number | null>(null);
 
   const load = () => {
     setLoading(true);
@@ -925,6 +1052,23 @@ export default function VoluntarioDashboard() {
       .finally(() => setLoading(false));
   };
   useEffect(load, []);
+
+  const loadOrdenes = () => { ordenesApi.list('activa').then(r => setOrdenes(r.data)).catch(() => {}); };
+  useEffect(loadOrdenes, []);
+
+  const toggleOrden = async (o: OrdenOperacion) => {
+    setBusyOrden(o.id);
+    try {
+      if (o.ya_inscrito) { await ordenesApi.desinscribir(o.id); setMsg(`Cancelaste tu inscripción en "${o.titulo}".`); }
+      else { await ordenesApi.inscribir(o.id); setMsg(`Te inscribiste en la orden "${o.titulo}".`); }
+      loadOrdenes();
+    } catch (e: unknown) {
+      setMsg(e instanceof Error ? e.message : 'Error');
+    } finally {
+      setBusyOrden(null);
+      setTimeout(() => setMsg(''), 4000);
+    }
+  };
 
   const toggleInscripcion = async (cap: VoluntarioDashboardData['caps_abiertas'][0]) => {
     setBusy(cap.id);
@@ -945,253 +1089,192 @@ export default function VoluntarioDashboard() {
     }
   };
 
-  if (loading) return (
-    <div style={{ padding: '4rem 2rem', textAlign: 'center', color: '#94A3B8', fontSize: '0.875rem' }}>
-      Cargando tu panel…
-    </div>
-  );
-
-  if (error) return (
-    <div style={{ padding: '3rem 2rem', textAlign: 'center', color: '#991b1b', fontSize: '0.875rem' }}>
-      {error}
-    </div>
-  );
-
+  if (loading) return <div className={s.loading}>Cargando tu panel…</div>;
+  if (error) return <div className={s.errorBox}>{error}</div>;
   if (!data) return null;
 
-  const { usuario, stats, guardias_recientes, llamadas_lista, meritos_lista, caps_abiertas, caps_mis,
+  const { stats, guardias_recientes, llamadas_lista, meritos_lista, caps_abiertas, caps_mis,
           file_caps, cursos_externos } = data;
-  const nombreCompleto = `${usuario.nombre} ${usuario.apellido_paterno} ${usuario.apellido_materno || ''}`.trim();
-  const initls = initials(usuario.nombre, usuario.apellido_paterno);
+  const guardiaTop = guardias_recientes[0];
+  const metaPuntos = Math.max(100, Math.ceil((stats.puntos || 0) / 100) * 100);
 
   return (
-    <div className="ya-dash" style={{ maxWidth: '1100px', margin: '0 auto', padding: '2rem 1.25rem 3rem' }}>
-      <style>{`
-        @media (max-width: 560px) {
-          .ya-dash { padding: 1.25rem 1rem 2rem !important; }
-          .ya-hero { padding: 1.25rem !important; gap: 1rem !important; }
-        }
-      `}</style>
+    <div className={s.page}>
 
-      {/* ── Hero profile card ─────────────────────────────────── */}
-      <div className="ya-hero" style={{
-        background: 'linear-gradient(135deg, #0F172A 0%, #1e3a5f 50%, #1e1b4b 100%)',
-        borderRadius: '20px', padding: '2rem 2.5rem', marginBottom: '1.5rem',
-        display: 'flex', alignItems: 'center', gap: '2rem', flexWrap: 'wrap',
-        boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
-        position: 'relative', overflow: 'hidden',
-      }}>
-        {/* background decoration */}
-        <div style={{
-          position: 'absolute', top: '-40px', right: '-40px', width: '220px', height: '220px',
-          background: 'rgba(196,30,30,0.08)', borderRadius: '50%', pointerEvents: 'none',
-        }} />
-        <div style={{
-          position: 'absolute', bottom: '-60px', right: '120px', width: '180px', height: '180px',
-          background: 'rgba(124,58,237,0.06)', borderRadius: '50%', pointerEvents: 'none',
-        }} />
-
-        {/* Avatar */}
-        <div style={{
-          width: '80px', height: '80px', borderRadius: '50%', flexShrink: 0,
-          background: 'linear-gradient(135deg, #C41E1E 0%, #7c3aed 100%)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontFamily: 'var(--font-condensed)', fontSize: '2rem', fontWeight: 900, color: 'white',
-          border: '3px solid rgba(255,255,255,0.15)', boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
-          position: 'relative', zIndex: 1,
-        }}>{initls}</div>
-
-        {/* Rank insignia */}
-        <div style={{ position: 'relative', zIndex: 1, flexShrink: 0 }}>
-          <RankBadgeSVG grado={usuario.grado} size={56} />
-        </div>
-
-        {/* Info */}
-        <div style={{ flex: 1, minWidth: 0, position: 'relative', zIndex: 1 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', flexWrap: 'wrap', marginBottom: '0.4rem' }}>
-            {usuario.cargo_directiva && (
-              <span style={{
-                fontFamily: 'var(--font-condensed)', fontSize: '0.65rem', fontWeight: 700,
-                textTransform: 'uppercase', letterSpacing: '0.1em',
-                color: '#fbbf24', background: 'rgba(251,191,36,0.15)',
-                border: '1px solid rgba(251,191,36,0.3)',
-                padding: '0.15rem 0.6rem', borderRadius: '4px',
-              }}>{usuario.cargo_directiva}</span>
-            )}
-            <span style={{
-              fontFamily: 'var(--font-condensed)', fontSize: '0.63rem', fontWeight: 700,
-              textTransform: 'uppercase', letterSpacing: '0.1em',
-              color: usuario.activo ? '#4ade80' : '#f87171',
-              background: usuario.activo ? 'rgba(74,222,128,0.12)' : 'rgba(248,113,113,0.12)',
-              border: `1px solid ${usuario.activo ? 'rgba(74,222,128,0.3)' : 'rgba(248,113,113,0.3)'}`,
-              padding: '0.15rem 0.6rem', borderRadius: '4px',
-            }}>{usuario.activo ? 'Activo' : 'Inactivo'}</span>
+      {/* ── Banner de estado ──────────────────────────────────── */}
+      {ordenes.length > 0 ? (
+        <div className={`${s.banner} ${s.bannerAlert}`}>
+          <div className={s.bannerHead}>
+            <span className={s.dotWrap}><span className={s.dot} /><span className={s.dotPing} /></span>
+            <span className={s.bannerKicker}>
+              {ordenes.length} ORDEN{ordenes.length !== 1 ? 'ES' : ''} DE EMERGENCIA ACTIVA{ordenes.length !== 1 ? 'S' : ''}
+            </span>
+            <span className={s.bannerCode}>{NIVEL_ORDEN[ordenes[0].nivel_dificultad].label.toUpperCase()}</span>
           </div>
-
-          <h1 style={{
-            fontFamily: 'var(--font-condensed)', fontSize: 'clamp(1.4rem,3vw,1.9rem)',
-            fontWeight: 900, color: 'white', margin: '0 0 0.35rem', lineHeight: 1.1,
-          }}>{nombreCompleto}</h1>
-
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem 1.1rem', color: 'rgba(255,255,255,0.55)', fontSize: '0.78rem' }}>
-            {usuario.matricula    && <span>Matrícula <strong style={{ color: 'rgba(255,255,255,0.85)' }}>{usuario.matricula}</strong></span>}
-            {usuario.especialidad && <span>Especialidad <strong style={{ color: 'rgba(255,255,255,0.85)' }}>{usuario.especialidad}</strong></span>}
+          <div className={s.bannerBody}>
+            <div>
+              <div className={s.bannerTitle}>{ordenes[0].titulo}</div>
+              <div className={s.bannerSub}>{ordenes[0].direccion || 'Sin dirección registrada'}</div>
+            </div>
+            <Link to="/voluntario/ordenes" className={s.bannerBtn}>Ver despacho →</Link>
           </div>
         </div>
-
-        {/* Puntos highlight */}
-        <div style={{
-          flexShrink: 0, textAlign: 'center', position: 'relative', zIndex: 1,
-          background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)',
-          borderRadius: '16px', padding: '1rem 1.5rem',
-        }}>
-          <div style={{
-            fontFamily: 'var(--font-condensed)', fontSize: '2.5rem', fontWeight: 900,
-            color: '#fbbf24', lineHeight: 1,
-          }}>{stats.puntos}</div>
-          <div style={{
-            fontFamily: 'var(--font-condensed)', fontSize: '0.63rem', fontWeight: 700,
-            textTransform: 'uppercase', letterSpacing: '0.12em', color: 'rgba(255,255,255,0.5)', marginTop: '0.25rem',
-          }}>Puntos</div>
-        </div>
-      </div>
-
-      {/* ── Stats strip ───────────────────────────────────────── */}
-      <div style={{
-        display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '2rem',
-      }}>
-        <StatCard label="Guardias"      value={stats.guardias}      icon="🛡️" color="#1e3a5f" bg="white" />
-        <StatCard label="Operaciones"   value={stats.operaciones}   icon="🚒" color="#065f46" bg="white" />
-        <StatCard label="Capacitaciones" value={stats.caps_inscritas} icon="📚" color="#5b21b6" bg="white" />
-        <StatCard label="Llamadas atenc." value={stats.llamadas_atencion} icon="⚠️"
-          color={stats.llamadas_atencion > 0 ? '#991b1b' : '#475569'} bg="white"
-          note={stats.llamadas_atencion === 0 ? 'Sin registros' : undefined} />
-        <StatCard label="Faltas"        value={stats.faltas}        icon="🚫"
-          color={stats.faltas > 0 ? '#b45309' : '#475569'} bg="white"
-          note={stats.faltas === 0 ? 'Sin registros' : undefined} />
-        <StatCard label="Permisos"      value={stats.permisos}      icon="📋" color="#475569" bg="white" />
-        <StatCard label="Finanzas"      value={stats.finanzas_balance > 0 ? `Bs. ${stats.finanzas_balance.toFixed(0)}` : 'Al día'} icon="💰"
-          color={stats.finanzas_balance > 0 ? '#991b1b' : '#065f46'} bg="white"
-          note={stats.finanzas_balance > 0 ? 'Pendiente' : 'Sin deuda'} />
-
-        {/* Voluntarios — trigger card */}
-        <button
-          onClick={() => setShowDir(true)}
-          style={{
-            background: 'linear-gradient(135deg,#0F172A 0%,#1e3a5f 60%,#1e1b4b 100%)',
-            border: 'none', borderRadius: '14px',
-            padding: '1.1rem 1.25rem', minWidth: '120px', flex: '1 1 110px',
-            display: 'flex', flexDirection: 'column', gap: '0.35rem',
-            cursor: 'pointer', textAlign: 'left',
-            boxShadow: '0 4px 16px rgba(15,23,42,0.25)',
-            transition: 'transform 0.18s, box-shadow 0.18s',
-          }}
-          onMouseEnter={e => {
-            (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-2px)';
-            (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 8px 24px rgba(15,23,42,0.35)';
-          }}
-          onMouseLeave={e => {
-            (e.currentTarget as HTMLButtonElement).style.transform = '';
-            (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 4px 16px rgba(15,23,42,0.25)';
-          }}>
-          <div style={{ fontSize: '1.35rem', lineHeight: 1 }}>👥</div>
-          <div style={{
-            fontFamily: 'var(--font-condensed)', fontSize: '1.65rem', fontWeight: 900,
-            color: '#fbbf24', lineHeight: 1,
-          }}>Ver</div>
-          <div style={{
-            fontFamily: 'var(--font-condensed)', fontSize: '0.65rem', fontWeight: 700,
-            textTransform: 'uppercase', letterSpacing: '0.08em', color: 'rgba(255,255,255,0.6)',
-          }}>Voluntarios</div>
-          <div style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.35)', marginTop: '0.1rem' }}>
-            Ver directorio →
+      ) : (
+        <div className={`${s.banner} ${s.bannerCalm}`}>
+          <span className={s.dotGreen} />
+          <div>
+            <div className={s.bannerCalmTitle}>Sin emergencias activas</div>
+            <div className={s.bannerCalmSub}>Cuerpo en estado de espera · monitoreo continuo</div>
           </div>
-        </button>
-      </div>
+        </div>
+      )}
 
       {/* ── Mensaje feedback ──────────────────────────────────── */}
-      {msg && (
-        <div style={{
-          background: '#f0fdf4', border: '1px solid #86efac', borderRadius: '10px',
-          padding: '0.75rem 1rem', fontSize: '0.875rem', color: '#166534',
-          marginBottom: '1.5rem',
-        }}>{msg}</div>
+      {msg && <div className={s.toast}>{msg}</div>}
+
+      {/* ── Grid principal: puntaje + guardia + stats ─────────── */}
+      <div className={s.mainGrid}>
+        {/* Puntaje */}
+        <section className={s.card}>
+          <div className={s.cardHead}>
+            <span className={s.cardKicker}>MI PUNTAJE</span>
+            <button className={s.cardLink} onClick={() => setShowDir(true)}>Ver directorio →</button>
+          </div>
+          <div className={s.gaugeRow}>
+            <Gauge value={stats.puntos} max={metaPuntos} centerNum={stats.puntos} centerLabel="PUNTOS" />
+            <div className={s.gaugeLegend}>
+              <div className={s.legendRow}>
+                <span className={s.legendDot} style={{ background: '#2F6BFF' }} />
+                <span className={s.legendText}>Méritos</span>
+                <span className={s.legendVal}>{meritos_lista.length}</span>
+              </div>
+              <div className={s.legendRow}>
+                <span className={s.legendDot} style={{ background: '#B01E3C' }} />
+                <span className={s.legendText}>Llamadas de atención</span>
+                <span className={s.legendVal}>{stats.llamadas_atencion}</span>
+              </div>
+              <div className={s.legendDivider} />
+              <div className={s.legendRow}>
+                <span className={s.legendText} style={{ color: '#14213D', fontWeight: 600 }}>Puntos netos</span>
+                <span className={`${s.legendVal} ${s.legendNet}`}>{stats.puntos}</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Guardia + stats */}
+        <div className={s.rightCol}>
+          <div className={s.guardiaCard}>
+            <div className={s.guardiaKicker}>ÚLTIMA GUARDIA</div>
+            <div className={s.guardiaTitle}>{guardiaTop?.rol_guardia || 'Sin guardias registradas'}</div>
+            <div className={s.guardiaSub}>
+              {guardiaTop
+                ? `${fmtDate(guardiaTop.fecha)} · turno ${TURNO_LABEL[guardiaTop.turno] ?? guardiaTop.turno}`
+                : 'Aún no tienes guardias asignadas'}
+            </div>
+          </div>
+          <div className={s.statGrid}>
+            <StatCard label="Guardias" value={stats.guardias} accent="#2F6BFF" />
+            <StatCard label="Operaciones" value={stats.operaciones} accent="#1F9D6B" />
+            <StatCard label="Capacitaciones" value={stats.caps_inscritas} accent="#7C5CFF" />
+            <StatCard label="Permisos" value={stats.permisos} accent="#E08A00" />
+            <StatCard label="Faltas" value={stats.faltas} accent="#B01E3C" note={stats.faltas === 0 ? 'Sin registros' : undefined} />
+            <StatCard label="Finanzas" value={stats.finanzas_balance > 0 ? `Bs. ${stats.finanzas_balance.toFixed(0)}` : 'Al día'}
+              accent={stats.finanzas_balance > 0 ? '#B01E3C' : '#1F9D6B'} note={stats.finanzas_balance > 0 ? 'Pendiente' : 'Sin deuda'} />
+          </div>
+        </div>
+      </div>
+
+      {/* ── Órdenes de operación / emergencia ─────────────────── */}
+      {ordenes.length > 0 && (
+        <section className={ord.section}>
+          <div className={ord.head}>
+            <div className={ord.headLeft}>
+              <h2 className={ord.title}>🚨 Órdenes de Emergencia</h2>
+              <span className={ord.count}>{ordenes.length}</span>
+            </div>
+            <Link to="/voluntario/ordenes" className={ord.verTodas}>Ver todas y mapa →</Link>
+          </div>
+          <div className={ord.grid}>
+            {ordenes.map(o => {
+              const nv = NIVEL_ORDEN[o.nivel_dificultad];
+              const inscrito = o.ya_inscrito;
+              return (
+                <div key={o.id}
+                  onClick={() => setOrdenSelId(o.id)}
+                  title="Ver detalle"
+                  className={`${ord.card} ${inscrito ? ord.cardInscrito : ''}`}
+                  style={nivelVars(nv)}>
+                  <span className={ord.cardGlow} />
+                  <div className={ord.badges}>
+                    <span className={`${ord.badge} ${ord.badgeNivel}`}>{nv.icon} Dificultad {nv.label}</span>
+                    {inscrito && <span className={`${ord.badge} ${ord.badgeInscrito}`}>✓ Inscrito</span>}
+                  </div>
+
+                  <div className={ord.cardTitle}>{o.titulo}</div>
+
+                  <div className={ord.details}>
+                    {o.direccion && <span className={ord.detail}><span className={ord.detailIcon}>📍</span>{o.direccion}</span>}
+                    {o.lat != null && <span className={`${ord.detail} ${ord.detailMap}`}><span className={ord.detailIcon}>🗺️</span>Ubicación en mapa</span>}
+                    {o.equipos_necesarios && <span className={ord.detail}><span className={ord.detailIcon}>🧰</span>{o.equipos_necesarios}</span>}
+                    {o.creado_nombre && <span className={`${ord.detail} ${ord.detailAuthor}`}>Publicado por {o.creado_nombre}</span>}
+                  </div>
+
+                  <div className={ord.footer}>
+                    <span className={ord.inscritos}>
+                      👥 <span className={ord.inscritosNum}>{o.inscritos}</span>
+                      {o.voluntarios_requeridos > 0 ? ` / ${o.voluntarios_requeridos}` : ' inscritos'}
+                    </span>
+                    <button
+                      disabled={busyOrden === o.id}
+                      onClick={(e) => { e.stopPropagation(); toggleOrden(o); }}
+                      className={`${ord.btn} ${inscrito ? ord.btnLeave : ord.btnJoin}`}>
+                      {busyOrden === o.id ? '…' : inscrito ? 'Cancelar' : 'Inscribirme'}
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
       )}
 
       {/* ── Capacitaciones disponibles ────────────────────────── */}
       {caps_abiertas.length > 0 && (
-        <section style={{ marginBottom: '2rem' }}>
-          <SectionTitle title="Capacitaciones disponibles" count={caps_abiertas.length} />
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-            gap: '1rem',
-          }}>
+        <section className={s.capSection}>
+          <SectionHead title="Capacitaciones disponibles" icon="📚" color="#6366f1" count={caps_abiertas.length} />
+          <div className={s.capGrid}>
             {caps_abiertas.map(cap => {
               const tc = TIPO_CFG[cap.tipo] ?? TIPO_CFG.interna;
               const inscrito = !!cap.ya_inscrito;
               return (
-                <div key={cap.id} style={{
-                  background: 'white',
-                  border: `1.5px solid ${inscrito ? '#86efac' : '#E2E8F0'}`,
-                  borderRadius: '16px', padding: '1.25rem',
-                  boxShadow: inscrito ? '0 0 0 3px rgba(134,239,172,0.18)' : '0 2px 8px rgba(0,0,0,0.06)',
-                  display: 'flex', flexDirection: 'column', gap: '0.625rem',
-                  transition: 'box-shadow 0.2s, border-color 0.2s',
-                }}>
-                  {/* Badges */}
-                  <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
-                    <span style={{
-                      fontFamily: 'var(--font-condensed)', fontSize: '0.6rem', fontWeight: 800,
-                      letterSpacing: '0.1em', textTransform: 'uppercase',
-                      color: tc.color, background: tc.bg, padding: '0.15rem 0.55rem', borderRadius: '4px',
-                    }}>{tc.label}</span>
-                    {inscrito && (
-                      <span style={{
-                        fontFamily: 'var(--font-condensed)', fontSize: '0.6rem', fontWeight: 800,
-                        letterSpacing: '0.08em', textTransform: 'uppercase',
-                        color: '#166534', background: '#dcfce7',
-                        border: '1px solid #86efac', padding: '0.15rem 0.55rem', borderRadius: '4px',
-                      }}>✓ Inscrito</span>
-                    )}
+                <div key={cap.id} className={`${s.capCard} ${inscrito ? s.capCardInscrito : ''}`}>
+                  <div className={s.tagRow}>
+                    <span className={s.badgeTipo} style={{ color: tc.color, background: tc.bg }}>{tc.label}</span>
+                    {inscrito && <span className={s.badgeInscrito}>✓ Inscrito</span>}
                   </div>
 
-                  {/* Nombre */}
-                  <div style={{
-                    fontFamily: 'var(--font-condensed)', fontSize: '1rem', fontWeight: 900,
-                    color: '#0F172A', lineHeight: 1.2,
-                  }}>{cap.nombre}</div>
+                  <div className={s.capName}>{cap.nombre}</div>
 
-                  {/* Detalles */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
-                    {cap.institucion && <span style={{ fontSize: '0.75rem', color: '#1e40af', fontWeight: 600 }}>🏛 {cap.institucion}</span>}
-                    {cap.instructor  && <span style={{ fontSize: '0.73rem', color: '#475569' }}>👤 {cap.instructor}</span>}
-                    {cap.fecha       && <span style={{ fontSize: '0.73rem', color: '#475569' }}>📅 {fmtDate(cap.fecha)}</span>}
-                    {cap.lugar       && <span style={{ fontSize: '0.73rem', color: '#475569' }}>📍 {cap.lugar}</span>}
-                    {cap.horas > 0   && <span style={{ fontSize: '0.73rem', color: '#475569' }}>⏱ {cap.horas} horas</span>}
+                  <div className={s.capDetails}>
+                    {cap.institucion && <span className={`${s.capDetail} ${s.capDetailInst}`}>🏛 {cap.institucion}</span>}
+                    {cap.instructor  && <span className={s.capDetail}>👤 {cap.instructor}</span>}
+                    {cap.fecha       && <span className={s.capDetail}>📅 {fmtDate(cap.fecha)}</span>}
+                    {cap.lugar       && <span className={s.capDetail}>📍 {cap.lugar}</span>}
+                    {cap.horas > 0   && <span className={s.capDetail}>⏱ {cap.horas} horas</span>}
                   </div>
 
-                  {/* Footer */}
-                  <div style={{ marginTop: 'auto', paddingTop: '0.625rem', borderTop: '1px solid #F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
-                    <span style={{ fontSize: '0.7rem', color: '#94A3B8' }}>
+                  <div className={s.capFooter}>
+                    <span className={s.capInscritos}>
                       {cap.inscritos} inscrito{cap.inscritos !== 1 ? 's' : ''}
                       {cap.cupo > 0 && ` · cupo ${cap.cupo}`}
                     </span>
                     <button
                       disabled={busy === cap.id}
                       onClick={() => toggleInscripcion(cap)}
-                      style={{
-                        fontFamily: 'var(--font-condensed)', fontSize: '0.7rem', fontWeight: 800,
-                        letterSpacing: '0.06em', textTransform: 'uppercase',
-                        padding: '0.45rem 0.875rem', borderRadius: '6px', border: '1.5px solid',
-                        cursor: busy === cap.id ? 'not-allowed' : 'pointer', transition: 'all 0.15s',
-                        opacity: busy === cap.id ? 0.6 : 1,
-                        ...(inscrito
-                          ? { background: '#fef2f2', color: '#991b1b', borderColor: '#fecaca' }
-                          : { background: '#C41E1E', color: 'white', borderColor: '#C41E1E' }
-                        ),
-                      }}
-                    >{busy === cap.id ? '…' : inscrito ? 'Cancelar' : 'Inscribirme'}</button>
+                      className={`${s.btn} ${inscrito ? s.btnLeave : s.btnJoin}`}>
+                      {busy === cap.id ? '…' : inscrito ? 'Cancelar' : 'Inscribirme'}
+                    </button>
                   </div>
                 </div>
               );
@@ -1201,44 +1284,23 @@ export default function VoluntarioDashboard() {
       )}
 
       {/* ── Grid mis guardias / mis capacitaciones ────────────── */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-        gap: '1.5rem', marginBottom: '2rem',
-      }}>
+      <div className={s.colsTwo}>
 
         {/* Mis guardias recientes */}
-        <section style={{
-          background: 'white', border: '1.5px solid #E2E8F0', borderRadius: '16px', padding: '1.5rem',
-        }}>
-          <SectionTitle title="Mis Guardias" count={stats.guardias} />
+        <section className={s.sectionCard}>
+          <SectionHead title="Mis Guardias" icon="🛡️" color="#3b82f6" count={stats.guardias} />
           {guardias_recientes.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '2rem 1rem', color: '#94A3B8', fontSize: '0.82rem' }}>
-              Aún no tienes guardias registradas
-            </div>
+            <div className={s.empty}><div className={s.emptyIcon}>🛡️</div><div className={s.emptyText}>Aún no tienes guardias registradas</div></div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
+            <div className={s.list}>
               {guardias_recientes.map(g => {
                 const tc = TURNO_COLOR[g.turno] ?? TURNO_COLOR.diurno;
                 return (
-                  <div key={g.id} style={{
-                    display: 'flex', alignItems: 'center', gap: '0.875rem',
-                    padding: '0.7rem 0.875rem', borderRadius: '10px',
-                    background: '#F8FAFC', border: '1px solid #F1F5F9',
-                  }}>
-                    <div style={{
-                      width: '36px', height: '36px', borderRadius: '8px', flexShrink: 0,
-                      background: tc.bg, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontFamily: 'var(--font-condensed)', fontSize: '0.6rem', fontWeight: 800,
-                      textTransform: 'uppercase', letterSpacing: '0.05em', color: tc.color,
-                      lineHeight: 1.2, textAlign: 'center', padding: '0.2rem',
-                    }}>{TURNO_LABEL[g.turno] ?? g.turno}</div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{
-                        fontFamily: 'var(--font-condensed)', fontSize: '0.82rem', fontWeight: 800,
-                        color: '#0F172A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-                      }}>{g.rol_guardia || '—'}</div>
-                      <div style={{ fontSize: '0.72rem', color: '#94A3B8', marginTop: '0.1rem' }}>
+                  <div key={g.id} className={s.listItem}>
+                    <div className={s.listPill} style={{ background: tc.bg, color: tc.color }}>{TURNO_LABEL[g.turno] ?? g.turno}</div>
+                    <div className={s.listMain}>
+                      <div className={s.listName}>{g.rol_guardia || '—'}</div>
+                      <div className={s.listSub}>
                         {fmtDateShort(g.fecha)}
                         {g.novedades && ` · ${g.novedades}`}
                       </div>
@@ -1251,41 +1313,23 @@ export default function VoluntarioDashboard() {
         </section>
 
         {/* Mis capacitaciones inscritas */}
-        <section style={{
-          background: 'white', border: '1.5px solid #E2E8F0', borderRadius: '16px', padding: '1.5rem',
-        }}>
-          <SectionTitle title="Mis Inscripciones" count={stats.caps_inscritas} />
+        <section className={s.sectionCard}>
+          <SectionHead title="Mis Inscripciones" icon="📋" color="#8b5cf6" count={stats.caps_inscritas} />
           {caps_mis.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '2rem 1rem', color: '#94A3B8', fontSize: '0.82rem' }}>
-              No estás inscrito en ninguna capacitación
-            </div>
+            <div className={s.empty}><div className={s.emptyIcon}>📋</div><div className={s.emptyText}>No estás inscrito en ninguna capacitación</div></div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
+            <div className={s.list}>
               {caps_mis.map(c => {
                 const tc = TIPO_CFG[c.cap_tipo] ?? TIPO_CFG.interna;
                 const sc = INS_COLOR[c.estado] ?? INS_COLOR.inscrito;
                 return (
-                  <div key={c.inscripcion_id} style={{
-                    padding: '0.75rem 0.875rem', borderRadius: '10px',
-                    background: '#F8FAFC', border: '1px solid #F1F5F9',
-                  }}>
-                    <div style={{ display: 'flex', gap: '0.375rem', marginBottom: '0.3rem', flexWrap: 'wrap' }}>
-                      <span style={{
-                        fontFamily: 'var(--font-condensed)', fontSize: '0.58rem', fontWeight: 800,
-                        textTransform: 'uppercase', letterSpacing: '0.08em',
-                        color: tc.color, background: tc.bg, padding: '0.1rem 0.45rem', borderRadius: '3px',
-                      }}>{tc.label}</span>
-                      <span style={{
-                        fontFamily: 'var(--font-condensed)', fontSize: '0.58rem', fontWeight: 800,
-                        textTransform: 'uppercase', letterSpacing: '0.08em',
-                        color: sc.color, background: sc.bg, padding: '0.1rem 0.45rem', borderRadius: '3px',
-                      }}>{c.estado}</span>
+                  <div key={c.inscripcion_id} className={s.listItem} style={{ display: 'block' }}>
+                    <div className={s.tagRow}>
+                      <span className={s.tag} style={{ color: tc.color, background: tc.bg }}>{tc.label}</span>
+                      <span className={s.tag} style={{ color: sc.color, background: sc.bg }}>{c.estado}</span>
                     </div>
-                    <div style={{
-                      fontFamily: 'var(--font-condensed)', fontSize: '0.85rem', fontWeight: 800,
-                      color: '#0F172A', lineHeight: 1.2,
-                    }}>{c.nombre}</div>
-                    <div style={{ fontSize: '0.72rem', color: '#94A3B8', marginTop: '0.2rem' }}>
+                    <div className={s.listName}>{c.nombre}</div>
+                    <div className={s.listSub}>
                       {c.fecha ? fmtDateShort(c.fecha) : ''}
                       {c.horas > 0 && ` · ${c.horas} hrs`}
                       {c.institucion && ` · ${c.institucion}`}
@@ -1299,34 +1343,22 @@ export default function VoluntarioDashboard() {
       </div>
 
       {/* ── Méritos y Llamadas de atención ────────────────────── */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-        gap: '1.5rem',
-      }}>
+      <div className={s.colsTwo}>
 
         {/* Méritos */}
-        <section style={{
-          background: 'white', border: '1.5px solid #E2E8F0', borderRadius: '16px', padding: '1.5rem',
-        }}>
-          <SectionTitle title="Méritos" count={meritos_lista.length} />
+        <section className={s.sectionCard}>
+          <SectionHead title="Méritos" icon="🏅" color="#10b981" count={meritos_lista.length} />
           {meritos_lista.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '2rem 1rem', color: '#94A3B8', fontSize: '0.82rem' }}>
-              Sin méritos registrados aún
-            </div>
+            <div className={s.empty}><div className={s.emptyIcon}>🏅</div><div className={s.emptyText}>Sin méritos registrados aún</div></div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
+            <div className={s.list}>
               {meritos_lista.map(m => (
-                <div key={m.id} style={{
-                  display: 'flex', gap: '0.75rem', alignItems: 'flex-start',
-                  padding: '0.7rem 0.875rem', borderRadius: '10px',
-                  background: '#f0fdf4', border: '1px solid #bbf7d0',
-                }}>
-                  <div style={{ fontSize: '1.1rem', marginTop: '0.1rem', flexShrink: 0 }}>🏅</div>
+                <div key={m.id} className={`${s.noteItem} ${s.noteMerito}`}>
+                  <div className={s.noteIcon}>🏅</div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontFamily: 'var(--font-condensed)', fontSize: '0.82rem', fontWeight: 800, color: '#065f46' }}>{m.titulo}</div>
-                    {m.descripcion && <div style={{ fontSize: '0.72rem', color: '#64748B', marginTop: '0.15rem' }}>{m.descripcion}</div>}
-                    <div style={{ fontSize: '0.68rem', color: '#94A3B8', marginTop: '0.15rem' }}>
+                    <div className={s.noteTitleMerito}>{m.titulo}</div>
+                    {m.descripcion && <div className={s.noteDesc}>{m.descripcion}</div>}
+                    <div className={s.noteMeta}>
                       {fmtDateShort(m.fecha)}
                       {m.puntos_extra > 0 && ` · +${m.puntos_extra} pts`}
                     </div>
@@ -1338,35 +1370,23 @@ export default function VoluntarioDashboard() {
         </section>
 
         {/* Llamadas de atención */}
-        <section style={{
-          background: 'white', border: '1.5px solid #E2E8F0', borderRadius: '16px', padding: '1.5rem',
-        }}>
-          <SectionTitle title="Llamadas de atención" count={stats.llamadas_atencion} />
+        <section className={s.sectionCard}>
+          <SectionHead title="Llamadas de atención" icon="⚠️" color="#f59e0b" count={stats.llamadas_atencion} />
           {llamadas_lista.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '2rem 1rem' }}>
-              <div style={{ fontSize: '1.75rem', marginBottom: '0.5rem' }}>✅</div>
-              <div style={{ fontFamily: 'var(--font-condensed)', fontSize: '0.82rem', fontWeight: 700, color: '#475569' }}>
-                Sin llamadas de atención
-              </div>
-              <div style={{ fontSize: '0.73rem', color: '#94A3B8', marginTop: '0.25rem' }}>
-                Mantén el buen desempeño
-              </div>
+            <div className={s.empty}>
+              <div className={s.emptyIcon}>✅</div>
+              <div className={s.emptyText}>Sin llamadas de atención</div>
+              <div className={s.emptyHint}>Mantén el buen desempeño</div>
             </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
+            <div className={s.list}>
               {llamadas_lista.map(l => (
-                <div key={l.id} style={{
-                  display: 'flex', gap: '0.75rem', alignItems: 'flex-start',
-                  padding: '0.7rem 0.875rem', borderRadius: '10px',
-                  background: '#fff7ed', border: '1px solid #fed7aa',
-                }}>
-                  <div style={{ fontSize: '1.1rem', marginTop: '0.1rem', flexShrink: 0 }}>⚠️</div>
+                <div key={l.id} className={`${s.noteItem} ${s.noteWarn}`}>
+                  <div className={s.noteIcon}>⚠️</div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontFamily: 'var(--font-condensed)', fontSize: '0.82rem', fontWeight: 800, color: '#9a3412' }}>{l.titulo}</div>
-                    {l.descripcion && <div style={{ fontSize: '0.72rem', color: '#64748B', marginTop: '0.15rem' }}>{l.descripcion}</div>}
-                    <div style={{ fontSize: '0.68rem', color: '#94A3B8', marginTop: '0.15rem' }}>
-                      {fmtDateShort(l.fecha)}
-                    </div>
+                    <div className={s.noteTitleWarn}>{l.titulo}</div>
+                    {l.descripcion && <div className={s.noteDesc}>{l.descripcion}</div>}
+                    <div className={s.noteMeta}>{fmtDateShort(l.fecha)}</div>
                   </div>
                 </div>
               ))}
@@ -1380,6 +1400,19 @@ export default function VoluntarioDashboard() {
 
       {/* ── Directorio modal ──────────────────────────────────── */}
       {showDir && <DirectorioModal onClose={() => setShowDir(false)} />}
+
+      {/* ── Detalle de orden de operación ─────────────────────── */}
+      {(() => {
+        const sel = ordenes.find(o => o.id === ordenSelId);
+        return sel ? (
+          <OrdenModal
+            orden={sel}
+            busy={busyOrden === sel.id}
+            onToggle={toggleOrden}
+            onClose={() => setOrdenSelId(null)}
+          />
+        ) : null;
+      })()}
     </div>
   );
 }

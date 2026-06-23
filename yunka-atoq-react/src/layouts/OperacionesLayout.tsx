@@ -8,6 +8,7 @@ const NAV = [
     { to: '/operaciones',           label: 'Dashboard',          icon: '📊', end: true },
   ]},
   { section: 'Operaciones', items: [
+    { to: '/operaciones/orden-operacion', label: 'Orden de Operación', icon: '🚨' },
     { to: '/operaciones/registrar', label: 'Registrar Operación', icon: '➕' },
     { to: '/operaciones/validar',   label: 'Validar Operaciones', icon: '✅' },
     { to: '/operaciones/puntos',    label: 'Asignar Puntos',      icon: '⭐' },

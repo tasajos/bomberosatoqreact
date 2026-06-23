@@ -49,11 +49,15 @@ import OpsVerGuardia    from './pages/operaciones/OpsVerGuardia';
 import OpsLibro         from './pages/operaciones/OpsLibro';
 import OpsMeritos       from './pages/operaciones/OpsMeritos';
 import OpsVoluntarios   from './pages/operaciones/OpsVoluntarios';
+import OpsOrdenOperacion from './pages/operaciones/OpsOrdenOperacion';
+import OrdenesEmergencia, { OrdenesEmergenciaView } from './pages/OrdenesEmergencia';
 import MisCapacitaciones from './pages/MisCapacitaciones';
 import PostulacionesPage  from './pages/admin/PostulacionesPage';
 import MilestonesPage     from './pages/admin/MilestonesPage';
 import VoluntarioLayout     from './layouts/VoluntarioLayout';
 import VoluntarioDashboard  from './pages/voluntario/VoluntarioDashboard';
+import VoluntarioMeritos    from './pages/voluntario/VoluntarioMeritos';
+import VoluntarioFile       from './pages/voluntario/VoluntarioFile';
 
 import './index.css';
 
@@ -107,6 +111,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
             <Route path="/voluntario" element={<VoluntarioLayout />}>
               <Route index element={<VoluntarioDashboard />} />
               <Route path="capacitaciones" element={<MisCapacitaciones />} />
+              <Route path="meritos" element={<VoluntarioMeritos />} />
+              <Route path="file" element={<VoluntarioFile />} />
+              <Route path="ordenes" element={<OrdenesEmergenciaView />} />
             </Route>
           </Route>
 
@@ -122,10 +129,16 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
             </Route>
           </Route>
 
+          {/* Órdenes de operación — visible para todos los usuarios autenticados */}
+          <Route element={<ProtectedRoute allowedRoles={['admin','presidente','coordinador','fundador','voluntario','postulante','jefe_operaciones','jefe_personal','jefe_logistica','jefe_marketing','jefe_enlaces','jefe_finanzas']} />}>
+            <Route path="/ordenes-emergencia" element={<OrdenesEmergencia />} />
+          </Route>
+
           {/* Departamento de Operaciones */}
           <Route element={<ProtectedRoute allowedRoles={['admin','presidente','jefe_operaciones','coordinador']} />}>
             <Route path="/operaciones" element={<OperacionesLayout />}>
               <Route index element={<OpsDashboard />} />
+              <Route path="orden-operacion" element={<OpsOrdenOperacion />} />
               <Route path="registrar" element={<OpsRegistrar />} />
               <Route path="validar"   element={<OpsValidar />} />
               <Route path="puntos"    element={<OpsPuntos />} />

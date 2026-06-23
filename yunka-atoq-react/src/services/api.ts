@@ -896,3 +896,68 @@ export const milestonesApi = {
   remove: (id:number) =>
     request<{ok:boolean}>(`/milestones/${id}`, { method:'DELETE' }),
 };
+
+// ── Órdenes de Operación / Emergencia ────────────────────────────
+
+export type NivelDificultad = 'baja' | 'media' | 'alta' | 'critica';
+export type EstadoOrden = 'activa' | 'en_curso' | 'finalizada' | 'cancelada';
+
+export interface OrdenImagen {
+  id: number;
+  url: string;
+  descripcion: string;
+  lat: number | null;
+  lng: number | null;
+}
+
+export interface OrdenVoluntario {
+  voluntario_id: number;
+  nombre: string;
+  matricula: string;
+  codigo: string;
+  especialidad: string;
+  created_at: string;
+}
+
+export interface OrdenOperacion {
+  id: number;
+  titulo: string;
+  descripcion: string;
+  nivel_dificultad: NivelDificultad;
+  equipos_necesarios: string;
+  voluntarios_requeridos: number;
+  direccion: string;
+  lat: number | null;
+  lng: number | null;
+  estado: EstadoOrden;
+  creado_por: number | null;
+  creado_nombre: string | null;
+  created_at: string;
+  updated_at: string;
+  imagenes: OrdenImagen[];
+  voluntarios: OrdenVoluntario[];
+  inscritos: number;
+  ya_inscrito: boolean;
+}
+
+export const ordenesApi = {
+  list:   (estado?: EstadoOrden) =>
+    request<{ data: OrdenOperacion[] }>(`/ordenes-operacion${estado ? `?estado=${estado}` : ''}`),
+  get:    (id: number) => request<OrdenOperacion>(`/ordenes-operacion/${id}`),
+  create: (fd: FormData) => {
+    const token = getToken();
+    return fetch(`${BASE_URL}/ordenes-operacion`, {
+      method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: fd,
+    }).then(async r => {
+      if (!r.ok) { const b = await r.json().catch(() => ({})); throw new Error(b.error || `Error ${r.status}`); }
+      return r.json() as Promise<{ id: number }>;
+    });
+  },
+  updateEstado: (id: number, estado: EstadoOrden) =>
+    request<{ ok: boolean }>(`/ordenes-operacion/${id}/estado`, { method: 'PATCH', body: JSON.stringify({ estado }) }),
+  remove: (id: number) => request<{ ok: boolean }>(`/ordenes-operacion/${id}`, { method: 'DELETE' }),
+  inscribir:    (id: number) => request<{ ok: boolean }>(`/ordenes-operacion/${id}/inscribir`, { method: 'POST' }),
+  desinscribir: (id: number) => request<{ ok: boolean }>(`/ordenes-operacion/${id}/inscribir`, { method: 'DELETE' }),
+};

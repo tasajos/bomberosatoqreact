@@ -1,0 +1,198 @@
+/* ── Sección de Órdenes de Emergencia (vista voluntario) ──────────
+   Tipografía Poppins, pesos ligeros (sin negritas marcadas),
+   paleta vibrante con gradientes. */
+
+.section { margin-bottom: 2.25rem; font-family: 'Poppins', system-ui, sans-serif; }
+
+.head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1.1rem;
+}
+.headLeft { display: flex; align-items: center; gap: 0.6rem; }
+.title {
+  font-family: 'Poppins', sans-serif; font-size: 1.15rem; font-weight: 600;
+  color: #1e293b; margin: 0; letter-spacing: -0.01em;
+  display: flex; align-items: center; gap: 0.5rem;
+}
+.count {
+  font-family: 'Poppins', sans-serif; font-size: 0.72rem; font-weight: 600;
+  color: #fff; background: linear-gradient(135deg, #f43f5e, #e11d48);
+  border-radius: 999px; min-width: 1.5rem; height: 1.5rem; padding: 0 0.5rem;
+  display: inline-flex; align-items: center; justify-content: center;
+  box-shadow: 0 3px 8px rgba(225, 29, 72, 0.35);
+}
+.verTodas {
+  font-family: 'Poppins', sans-serif; font-size: 0.8rem; font-weight: 500;
+  color: #e11d48; text-decoration: none; display: inline-flex; align-items: center; gap: 0.25rem;
+  transition: gap 0.18s, color 0.18s;
+}
+.verTodas:hover { gap: 0.5rem; color: #be123c; }
+
+.grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 1.1rem;
+}
+
+/* ── Card ── */
+.card {
+  position: relative; overflow: hidden;
+  background: #fff; border: 1px solid #eef1f6; border-radius: 20px;
+  padding: 1.4rem 1.4rem 1.2rem;
+  display: flex; flex-direction: column; gap: 0.7rem;
+  box-shadow: 0 6px 22px rgba(15, 23, 42, 0.06);
+  cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease;
+  font-family: 'Poppins', sans-serif;
+}
+.card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 6px;
+  background: var(--accent);
+}
+.card:hover { transform: translateY(-4px); box-shadow: 0 16px 38px rgba(15, 23, 42, 0.13); }
+.cardInscrito { border-color: #6ee7b7; box-shadow: 0 6px 22px rgba(16, 185, 129, 0.18); }
+
+/* Tinte suave de fondo según nivel */
+.cardGlow {
+  position: absolute; top: -40px; right: -40px; width: 120px; height: 120px;
+  border-radius: 50%; background: var(--tint); opacity: 0.6; pointer-events: none;
+}
+
+.badges { display: flex; gap: 0.4rem; flex-wrap: wrap; position: relative; z-index: 1; }
+.badge {
+  font-family: 'Poppins', sans-serif; font-size: 0.68rem; font-weight: 500;
+  letter-spacing: 0.01em; padding: 0.28rem 0.7rem; border-radius: 999px;
+  display: inline-flex; align-items: center; gap: 0.3rem;
+}
+.badgeNivel { background: var(--tint); color: var(--ink); }
+.badgeInscrito {
+  background: linear-gradient(135deg, #d1fae5, #a7f3d0); color: #047857;
+}
+
+.cardTitle {
+  font-family: 'Poppins', sans-serif; font-size: 1.12rem; font-weight: 600;
+  color: #0f172a; line-height: 1.25; letter-spacing: -0.01em;
+  position: relative; z-index: 1;
+}
+
+.details { display: flex; flex-direction: column; gap: 0.35rem; position: relative; z-index: 1; }
+.detail {
+  font-family: 'Poppins', sans-serif; font-size: 0.82rem; font-weight: 400;
+  color: #64748b; display: flex; align-items: center; gap: 0.45rem;
+}
+.detailIcon { font-size: 0.9rem; flex-shrink: 0; }
+.detailMap { color: #2563eb; font-weight: 500; }
+.detailAuthor { color: #94a3b8; font-size: 0.76rem; }
+
+.footer {
+  margin-top: auto; padding-top: 0.85rem; border-top: 1px solid #f1f5f9;
+  display: flex; align-items: center; justify-content: space-between; gap: 0.6rem;
+  position: relative; z-index: 1;
+}
+.inscritos {
+  font-family: 'Poppins', sans-serif; font-size: 0.78rem; font-weight: 400; color: #64748b;
+  display: inline-flex; align-items: center; gap: 0.35rem;
+}
+.inscritosNum { font-weight: 600; color: #0f172a; }
+
+.btn {
+  font-family: 'Poppins', sans-serif; font-size: 0.78rem; font-weight: 500;
+  letter-spacing: 0.01em; padding: 0.55rem 1.15rem; border-radius: 999px;
+  border: none; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s, filter 0.15s;
+  display: inline-flex; align-items: center; gap: 0.35rem; white-space: nowrap;
+}
+.btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.btnJoin {
+  background: linear-gradient(135deg, #fb7185, #e11d48); color: #fff;
+  box-shadow: 0 4px 14px rgba(225, 29, 72, 0.35);
+}
+.btnJoin:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 7px 18px rgba(225, 29, 72, 0.45); }
+.btnLeave {
+  background: #fff; color: #e11d48; border: 1.5px solid #fecdd3;
+}
+.btnLeave:hover:not(:disabled) { background: #fff1f2; }
+
+/* ════════════════ MODAL ════════════════ */
+.overlay {
+  position: fixed; inset: 0; z-index: 1100; background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(4px); display: flex; align-items: flex-start; justify-content: center;
+  padding: 2rem 1rem; overflow-y: auto; font-family: 'Poppins', sans-serif;
+  animation: fadeIn 0.18s ease;
+}
+@keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
+@keyframes popUp { from { opacity: 0; transform: translateY(20px) scale(0.98) } to { opacity: 1; transform: none } }
+
+.modal {
+  width: 100%; max-width: 650px; background: #fff; border-radius: 24px; overflow: hidden;
+  box-shadow: 0 32px 80px rgba(15, 23, 42, 0.4); animation: popUp 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.modalHead {
+  position: relative; padding: 1.7rem 1.8rem 1.5rem; color: #fff;
+  background: var(--accent);
+}
+.modalBadges { display: flex; gap: 0.45rem; flex-wrap: wrap; margin-bottom: 0.7rem; }
+.modalBadge {
+  font-size: 0.66rem; font-weight: 500; letter-spacing: 0.02em;
+  padding: 0.28rem 0.7rem; border-radius: 999px;
+  background: rgba(255, 255, 255, 0.22); color: #fff; backdrop-filter: blur(4px);
+}
+.modalTitle {
+  font-family: 'Poppins', sans-serif; font-size: 1.55rem; font-weight: 600;
+  margin: 0; line-height: 1.18; letter-spacing: -0.02em;
+}
+.modalSub { font-size: 0.8rem; font-weight: 300; color: rgba(255, 255, 255, 0.88); margin-top: 0.4rem; }
+.modalClose {
+  position: absolute; top: 1.4rem; right: 1.5rem; width: 36px; height: 36px; border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2); border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #fff; font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s;
+}
+.modalClose:hover { background: rgba(255, 255, 255, 0.35); }
+
+.modalBody { padding: 1.5rem 1.8rem; max-height: 58vh; overflow-y: auto; }
+
+.stats { display: flex; gap: 0.8rem; flex-wrap: wrap; margin-bottom: 1.3rem; }
+.stat {
+  flex: 1 1 130px; border-radius: 16px; padding: 1rem 1.15rem;
+  background: linear-gradient(135deg, #f8fafc, #eef2ff); border: 1px solid #eef1f6;
+}
+.statNum { font-family: 'Poppins', sans-serif; font-size: 1.7rem; font-weight: 600; color: #1e293b; line-height: 1; }
+.statLabel { font-size: 0.72rem; font-weight: 400; color: #64748b; margin-top: 0.3rem; }
+
+.desc { font-size: 0.92rem; font-weight: 400; color: #475569; line-height: 1.65; margin: 0 0 1.3rem; white-space: pre-wrap; }
+
+.block {
+  background: linear-gradient(135deg, #fff7ed, #fef9c3); border: 1px solid #fde68a;
+  border-radius: 16px; padding: 1rem 1.2rem; margin-bottom: 1.3rem;
+}
+.blockLabel {
+  font-size: 0.7rem; font-weight: 600; letter-spacing: 0.02em; color: #b45309;
+  margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.35rem;
+}
+.blockText { font-size: 0.88rem; font-weight: 400; color: #78350f; line-height: 1.6; white-space: pre-wrap; }
+
+.mapLabel {
+  font-size: 0.7rem; font-weight: 600; letter-spacing: 0.02em; color: #64748b;
+  margin-bottom: 0.55rem; display: flex; align-items: center; gap: 0.35rem;
+}
+.mapWrap { margin-bottom: 1.3rem; }
+
+.gallery { display: flex; gap: 0.55rem; flex-wrap: wrap; }
+.galleryImg {
+  width: 96px; height: 72px; object-fit: cover; border-radius: 12px;
+  border: 2px solid #fff; box-shadow: 0 3px 10px rgba(15, 23, 42, 0.12); cursor: pointer;
+  transition: transform 0.15s;
+}
+.galleryImg:hover { transform: scale(1.05); }
+
+.modalFooter {
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+  padding: 1.2rem 1.8rem; border-top: 1px solid #f1f5f9; background: #fafbff;
+}
+.modalFootInfo { font-size: 0.82rem; font-weight: 400; color: #64748b; }
+.btnBig { font-size: 0.85rem; padding: 0.75rem 1.6rem; }
+.btnDisabled { background: #e2e8f0; color: #94a3b8; box-shadow: none; }
+
+.lightbox {
+  position: fixed; inset: 0; z-index: 1200; background: rgba(0, 0, 0, 0.9);
+  display: flex; align-items: center; justify-content: center; padding: 1.5rem; cursor: zoom-out;
+}
+.lightbox img { max-width: 100%; max-height: 90vh; border-radius: 14px; }

@@ -36,6 +36,7 @@ const menu = [
   {
     section: 'Gestión Operativa',
     items: [
+      { label: 'Órdenes de Emergencia', to: '/ordenes-emergencia', icon: 'M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' },
       { label: 'Operativos',         to: '/admin/operativos',    icon: 'M13 2L3 14h9l-1 8 10-12h-9l1-8z' },
       { label: 'Estadísticas',       to: '/admin/estadisticas',  icon: 'M18 20V10M12 20V4M6 20v-6' },
     ],
