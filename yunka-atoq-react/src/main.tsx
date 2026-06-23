@@ -40,6 +40,7 @@ import PresidenteVolunteers     from './pages/presidente/PresidenteVolunteers';
 import PresidentePersonal       from './pages/presidente/PresidentePersonal';
 import PresidenteCapacitaciones from './pages/presidente/PresidenteCapacitaciones';
 import OperacionesLayout from './layouts/OperacionesLayout';
+import OpsTabsLayout from './layouts/OpsTabsLayout';
 import OpsDashboard     from './pages/operaciones/OpsDashboard';
 import OpsRegistrar     from './pages/operaciones/OpsRegistrar';
 import OpsValidar       from './pages/operaciones/OpsValidar';
@@ -126,6 +127,21 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
               <Route path="capacitaciones"     element={<PresidenteCapacitaciones />} />
               <Route path="mis-capacitaciones" element={<MisCapacitaciones />} />
               <Route path="postulaciones"      element={<PostulacionesPage />} />
+              <Route path="ordenes"            element={<OrdenesEmergenciaView />} />
+              {/* Operaciones con sub-opciones como pestañas, dentro del shell presidencial */}
+              <Route path="operaciones" element={<OpsTabsLayout />}>
+                <Route index element={<OpsDashboard />} />
+                <Route path="orden-operacion"     element={<OpsOrdenOperacion />} />
+                <Route path="registrar"           element={<OpsRegistrar />} />
+                <Route path="validar"             element={<OpsValidar />} />
+                <Route path="puntos"              element={<OpsPuntos />} />
+                <Route path="guardia"             element={<OpsGuardia />} />
+                <Route path="ver-guardia"         element={<OpsVerGuardia />} />
+                <Route path="libro"               element={<OpsLibro />} />
+                <Route path="meritos"             element={<OpsMeritos />} />
+                <Route path="voluntarios-ranking" element={<OpsVoluntarios />} />
+                <Route path="capacitaciones"      element={<MisCapacitaciones />} />
+              </Route>
             </Route>
           </Route>
 

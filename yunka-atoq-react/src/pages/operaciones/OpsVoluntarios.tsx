@@ -283,7 +283,7 @@ export default function OpsVoluntarios() {
           <h1 className={styles.pageTitle}>Ranking de Voluntarios</h1>
           <p className={styles.pageSub}>Todos los voluntarios activos — puntos, operaciones, méritos y deméritos</p>
         </div>
-        <Link to="/operaciones" className={styles.secondaryBtn}>← Dashboard</Link>
+        <Link to=".." className={styles.secondaryBtn}>← Dashboard</Link>
       </div>
 
       <div style={{display:'flex', gap:'0.75rem', alignItems:'center'}}>

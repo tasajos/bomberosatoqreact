@@ -202,7 +202,7 @@ export default function OpsDashboard() {
           <h1 className={styles.pageTitle}>Dashboard Operativo</h1>
           <p className={styles.pageSub}>Resumen del departamento de operaciones</p>
         </div>
-        <Link to="/operaciones/registrar" className={styles.primaryBtn}>+ Nueva operación</Link>
+        <Link to="registrar" className={styles.primaryBtn}>+ Nueva operación</Link>
       </div>
 
       {/* KPIs */}
@@ -227,7 +227,7 @@ export default function OpsDashboard() {
         <div className={styles.card}>
           <div className={styles.cardHeader}>
             <span className={styles.cardTitle}>🏆 Top 5 voluntarios por puntos</span>
-            <Link to="/operaciones/voluntarios-ranking" className={styles.cardLink}>Ver todos →</Link>
+            <Link to="voluntarios-ranking" className={styles.cardLink}>Ver todos →</Link>
           </div>
           <div className={styles.rankList}>
             {(data?.top5_puntos ?? []).map((v,i) => (
@@ -263,7 +263,7 @@ export default function OpsDashboard() {
         <div className={styles.card}>
           <div className={styles.cardHeader}>
             <span className={styles.cardTitle}>🕐 Últimas operaciones</span>
-            <Link to="/operaciones/validar" className={styles.cardLink}>Ver todas →</Link>
+            <Link to="validar" className={styles.cardLink}>Ver todas →</Link>
           </div>
           <div className={styles.opsList}>
             {(data?.recientes ?? []).map(op => (
