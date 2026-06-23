@@ -1,0 +1,36 @@
+/* Pestañas de Operaciones — se montan dentro de un shell (sin cabecera propia).
+   Paleta azul #2F6BFF / guindo, fuentes Space Grotesk / IBM Plex. */
+
+.shell { font-family: 'IBM Plex Sans', system-ui, sans-serif; }
+
+.tabsWrap {
+  position: sticky; top: 0; z-index: 10;
+  background: rgba(238,242,249,0.85); backdrop-filter: blur(8px);
+  border-bottom: 1px solid rgba(20,40,90,0.08);
+  padding: 14px 28px 12px;
+}
+.tabs { display: flex; align-items: stretch; gap: 14px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: thin; }
+.tabs::-webkit-scrollbar { height: 6px; }
+.tabs::-webkit-scrollbar-thumb { background: rgba(20,40,90,0.18); border-radius: 8px; }
+
+.group { display: flex; flex-direction: column; gap: 6px; flex: none; }
+.groupLabel { font-family: 'IBM Plex Mono', monospace; font-size: 9px; font-weight: 500; letter-spacing: 1.5px; text-transform: uppercase; color: #9AA4BD; padding-left: 6px; }
+.groupTabs { display: flex; gap: 7px; }
+.divider { width: 1px; flex: none; background: rgba(20,40,90,0.12); align-self: stretch; margin-top: 19px; }
+
+.tab {
+  white-space: nowrap; flex: none; text-decoration: none;
+  font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 0.8rem;
+  color: #5E6B8A; background: #fff; border: 1px solid rgba(20,40,90,0.12);
+  padding: 0.5rem 0.95rem; border-radius: 999px; transition: all 0.15s;
+  display: inline-flex; align-items: center; gap: 0.4rem;
+}
+.tab:hover { border-color: rgba(47,107,255,0.4); color: #2F6BFF; }
+.tabActive { background: linear-gradient(120deg,#2F6BFF,#1741B8); color: #fff; border-color: transparent; box-shadow: 0 4px 12px rgba(47,107,255,0.28); }
+
+.body { padding: 22px 28px 40px; }
+
+@media (max-width: 880px) {
+  .tabsWrap { padding: 12px 16px 10px; }
+  .body { padding: 18px 16px 30px; }
+}
