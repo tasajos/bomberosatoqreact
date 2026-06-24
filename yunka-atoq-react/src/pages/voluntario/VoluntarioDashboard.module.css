@@ -73,6 +73,16 @@
 .legendDivider { height: 1px; background: rgba(20,40,90,0.10); }
 .legendNet { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 20px; color: #2F6BFF; }
 
+/* Detalle / historial de puntos */
+.histWrap { margin-top: 18px; border-top: 1px solid rgba(20,40,90,0.08); padding-top: 14px; }
+.histHead { font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 2px; color: #8A95B0; margin-bottom: 12px; }
+.histEmpty { font-size: 0.82rem; color: #94a3b8; padding: 0.5rem 0 0.25rem; }
+.histList { display: flex; flex-direction: column; gap: 8px; max-height: 260px; overflow-y: auto; padding-right: 2px; }
+.histItem { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; border-radius: 11px; background: #F5F8FD; }
+.histConcepto { font-family: 'Space Grotesk', sans-serif; font-size: 13px; font-weight: 600; color: #14213D; line-height: 1.25; }
+.histFecha { font-size: 11px; color: #8A95B0; margin-top: 2px; }
+.histPts { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 15px; flex: none; }
+
 /* Próxima guardia (azul) */
 .guardiaCard { border-radius: 18px; background: linear-gradient(160deg,#2F6BFF,#1741B8); border: 1px solid rgba(47,107,255,0.4); padding: 18px; box-shadow: 0 8px 22px rgba(47,107,255,0.22); }
 .guardiaKicker { font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 2px; color: #C9DAFF; }

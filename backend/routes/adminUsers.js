@@ -101,43 +101,43 @@ router.post('/', verifyToken, requireRole('admin'), async (req, res) => {
   } catch (err) { console.error(err); res.status(500).json({ error: 'Error del servidor' }); }
 });
 
-// PUT /api/admin/users/:id — editar usuario
+// PUT /api/admin/users/:id — editar usuario (actualización parcial:
+// solo se modifican los campos presentes en el body; el resto queda intacto,
+// por eso editar un dato ya no borra el grado/cargo ni la contraseña).
 router.put('/:id', verifyToken, requireRole('admin'), async (req, res) => {
-  const {
-    nombre, apellido_paterno, apellido_materno, fecha_nacimiento,
-    carnet_identidad, domicilio, telefono,
-    contacto_nombre = '', contacto_telefono = '',
-    codigo = '', matricula = '', especialidad = '', tipo_sangre = '',
-    grado = '', cargo_directiva = '',
-    email, role, activo, password,
-  } = req.body;
+  const b = req.body || {};
 
-  const base = [nombre, apellido_paterno, apellido_materno, fecha_nacimiento || null,
-    carnet_identidad, domicilio, telefono, contacto_nombre, contacto_telefono,
-    codigo, matricula, especialidad, tipo_sangre, grado, cargo_directiva,
-    email, role, activo ? 1 : 0];
+  // Columnas editables de texto/escalares que se actualizan tal cual.
+  const TEXT_COLS = [
+    'nombre', 'apellido_paterno', 'apellido_materno',
+    'carnet_identidad', 'domicilio', 'telefono', 'contacto_nombre', 'contacto_telefono',
+    'codigo', 'matricula', 'especialidad', 'tipo_sangre', 'grado', 'cargo_directiva',
+    'email', 'role',
+  ];
+
+  const sets = [];
+  const params = [];
+
+  for (const col of TEXT_COLS) {
+    if (b[col] !== undefined) { sets.push(`${col}=?`); params.push(b[col]); }
+  }
+  if (b.fecha_nacimiento !== undefined) {
+    sets.push('fecha_nacimiento=?'); params.push(b.fecha_nacimiento || null);
+  }
+  if (b.activo !== undefined) {
+    sets.push('activo=?'); params.push(b.activo ? 1 : 0);
+  }
+  // La contraseña solo se cambia si llega y no está vacía.
+  if (typeof b.password === 'string' && b.password.trim() !== '') {
+    const hash = await bcrypt.hash(b.password, 12);
+    sets.push('password_hash=?'); params.push(hash);
+  }
+
+  if (sets.length === 0) return res.json({ ok: true, sin_cambios: true });
 
   try {
-    if (password) {
-      const hash = await bcrypt.hash(password, 12);
-      await pool.query(
-        `UPDATE users SET nombre=?,apellido_paterno=?,apellido_materno=?,fecha_nacimiento=?,
-         carnet_identidad=?,domicilio=?,telefono=?,contacto_nombre=?,contacto_telefono=?,
-         codigo=?,matricula=?,especialidad=?,tipo_sangre=?,grado=?,cargo_directiva=?,
-         email=?,role=?,activo=?,password_hash=?
-         WHERE id=?`,
-        [...base, hash, req.params.id]
-      );
-    } else {
-      await pool.query(
-        `UPDATE users SET nombre=?,apellido_paterno=?,apellido_materno=?,fecha_nacimiento=?,
-         carnet_identidad=?,domicilio=?,telefono=?,contacto_nombre=?,contacto_telefono=?,
-         codigo=?,matricula=?,especialidad=?,tipo_sangre=?,grado=?,cargo_directiva=?,
-         email=?,role=?,activo=?
-         WHERE id=?`,
-        [...base, req.params.id]
-      );
-    }
+    params.push(req.params.id);
+    await pool.query(`UPDATE users SET ${sets.join(',')} WHERE id=?`, params);
     res.json({ ok: true });
   } catch (err) { console.error(err); res.status(500).json({ error: 'Error del servidor' }); }
 });

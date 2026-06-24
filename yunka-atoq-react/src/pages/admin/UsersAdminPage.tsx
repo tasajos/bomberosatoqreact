@@ -281,6 +281,7 @@ function UserModal({ user, onClose, onSaved }: ModalProps) {
                 </label>
                 <input className={styles.input}
                   type={showPass ? 'text' : 'password'}
+                  name="ya-nueva-password" autoComplete="new-password"
                   placeholder={isNew ? 'Mínimo 8 caracteres' : '••••••••••••'}
                   value={password} onChange={e => setPassword(e.target.value)} />
               </div>

@@ -1043,6 +1043,7 @@ export default function VoluntarioDashboard() {
   const [ordenes, setOrdenes] = useState<OrdenOperacion[]>([]);
   const [busyOrden, setBusyOrden] = useState<number | null>(null);
   const [ordenSelId, setOrdenSelId] = useState<number | null>(null);
+  const [puntosHist, setPuntosHist] = useState<PerfilPuntos['historial']>([]);
 
   const load = () => {
     setLoading(true);
@@ -1055,6 +1056,13 @@ export default function VoluntarioDashboard() {
 
   const loadOrdenes = () => { ordenesApi.list('activa').then(r => setOrdenes(r.data)).catch(() => {}); };
   useEffect(loadOrdenes, []);
+
+  // Historial / detalle de puntos del propio voluntario
+  useEffect(() => {
+    const id = data?.usuario?.id;
+    if (!id) return;
+    voluntarioApi.perfilPuntos(id).then(r => setPuntosHist(r.historial)).catch(() => {});
+  }, [data?.usuario?.id]);
 
   const toggleOrden = async (o: OrdenOperacion) => {
     setBusyOrden(o.id);
@@ -1160,6 +1168,30 @@ export default function VoluntarioDashboard() {
               </div>
             </div>
           </div>
+
+          {/* Detalle / historial de puntos */}
+          <div className={s.histWrap}>
+            <div className={s.histHead}>DETALLE DE PUNTOS</div>
+            {puntosHist.length === 0 ? (
+              <div className={s.histEmpty}>Aún no hay movimientos de puntos registrados.</div>
+            ) : (
+              <div className={s.histList}>
+                {puntosHist.map((p, i) => (
+                  <div key={i} className={s.histItem}>
+                    <div style={{ minWidth: 0 }}>
+                      <div className={s.histConcepto}>{p.concepto}</div>
+                      <div className={s.histFecha}>
+                        {fmtDate(p.created_at)}{p.asignado_nombre ? ` · ${p.asignado_nombre}` : ''}
+                      </div>
+                    </div>
+                    <span className={s.histPts} style={{ color: p.puntos < 0 ? '#B01E3C' : '#1F9D6B' }}>
+                      {p.puntos > 0 ? '+' : ''}{p.puntos}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </section>
 
         {/* Guardia + stats */}
@@ -1174,10 +1206,11 @@ export default function VoluntarioDashboard() {
             </div>
           </div>
           <div className={s.statGrid}>
+            <StatCard label="Puntos netos" value={stats.puntos} accent="#E08A00" />
             <StatCard label="Guardias" value={stats.guardias} accent="#2F6BFF" />
             <StatCard label="Operaciones" value={stats.operaciones} accent="#1F9D6B" />
             <StatCard label="Capacitaciones" value={stats.caps_inscritas} accent="#7C5CFF" />
-            <StatCard label="Permisos" value={stats.permisos} accent="#E08A00" />
+            <StatCard label="Permisos" value={stats.permisos} accent="#0EA5E9" />
             <StatCard label="Faltas" value={stats.faltas} accent="#B01E3C" note={stats.faltas === 0 ? 'Sin registros' : undefined} />
             <StatCard label="Finanzas" value={stats.finanzas_balance > 0 ? `Bs. ${stats.finanzas_balance.toFixed(0)}` : 'Al día'}
               accent={stats.finanzas_balance > 0 ? '#B01E3C' : '#1F9D6B'} note={stats.finanzas_balance > 0 ? 'Pendiente' : 'Sin deuda'} />
