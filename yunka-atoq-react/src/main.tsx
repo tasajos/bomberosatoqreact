@@ -39,6 +39,7 @@ import PresidenteDashboard from './pages/presidente/PresidenteDashboard';
 import PresidenteVolunteers     from './pages/presidente/PresidenteVolunteers';
 import PresidentePersonal       from './pages/presidente/PresidentePersonal';
 import PresidenteCapacitaciones from './pages/presidente/PresidenteCapacitaciones';
+import DocumentosPresidencia from './pages/presidente/DocumentosPresidencia';
 import OperacionesLayout from './layouts/OperacionesLayout';
 import OpsTabsLayout from './layouts/OpsTabsLayout';
 import OpsDashboard     from './pages/operaciones/OpsDashboard';
@@ -128,6 +129,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
               <Route path="mis-capacitaciones" element={<MisCapacitaciones />} />
               <Route path="postulaciones"      element={<PostulacionesPage />} />
               <Route path="ordenes"            element={<OrdenesEmergenciaView />} />
+              <Route path="resoluciones"    element={<DocumentosPresidencia tipo="resolucion" />} />
+              <Route path="procedimientos"  element={<DocumentosPresidencia tipo="procedimiento" />} />
+              <Route path="protocolos"      element={<DocumentosPresidencia tipo="protocolo" />} />
               {/* Operaciones con sub-opciones como pestañas, dentro del shell presidencial */}
               <Route path="operaciones" element={<OpsTabsLayout />}>
                 <Route index element={<OpsDashboard />} />

@@ -24,6 +24,7 @@ import voluntarioRoutes      from './routes/voluntario.js';
 import milestonesRoutes      from './routes/milestones.js';
 import personalRoutes        from './routes/personal.js';
 import ordenesOperacionRoutes from './routes/ordenesOperacion.js';
+import documentosPresidenciaRoutes from './routes/documentosPresidencia.js';
 
 dotenv.config();
 
@@ -60,6 +61,7 @@ app.use('/api/voluntario',      voluntarioRoutes);
 app.use('/api/milestones',      milestonesRoutes);
 app.use('/api/personal',        personalRoutes);
 app.use('/api/ordenes-operacion', ordenesOperacionRoutes);
+app.use('/api/documentos-presidencia', documentosPresidenciaRoutes);
 
 app.get('/api/health', (_, res) => res.json({ status: 'ok', ts: new Date().toISOString() }));
 

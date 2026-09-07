@@ -14,6 +14,9 @@ const I = {
   mega:   <><path d="M3 11l16-5v12L3 14z" /><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6" /></>,
   mail:   <><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M3 7l9 6 9-6" /></>,
   news:   <><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10l4 4v12a2 2 0 0 1-2 2z" /><path d="M7 8h6M7 12h8M7 16h5" /></>,
+  gavel:  <><path d="M14 13l6 6M9 8l7-7 3 3-7 7-3-3zM3 21l7-7 3 3-7 7H3v-3z" /></>,
+  list:   <><path d="M9 6h11M9 12h11M9 18h11" /><circle cx="4" cy="6" r="1.3" /><circle cx="4" cy="12" r="1.3" /><circle cx="4" cy="18" r="1.3" /></>,
+  shield: <><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6z" /></>,
 };
 
 type NavItem = { to: string; label: string; icon: React.ReactNode; end?: boolean };
@@ -39,6 +42,11 @@ const groups: { label: string; items: NavItem[] }[] = [
     { to: '/presidente/contactos', label: 'Contacto', icon: I.mail },
     { to: '/admin/noticias',       label: 'Noticias', icon: I.news },
   ] },
+  { label: 'DOCUMENTOS', items: [
+    { to: '/presidente/resoluciones',   label: 'Resoluciones',   icon: I.gavel },
+    { to: '/presidente/procedimientos', label: 'Procedimientos', icon: I.list },
+    { to: '/presidente/protocolos',     label: 'Protocolos',     icon: I.shield },
+  ] },
 ];
 
 const TITLES: Record<string, [string, string]> = {
@@ -51,6 +59,9 @@ const TITLES: Record<string, [string, string]> = {
   '/presidente/campanas': ['Campañas', 'Recaudación y difusión'],
   '/presidente/contactos': ['Contacto', 'Mensajes recibidos'],
   '/presidente/ordenes': ['Órdenes de emergencia', 'Solicitudes activas de operación'],
+  '/presidente/resoluciones':   ['Resoluciones',   'Numeración correlativa y firma institucional'],
+  '/presidente/procedimientos': ['Procedimientos', 'Documentación de procesos institucionales'],
+  '/presidente/protocolos':     ['Protocolos',     'Protocolos oficiales de actuación'],
 };
 
 function tituloDe(pathname: string): [string, string] {

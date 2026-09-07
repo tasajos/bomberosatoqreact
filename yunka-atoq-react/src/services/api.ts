@@ -961,3 +961,73 @@ export const ordenesApi = {
   inscribir:    (id: number) => request<{ ok: boolean }>(`/ordenes-operacion/${id}/inscribir`, { method: 'POST' }),
   desinscribir: (id: number) => request<{ ok: boolean }>(`/ordenes-operacion/${id}/inscribir`, { method: 'DELETE' }),
 };
+
+// Documentos de presidencia: Resoluciones, Procedimientos, Protocolos
+export type TipoDocumentoPresidencia = 'resolucion' | 'procedimiento' | 'protocolo';
+
+export interface ArticuloResolucion { numero: number; titulo: string; texto: string; }
+export interface PasoProcedimiento { numero: number; titulo: string; descripcion: string; }
+
+export interface ContenidoResolucion {
+  vistos: string;
+  considerandos: string[];
+  articulos: ArticuloResolucion[];
+  gradoActual?: string;
+  gradoNuevo?: string;
+}
+export interface ContenidoPasos {
+  objetivo: string;
+  alcance: string;
+  pasos: PasoProcedimiento[];
+}
+
+export interface DocumentoVoluntarioRef {
+  voluntario_id: number;
+  rol: string | null;
+  nombre: string;
+  matricula: string;
+  codigo: string;
+  especialidad: string;
+  cargo_directiva: string;
+}
+
+export interface DocumentoPresidencia {
+  id: number;
+  tipo: TipoDocumentoPresidencia;
+  numero: number;
+  anio: number;
+  codigo_completo: string;
+  titulo: string;
+  fecha: string;
+  contenido: ContenidoResolucion | ContenidoPasos;
+  firmante_nombre: string;
+  firmante_cargo: string;
+  creado_por: number | null;
+  creado_nombre: string | null;
+  created_at: string;
+  updated_at: string;
+  voluntarios: DocumentoVoluntarioRef[];
+}
+
+export type DocumentoPresidenciaData = {
+  tipo: TipoDocumentoPresidencia;
+  titulo: string;
+  fecha: string;
+  contenido: ContenidoResolucion | ContenidoPasos;
+  firmante_nombre?: string;
+  firmante_cargo?: string;
+  voluntarios?: { voluntario_id: number; rol?: string }[];
+};
+
+export const documentosPresidenciaApi = {
+  list: (tipo: TipoDocumentoPresidencia) =>
+    request<{ data: DocumentoPresidencia[] }>(`/documentos-presidencia?tipo=${tipo}`),
+  get: (id: number) => request<DocumentoPresidencia>(`/documentos-presidencia/${id}`),
+  create: (data: DocumentoPresidenciaData) =>
+    request<{ id: number; numero: number; anio: number }>('/documentos-presidencia', {
+      method: 'POST', body: JSON.stringify(data),
+    }),
+  update: (id: number, data: Partial<DocumentoPresidenciaData>) =>
+    request<{ ok: boolean }>(`/documentos-presidencia/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  remove: (id: number) => request<{ ok: boolean }>(`/documentos-presidencia/${id}`, { method: 'DELETE' }),
+};

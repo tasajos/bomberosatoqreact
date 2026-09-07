@@ -1103,6 +1103,82 @@ export default function PresidentePersonal() {
         || (p.especialidad || '').toLowerCase().includes(s);
     });
 
+  const [descargando, setDescargando] = useState(false);
+
+  const descargarExcel = async () => {
+    if (descargando || voluntarios.length === 0) return;
+    setDescargando(true);
+    try {
+      const ExcelJS = (await import('exceljs')).default;
+      const wb = new ExcelJS.Workbook();
+      wb.creator = 'Yunka Atoq';
+      wb.created = new Date();
+      const ws = wb.addWorksheet('Voluntarios', {
+        views: [{ state: 'frozen', ySplit: 1 }],
+      });
+
+      ws.columns = [
+        { header: 'Nombre',              key: 'nombre',   width: 18 },
+        { header: 'Apellido paterno',    key: 'ap',       width: 18 },
+        { header: 'Apellido materno',    key: 'am',       width: 18 },
+        { header: 'Teléfono',            key: 'tel',      width: 14 },
+        { header: 'Grado',               key: 'grado',    width: 24 },
+        { header: 'Código',              key: 'codigo',   width: 10 },
+        { header: 'Carnet de identidad', key: 'ci',       width: 18 },
+        { header: 'Fecha de nacimiento', key: 'fnac',     width: 18 },
+      ];
+
+      voluntarios.forEach(p => ws.addRow({
+        nombre: p.nombre,
+        ap: p.apellido_paterno,
+        am: p.apellido_materno,
+        tel: p.telefono,
+        grado: gradoLabel(p.grado),
+        codigo: p.codigo,
+        ci: p.carnet_identidad,
+        fnac: (p.fecha_nacimiento || '').slice(0, 10),
+      }));
+
+      const thin = { style: 'thin' as const, color: { argb: 'FFD1D5DB' } };
+      const border = { top: thin, left: thin, bottom: thin, right: thin };
+
+      // Cabecera estilizada
+      const head = ws.getRow(1);
+      head.height = 22;
+      head.eachCell(cell => {
+        cell.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 11 };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF111827' } };
+        cell.alignment = { vertical: 'middle', horizontal: 'center' };
+        cell.border = border;
+      });
+
+      // Filas de datos (zebra + bordes)
+      for (let i = 2; i <= ws.rowCount; i++) {
+        const row = ws.getRow(i);
+        row.eachCell(cell => {
+          cell.alignment = { vertical: 'middle' };
+          cell.border = border;
+          if (i % 2 === 0) cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF5F8FD' } };
+        });
+      }
+
+      ws.autoFilter = { from: 'A1', to: { row: 1, column: ws.columnCount } };
+
+      const buf = await wb.xlsx.writeBuffer();
+      const blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `voluntarios_yunka_atoq_${today()}.xlsx`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setDescargando(false);
+    }
+  };
+
   return (
     <div className={styles.page}>
       <div className={styles.header}>
@@ -1112,6 +1188,22 @@ export default function PresidentePersonal() {
             Gestión integral de voluntarios y postulantes — méritos, asistencia y file documental
           </div>
         </div>
+        <button
+          onClick={descargarExcel}
+          disabled={loading || descargando || voluntarios.length === 0}
+          title="Descargar datos de todos los voluntarios en Excel"
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
+            fontFamily: 'var(--font-condensed)', fontWeight: 700, fontSize: '0.82rem', letterSpacing: '0.04em',
+            background: loading || descargando || voluntarios.length === 0 ? '#9CA3AF' : '#1D6F42', color: '#fff',
+            border: 'none', borderRadius: '10px', padding: '0.7rem 1.1rem',
+            cursor: loading || descargando || voluntarios.length === 0 ? 'not-allowed' : 'pointer',
+          }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" />
+          </svg>
+          {descargando ? 'Generando…' : 'Descargar Excel'}
+        </button>
       </div>
 
       {/* KPIs */}
