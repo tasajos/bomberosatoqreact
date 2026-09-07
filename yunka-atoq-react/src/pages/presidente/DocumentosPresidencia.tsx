@@ -3,17 +3,18 @@ import { useAuth } from '../../context/AuthContext';
 import {
   documentosPresidenciaApi, personalApi,
   type DocumentoPresidencia, type TipoDocumentoPresidencia,
-  type ContenidoResolucion, type ContenidoPasos, type PersonalItem,
+  type ContenidoResolucion, type ContenidoPasos, type ContenidoComunicado, type PersonalItem,
 } from '../../services/api';
 import { descargarDocumentoPDF, compartirDocumentoPDF } from '../../utils/documentosPdf';
 import { MOTIVOS_RESOLUCION } from '../../utils/motivosResolucion';
 import { GRADOS, RankBadgeSVG } from '../../utils/rankBadge';
 import styles from './DocumentosPresidencia.module.css';
 
-const ROTULOS: Record<TipoDocumentoPresidencia, { singular: string; plural: string }> = {
-  resolucion:    { singular: 'Resolución',    plural: 'Resoluciones' },
-  procedimiento: { singular: 'Procedimiento', plural: 'Procedimientos' },
-  protocolo:     { singular: 'Protocolo',     plural: 'Protocolos' },
+const ROTULOS: Record<TipoDocumentoPresidencia, { singular: string; plural: string; nuevo: string; de: string }> = {
+  resolucion:    { singular: 'Resolución',    plural: 'Resoluciones',   nuevo: 'Nueva', de: 'de la' },
+  procedimiento: { singular: 'Procedimiento', plural: 'Procedimientos', nuevo: 'Nuevo', de: 'del' },
+  protocolo:     { singular: 'Protocolo',     plural: 'Protocolos',     nuevo: 'Nuevo', de: 'del' },
+  comunicado:    { singular: 'Comunicado',    plural: 'Comunicados',    nuevo: 'Nuevo', de: 'del' },
 };
 
 const CARGO_DEFECTO = 'PRESIDENTE DE LA FUNDACIÓN\nREPRESENTANTE LEGAL\nYUNKA ATOQ';
@@ -38,7 +39,13 @@ type FormState = {
   objetivo: string;
   alcance: string;
   pasos: { numero: number; titulo: string; descripcion: string }[];
+  // comunicado
+  destinatario: string;
+  asunto: string;
+  cuerpo: string;
 };
+
+const DESTINATARIO_DEFECTO = 'A todos los voluntarios de la Fundación Yunka Atoq';
 
 function formVacio(firmanteDefault: string): FormState {
   return {
@@ -47,6 +54,7 @@ function formVacio(firmanteDefault: string): FormState {
     motivo: '', vistos: '', considerandos: [''], articulos: [{ numero: 1, titulo: '', texto: '' }],
     gradoActual: '', gradoNuevo: '',
     objetivo: '', alcance: '', pasos: [{ numero: 1, titulo: '', descripcion: '' }],
+    destinatario: DESTINATARIO_DEFECTO, asunto: '', cuerpo: '',
   };
 }
 
@@ -64,6 +72,16 @@ function formDesdeDocumento(doc: DocumentoPresidencia): FormState {
       considerandos: c.considerandos?.length ? c.considerandos : [''],
       articulos: c.articulos?.length ? c.articulos.map(a => ({ ...a, titulo: a.titulo || '' })) : [{ numero: 1, titulo: '', texto: '' }],
       gradoActual: c.gradoActual || '', gradoNuevo: c.gradoNuevo || '',
+    };
+  }
+  if (doc.tipo === 'comunicado') {
+    const c = doc.contenido as ContenidoComunicado;
+    return {
+      ...base,
+      titulo: doc.titulo, fecha: doc.fecha.slice(0, 10),
+      firmante_nombre: doc.firmante_nombre, firmante_cargo: doc.firmante_cargo,
+      voluntarios,
+      destinatario: c.destinatario || DESTINATARIO_DEFECTO, asunto: c.asunto || '', cuerpo: c.cuerpo || '',
     };
   }
   const c = doc.contenido as ContenidoPasos;
@@ -181,13 +199,19 @@ export default function DocumentosPresidencia({ tipo }: { tipo: TipoDocumentoPre
     setGuardando(true);
     setError('');
     try {
-      const contenido: ContenidoResolucion | ContenidoPasos = tipo === 'resolucion'
+      const contenido: ContenidoResolucion | ContenidoPasos | ContenidoComunicado = tipo === 'resolucion'
         ? {
             vistos: form.vistos,
             considerandos: form.considerandos.filter(c => c.trim()),
             articulos: form.articulos.filter(a => a.texto.trim() || a.titulo.trim()),
             gradoActual: form.gradoActual || undefined,
             gradoNuevo: form.gradoNuevo || undefined,
+          }
+        : tipo === 'comunicado'
+        ? {
+            destinatario: form.destinatario,
+            asunto: form.asunto,
+            cuerpo: form.cuerpo,
           }
         : {
             objetivo: form.objetivo,
@@ -237,7 +261,7 @@ export default function DocumentosPresidencia({ tipo }: { tipo: TipoDocumentoPre
           <div className={styles.headerTitle}>{rotulo.plural}</div>
           <div className={styles.headerSub}>{documentos.length} documento{documentos.length === 1 ? '' : 's'} registrado{documentos.length === 1 ? '' : 's'}</div>
         </div>
-        <button className={styles.primaryBtn} onClick={abrirCrear}>+ Nueva {rotulo.singular}</button>
+        <button className={styles.primaryBtn} onClick={abrirCrear}>+ {rotulo.nuevo} {rotulo.singular}</button>
       </div>
 
       {loading && <p className={styles.empty}>Cargando…</p>}
@@ -280,10 +304,10 @@ export default function DocumentosPresidencia({ tipo }: { tipo: TipoDocumentoPre
       )}
 
       {modalAbierto && (
-        <div className={styles.modalOverlay} onClick={cerrarModal}>
-          <div className={styles.modal} onClick={e => e.stopPropagation()}>
+        <div className={styles.modalOverlay}>
+          <div className={styles.modal}>
             <div className={styles.modalHeader}>
-              <span>{editando ? `Editar ${rotulo.singular}` : `Nueva ${rotulo.singular}`}</span>
+              <span>{editando ? `Editar ${rotulo.singular}` : `${rotulo.nuevo} ${rotulo.singular}`}</span>
               <button className={styles.closeBtn} onClick={cerrarModal}>✕</button>
             </div>
 
@@ -340,7 +364,7 @@ export default function DocumentosPresidencia({ tipo }: { tipo: TipoDocumentoPre
               <div className={styles.fieldRow}>
                 <div className={styles.field} style={{ flex: 2 }}>
                   <label>Título</label>
-                  <input value={form.titulo} onChange={e => setForm(f => ({ ...f, titulo: e.target.value }))} placeholder={`Título de la ${rotulo.singular.toLowerCase()}`} />
+                  <input value={form.titulo} onChange={e => setForm(f => ({ ...f, titulo: e.target.value }))} placeholder={`Título ${rotulo.de} ${rotulo.singular.toLowerCase()}`} />
                 </div>
                 <div className={styles.field}>
                   <label>Fecha</label>
@@ -380,6 +404,21 @@ export default function DocumentosPresidencia({ tipo }: { tipo: TipoDocumentoPre
                       </div>
                     ))}
                     <button className={styles.addBtn} onClick={() => setForm(f => ({ ...f, articulos: [...f.articulos, { numero: f.articulos.length + 1, titulo: '', texto: '' }] }))}>+ Agregar artículo</button>
+                  </div>
+                </>
+              ) : tipo === 'comunicado' ? (
+                <>
+                  <div className={styles.field}>
+                    <label>Destinatario</label>
+                    <input value={form.destinatario} onChange={e => setForm(f => ({ ...f, destinatario: e.target.value }))} placeholder="A todos los voluntarios de la Fundación Yunka Atoq" />
+                  </div>
+                  <div className={styles.field}>
+                    <label>Asunto</label>
+                    <input value={form.asunto} onChange={e => setForm(f => ({ ...f, asunto: e.target.value }))} placeholder="Asunto del comunicado" />
+                  </div>
+                  <div className={styles.field}>
+                    <label>Cuerpo del comunicado</label>
+                    <textarea rows={8} value={form.cuerpo} onChange={e => setForm(f => ({ ...f, cuerpo: e.target.value }))} placeholder="Redacta aquí el contenido del comunicado. Usa un párrafo por línea en blanco." />
                   </div>
                 </>
               ) : (

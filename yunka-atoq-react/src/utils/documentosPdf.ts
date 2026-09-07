@@ -1,4 +1,4 @@
-import type { DocumentoPresidencia, ContenidoResolucion, ContenidoPasos } from '../services/api';
+import type { DocumentoPresidencia, ContenidoResolucion, ContenidoPasos, ContenidoComunicado } from '../services/api';
 import { GRADOS } from './rankBadge';
 import { gradoBadgePNG } from './gradoBadgeImage';
 
@@ -6,12 +6,17 @@ const ROTULOS: Record<string, string> = {
   resolucion: 'PROCEDIMIENTO', // no usado: la resolución tiene su propio encabezado
   procedimiento: 'PROCEDIMIENTO',
   protocolo: 'PROTOCOLO',
+  comunicado: 'COMUNICADO',
 };
 
 const MARGEN_IZQ = 15;
 const MARGEN_DER = 195;
 const ANCHO = MARGEN_DER - MARGEN_IZQ;
 const CIUDAD = 'Cochabamba';
+
+const NAVY: [number, number, number] = [26, 31, 94];
+const RIBBON: [number, number, number] = [163, 177, 205];
+const NOMBRE_FUNDACION = 'Fundación de Voluntarios de Salvamento, Rescate y Protección Ambiental "Yunka Atoq"';
 
 const MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
 
@@ -163,38 +168,112 @@ async function dibujarAscensoGrados(doc: any, y: number, gradoActual: string | u
   return y + badgeH + 10;
 }
 
+function iconoTelefono(doc: any, cx: number, cy: number, r: number) {
+  doc.setFillColor(255, 255, 255);
+  doc.circle(cx, cy, r, 'F');
+  doc.setDrawColor(...NAVY);
+  doc.setFillColor(...NAVY);
+  doc.setLineWidth(r * 0.55);
+  doc.line(cx - r * 0.32, cy - r * 0.32, cx + r * 0.32, cy + r * 0.32);
+  doc.circle(cx - r * 0.32, cy - r * 0.32, r * 0.24, 'F');
+  doc.circle(cx + r * 0.32, cy + r * 0.32, r * 0.24, 'F');
+}
+
+function iconoGlobo(doc: any, cx: number, cy: number, r: number) {
+  doc.setFillColor(255, 255, 255);
+  doc.circle(cx, cy, r, 'F');
+  doc.setDrawColor(...NAVY);
+  doc.setLineWidth(0.3);
+  doc.circle(cx, cy, r * 0.7, 'S');
+  doc.line(cx - r * 0.7, cy, cx + r * 0.7, cy);
+  doc.ellipse(cx, cy, r * 0.32, r * 0.7, 'S');
+}
+
+function iconoSobre(doc: any, cx: number, cy: number, r: number) {
+  doc.setFillColor(255, 255, 255);
+  doc.circle(cx, cy, r, 'F');
+  doc.setDrawColor(...NAVY);
+  doc.setLineWidth(0.3);
+  const w = r * 1.3, h = r * 0.95;
+  doc.rect(cx - w / 2, cy - h / 2, w, h, 'S');
+  doc.line(cx - w / 2, cy - h / 2, cx, cy + h * 0.15);
+  doc.line(cx + w / 2, cy - h / 2, cx, cy + h * 0.15);
+}
+
+// Membrete institucional: cinta + logo, personería jurídica, reconocimiento y contacto
+async function dibujarCabeceraInstitucional(doc: any): Promise<number> {
+  const barY = 8, barH = 34, barBottom = barY + barH;
+  const ribbonX = 10, ribbonW = 36;
+
+  doc.setFillColor(...NAVY);
+  doc.rect(0, barY, 210, barH, 'F');
+
+  doc.setFillColor(...RIBBON);
+  doc.rect(ribbonX, 3, ribbonW, barBottom - 3, 'F');
+  doc.triangle(ribbonX, barBottom, ribbonX + ribbonW, barBottom, ribbonX + ribbonW / 2, barBottom + 10, 'F');
+
+  const logo = await cargarLogoBase64();
+  if (logo) {
+    const d = 30;
+    doc.addImage(logo, 'PNG', ribbonX + ribbonW / 2 - d / 2, barY + barH / 2 - d / 2, d, d);
+  }
+
+  const textoX = ribbonX + ribbonW + 6;
+  doc.setTextColor(255, 255, 255);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8);
+  const lineasNombre = doc.splitTextToSize(NOMBRE_FUNDACION.toUpperCase(), 78);
+  doc.text(lineasNombre, textoX, 15);
+  let ty = 15 + lineasNombre.length * 3.6 + 3;
+
+  doc.setFontSize(9.5);
+  doc.text('Personería Jurídica Nro: 0304/2025', textoX, ty);
+  ty += 4.5;
+
+  doc.setFontSize(7);
+  const lineasReconocimiento = doc.splitTextToSize(
+    'Reconocimiento Cámara de Diputados - Asamblea Legislativa Plurinacional de Bolivia - 08/2025', 78
+  );
+  doc.text(lineasReconocimiento, textoX, ty);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8);
+  const contactoX = 178, iconoX = 186;
+  doc.text('+591 68503758', contactoX, 15, { align: 'right' });
+  iconoTelefono(doc, iconoX, 13.5, 2.8);
+  doc.text('www.bomberosatoq.org', contactoX, 24, { align: 'right' });
+  iconoGlobo(doc, iconoX, 22.5, 2.8);
+  doc.text('informacion@bomberosatoq.org', contactoX, 33, { align: 'right' });
+  iconoSobre(doc, iconoX, 31.5, 2.8);
+
+  doc.setTextColor(0, 0, 0);
+  doc.setDrawColor(0, 0, 0);
+  return barBottom + 16;
+}
+
 async function crearBaseGenerica(documento: DocumentoPresidencia) {
   const { jsPDF } = await import('jspdf');
   const autoTableModule = await import('jspdf-autotable');
   const autoTable = autoTableModule.default;
   const doc = new jsPDF({ unit: 'mm', format: 'a4' });
 
-  const logo = await cargarLogoBase64();
-  if (logo) doc.addImage(logo, 'PNG', MARGEN_IZQ, 10, 20, 20);
+  const yTrasCabecera = await dibujarCabeceraInstitucional(doc);
 
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(14);
-  doc.text('YUNKA ATOQ', 105, 17, { align: 'center' });
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(10);
-  doc.text('Cuerpo de Bomberos Voluntarios', 105, 23, { align: 'center' });
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(12);
-  doc.text(`${ROTULOS[documento.tipo]} ${documento.codigo_completo}`, 105, 31, { align: 'center' });
-
-  doc.setDrawColor(180);
-  doc.line(MARGEN_IZQ, 36, MARGEN_DER, 36);
+  doc.text(`${ROTULOS[documento.tipo]} ${documento.codigo_completo}`, 105, yTrasCabecera, { align: 'center' });
 
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(11);
   const tituloLineas = doc.splitTextToSize(documento.titulo, ANCHO);
-  doc.text(tituloLineas, 105, 44, { align: 'center' });
+  doc.text(tituloLineas, 105, yTrasCabecera + 9, { align: 'center' });
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
-  doc.text(`Fecha: ${fechaLarga(documento.fecha)}`, MARGEN_IZQ, 44 + tituloLineas.length * 5 + 4);
+  const yFecha = yTrasCabecera + 9 + tituloLineas.length * 5 + 4;
+  doc.text(`Fecha: ${fechaLarga(documento.fecha)}`, MARGEN_IZQ, yFecha);
 
-  return { doc, autoTable, y: 44 + tituloLineas.length * 5 + 12 };
+  return { doc, autoTable, y: yFecha + 8 };
 }
 
 export async function generarResolucionPDF(documento: DocumentoPresidencia) {
@@ -316,15 +395,56 @@ export async function generarPasosPDF(documento: DocumentoPresidencia) {
   return doc;
 }
 
+export async function generarComunicadoPDF(documento: DocumentoPresidencia) {
+  const { doc, autoTable, y: yInicial } = await crearBaseGenerica(documento);
+  const contenido = documento.contenido as ContenidoComunicado;
+  let y = yInicial;
+
+  if (contenido.destinatario) {
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(10);
+    doc.text('A:', MARGEN_IZQ, y);
+    doc.setFont('helvetica', 'normal');
+    const lineas = doc.splitTextToSize(contenido.destinatario, ANCHO - 10);
+    doc.text(lineas, MARGEN_IZQ + 8, y);
+    y += lineas.length * 5 + 4;
+  }
+  if (contenido.asunto) {
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(10);
+    doc.text('ASUNTO:', MARGEN_IZQ, y);
+    doc.setFont('helvetica', 'normal');
+    const lineas = doc.splitTextToSize(contenido.asunto, ANCHO - 22);
+    doc.text(lineas, MARGEN_IZQ + 22, y);
+    y += lineas.length * 5 + 6;
+  }
+
+  doc.setDrawColor(180);
+  doc.line(MARGEN_IZQ, y, MARGEN_DER, y);
+  y += 8;
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  const parrafos = (contenido.cuerpo || '').split('\n').filter(p => p.trim());
+  for (const p of parrafos) {
+    if (y > 270) { doc.addPage(); y = 20; }
+    const lineas = doc.splitTextToSize(p, ANCHO);
+    doc.text(lineas, MARGEN_IZQ, y);
+    y += lineas.length * 5 + 4;
+  }
+
+  y = tablaVoluntarios(doc, autoTable, y + 2, documento.voluntarios);
+  pieFirmante(doc, y, documento, 'helvetica');
+  return doc;
+}
+
 export async function generarDocumentoPDF(documento: DocumentoPresidencia) {
-  return documento.tipo === 'resolucion'
-    ? generarResolucionPDF(documento)
-    : generarPasosPDF(documento);
+  if (documento.tipo === 'resolucion') return generarResolucionPDF(documento);
+  if (documento.tipo === 'comunicado') return generarComunicadoPDF(documento);
+  return generarPasosPDF(documento);
 }
 
 function nombreArchivo(documento: DocumentoPresidencia) {
-  const prefijo = documento.tipo === 'resolucion' ? 'RES' : documento.tipo === 'procedimiento' ? 'PROC' : 'PROT';
-  return `${prefijo}_${String(documento.numero).padStart(3, '0')}-${documento.anio}.pdf`;
+  const prefijos: Record<string, string> = { resolucion: 'RES', procedimiento: 'PROC', protocolo: 'PROT', comunicado: 'COM' };
+  return `${prefijos[documento.tipo]}_${String(documento.numero).padStart(3, '0')}-${documento.anio}.pdf`;
 }
 
 export async function descargarDocumentoPDF(documento: DocumentoPresidencia) {

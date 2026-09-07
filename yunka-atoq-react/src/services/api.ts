@@ -962,8 +962,8 @@ export const ordenesApi = {
   desinscribir: (id: number) => request<{ ok: boolean }>(`/ordenes-operacion/${id}/inscribir`, { method: 'DELETE' }),
 };
 
-// Documentos de presidencia: Resoluciones, Procedimientos, Protocolos
-export type TipoDocumentoPresidencia = 'resolucion' | 'procedimiento' | 'protocolo';
+// Documentos de presidencia: Resoluciones, Procedimientos, Protocolos, Comunicados
+export type TipoDocumentoPresidencia = 'resolucion' | 'procedimiento' | 'protocolo' | 'comunicado';
 
 export interface ArticuloResolucion { numero: number; titulo: string; texto: string; }
 export interface PasoProcedimiento { numero: number; titulo: string; descripcion: string; }
@@ -979,6 +979,11 @@ export interface ContenidoPasos {
   objetivo: string;
   alcance: string;
   pasos: PasoProcedimiento[];
+}
+export interface ContenidoComunicado {
+  destinatario: string;
+  asunto: string;
+  cuerpo: string;
 }
 
 export interface DocumentoVoluntarioRef {
@@ -999,7 +1004,7 @@ export interface DocumentoPresidencia {
   codigo_completo: string;
   titulo: string;
   fecha: string;
-  contenido: ContenidoResolucion | ContenidoPasos;
+  contenido: ContenidoResolucion | ContenidoPasos | ContenidoComunicado;
   firmante_nombre: string;
   firmante_cargo: string;
   creado_por: number | null;
@@ -1013,7 +1018,7 @@ export type DocumentoPresidenciaData = {
   tipo: TipoDocumentoPresidencia;
   titulo: string;
   fecha: string;
-  contenido: ContenidoResolucion | ContenidoPasos;
+  contenido: ContenidoResolucion | ContenidoPasos | ContenidoComunicado;
   firmante_nombre?: string;
   firmante_cargo?: string;
   voluntarios?: { voluntario_id: number; rol?: string }[];

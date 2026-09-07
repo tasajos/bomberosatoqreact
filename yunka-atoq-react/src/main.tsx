@@ -132,6 +132,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
               <Route path="resoluciones"    element={<DocumentosPresidencia tipo="resolucion" />} />
               <Route path="procedimientos"  element={<DocumentosPresidencia tipo="procedimiento" />} />
               <Route path="protocolos"      element={<DocumentosPresidencia tipo="protocolo" />} />
+              <Route path="comunicados"     element={<DocumentosPresidencia tipo="comunicado" />} />
               {/* Operaciones con sub-opciones como pestañas, dentro del shell presidencial */}
               <Route path="operaciones" element={<OpsTabsLayout />}>
                 <Route index element={<OpsDashboard />} />

@@ -4,15 +4,15 @@ import { verifyToken, requireRole } from '../middleware/auth.js';
 
 const router = Router();
 const DOC_ROLES = ['admin', 'presidente'];
-const TIPOS = ['resolucion', 'procedimiento', 'protocolo'];
-const PREFIJOS = { resolucion: 'RES', procedimiento: 'PROC', protocolo: 'PROT' };
+const TIPOS = ['resolucion', 'procedimiento', 'protocolo', 'comunicado'];
+const PREFIJOS = { resolucion: 'RES', procedimiento: 'PROC', protocolo: 'PROT', comunicado: 'COM' };
 
 // ── Inicialización idempotente de tablas ──────────────────────────
 async function initTables() {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS documentos_presidencia (
       id              INT PRIMARY KEY AUTO_INCREMENT,
-      tipo            ENUM('resolucion','procedimiento','protocolo') NOT NULL,
+      tipo            ENUM('resolucion','procedimiento','protocolo','comunicado') NOT NULL,
       numero          INT NOT NULL,
       anio            INT NOT NULL,
       titulo          VARCHAR(200) NOT NULL,
@@ -26,6 +26,10 @@ async function initTables() {
       UNIQUE KEY uq_tipo_anio_numero (tipo, anio, numero),
       FOREIGN KEY (creado_por) REFERENCES users(id) ON DELETE SET NULL
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+  `).catch(() => {});
+  await pool.query(`
+    ALTER TABLE documentos_presidencia
+      MODIFY COLUMN tipo ENUM('resolucion','procedimiento','protocolo','comunicado') NOT NULL
   `).catch(() => {});
   await pool.query(`
     CREATE TABLE IF NOT EXISTS documento_presidencia_voluntarios (

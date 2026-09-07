@@ -17,6 +17,7 @@ const I = {
   gavel:  <><path d="M14 13l6 6M9 8l7-7 3 3-7 7-3-3zM3 21l7-7 3 3-7 7H3v-3z" /></>,
   list:   <><path d="M9 6h11M9 12h11M9 18h11" /><circle cx="4" cy="6" r="1.3" /><circle cx="4" cy="12" r="1.3" /><circle cx="4" cy="18" r="1.3" /></>,
   shield: <><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6z" /></>,
+  bullhorn: <><path d="M3 11v2a2 2 0 0 0 2 2h1l3 5V4L6 9H5a2 2 0 0 0-2 2z" /><path d="M13 8a3 3 0 0 1 0 8" /><path d="M17 5a7 7 0 0 1 0 14" /></>,
 };
 
 type NavItem = { to: string; label: string; icon: React.ReactNode; end?: boolean };
@@ -46,6 +47,7 @@ const groups: { label: string; items: NavItem[] }[] = [
     { to: '/presidente/resoluciones',   label: 'Resoluciones',   icon: I.gavel },
     { to: '/presidente/procedimientos', label: 'Procedimientos', icon: I.list },
     { to: '/presidente/protocolos',     label: 'Protocolos',     icon: I.shield },
+    { to: '/presidente/comunicados',    label: 'Comunicados',    icon: I.bullhorn },
   ] },
 ];
 
@@ -62,6 +64,7 @@ const TITLES: Record<string, [string, string]> = {
   '/presidente/resoluciones':   ['Resoluciones',   'Numeración correlativa y firma institucional'],
   '/presidente/procedimientos': ['Procedimientos', 'Documentación de procesos institucionales'],
   '/presidente/protocolos':     ['Protocolos',     'Protocolos oficiales de actuación'],
+  '/presidente/comunicados':    ['Comunicados',    'Avisos institucionales para voluntarios'],
 };
 
 function tituloDe(pathname: string): [string, string] {
