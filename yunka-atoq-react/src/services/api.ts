@@ -963,7 +963,7 @@ export const ordenesApi = {
 };
 
 // Documentos de presidencia: Resoluciones, Procedimientos, Protocolos, Comunicados
-export type TipoDocumentoPresidencia = 'resolucion' | 'procedimiento' | 'protocolo' | 'comunicado';
+export type TipoDocumentoPresidencia = 'resolucion' | 'procedimiento' | 'protocolo' | 'comunicado' | 'carta';
 
 export interface ArticuloResolucion { numero: number; titulo: string; texto: string; }
 export interface PasoProcedimiento { numero: number; titulo: string; descripcion: string; }

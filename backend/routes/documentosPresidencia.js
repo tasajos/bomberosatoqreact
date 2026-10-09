@@ -4,15 +4,15 @@ import { verifyToken, requireRole } from '../middleware/auth.js';
 
 const router = Router();
 const DOC_ROLES = ['admin', 'presidente'];
-const TIPOS = ['resolucion', 'procedimiento', 'protocolo', 'comunicado'];
-const PREFIJOS = { resolucion: 'RES', procedimiento: 'PROC', protocolo: 'PROT', comunicado: 'COM' };
+const TIPOS = ['resolucion', 'procedimiento', 'protocolo', 'comunicado', 'carta'];
+const PREFIJOS = { resolucion: 'RES', procedimiento: 'PROC', protocolo: 'PROT', comunicado: 'COM', carta: 'PYA' };
 
 // ── Inicialización idempotente de tablas ──────────────────────────
 async function initTables() {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS documentos_presidencia (
       id              INT PRIMARY KEY AUTO_INCREMENT,
-      tipo            ENUM('resolucion','procedimiento','protocolo','comunicado') NOT NULL,
+      tipo            ENUM('resolucion','procedimiento','protocolo','comunicado','carta') NOT NULL,
       numero          INT NOT NULL,
       anio            INT NOT NULL,
       titulo          VARCHAR(200) NOT NULL,
@@ -29,7 +29,7 @@ async function initTables() {
   `).catch(() => {});
   await pool.query(`
     ALTER TABLE documentos_presidencia
-      MODIFY COLUMN tipo ENUM('resolucion','procedimiento','protocolo','comunicado') NOT NULL
+      MODIFY COLUMN tipo ENUM('resolucion','procedimiento','protocolo','comunicado','carta') NOT NULL
   `).catch(() => {});
   await pool.query(`
     CREATE TABLE IF NOT EXISTS documento_presidencia_voluntarios (
@@ -47,7 +47,8 @@ async function initTables() {
 initTables();
 
 function codigoCompleto(doc) {
-  return `${PREFIJOS[doc.tipo]} N° ${String(doc.numero).padStart(3, '0')}/${doc.anio}`;
+  const rotuloNumero = doc.tipo === 'carta' ? 'NRO' : 'N°';
+  return `${PREFIJOS[doc.tipo]} ${rotuloNumero} ${String(doc.numero).padStart(3, '0')}/${doc.anio}`;
 }
 
 // Adjunta voluntarios relacionados y código correlativo a una fila
@@ -121,7 +122,8 @@ router.post('/', verifyToken, requireRole(...DOC_ROLES), async (req, res) => {
       'SELECT numero FROM documentos_presidencia WHERE tipo=? AND anio=? ORDER BY numero DESC LIMIT 1 FOR UPDATE',
       [tipo, anio]
     );
-    const numero = (ultimo?.numero || 0) + 1;
+    const numeroInicial = tipo === 'carta' && anio === 2026 ? 50 : 1;
+    const numero = Math.max((ultimo?.numero || 0) + 1, numeroInicial);
 
     const [r] = await conn.query(
       `INSERT INTO documentos_presidencia

@@ -15,6 +15,7 @@ const ROTULOS: Record<TipoDocumentoPresidencia, { singular: string; plural: stri
   procedimiento: { singular: 'Procedimiento', plural: 'Procedimientos', nuevo: 'Nuevo', de: 'del' },
   protocolo:     { singular: 'Protocolo',     plural: 'Protocolos',     nuevo: 'Nuevo', de: 'del' },
   comunicado:    { singular: 'Comunicado',    plural: 'Comunicados',    nuevo: 'Nuevo', de: 'del' },
+  carta:         { singular: 'Carta',         plural: 'Cartas',         nuevo: 'Nueva', de: 'de la' },
 };
 
 const CARGO_DEFECTO = 'PRESIDENTE DE LA FUNDACIÓN\nREPRESENTANTE LEGAL\nYUNKA ATOQ';
@@ -74,7 +75,7 @@ function formDesdeDocumento(doc: DocumentoPresidencia): FormState {
       gradoActual: c.gradoActual || '', gradoNuevo: c.gradoNuevo || '',
     };
   }
-  if (doc.tipo === 'comunicado') {
+  if ((doc.tipo === 'comunicado' || doc.tipo === 'carta')) {
     const c = doc.contenido as ContenidoComunicado;
     return {
       ...base,
@@ -207,7 +208,7 @@ export default function DocumentosPresidencia({ tipo }: { tipo: TipoDocumentoPre
             gradoActual: form.gradoActual || undefined,
             gradoNuevo: form.gradoNuevo || undefined,
           }
-        : tipo === 'comunicado'
+        : (tipo === 'comunicado' || tipo === 'carta')
         ? {
             destinatario: form.destinatario,
             asunto: form.asunto,
@@ -406,7 +407,7 @@ export default function DocumentosPresidencia({ tipo }: { tipo: TipoDocumentoPre
                     <button className={styles.addBtn} onClick={() => setForm(f => ({ ...f, articulos: [...f.articulos, { numero: f.articulos.length + 1, titulo: '', texto: '' }] }))}>+ Agregar artículo</button>
                   </div>
                 </>
-              ) : tipo === 'comunicado' ? (
+              ) : (tipo === 'comunicado' || tipo === 'carta') ? (
                 <>
                   <div className={styles.field}>
                     <label>Destinatario</label>
@@ -414,11 +415,11 @@ export default function DocumentosPresidencia({ tipo }: { tipo: TipoDocumentoPre
                   </div>
                   <div className={styles.field}>
                     <label>Asunto</label>
-                    <input value={form.asunto} onChange={e => setForm(f => ({ ...f, asunto: e.target.value }))} placeholder="Asunto del comunicado" />
+                    <input value={form.asunto} onChange={e => setForm(f => ({ ...f, asunto: e.target.value }))} placeholder={`Asunto ${rotulo.de} ${rotulo.singular.toLowerCase()}`} />
                   </div>
                   <div className={styles.field}>
-                    <label>Cuerpo del comunicado</label>
-                    <textarea rows={8} value={form.cuerpo} onChange={e => setForm(f => ({ ...f, cuerpo: e.target.value }))} placeholder="Redacta aquí el contenido del comunicado. Usa un párrafo por línea en blanco." />
+                    <label>Cuerpo {rotulo.de} {rotulo.singular.toLowerCase()}</label>
+                    <textarea rows={8} value={form.cuerpo} onChange={e => setForm(f => ({ ...f, cuerpo: e.target.value }))} placeholder={`Redacta aquí el contenido ${rotulo.de} ${rotulo.singular.toLowerCase()}. Usa un párrafo por línea en blanco.`} />
                   </div>
                 </>
               ) : (

@@ -48,6 +48,7 @@ const groups: { label: string; items: NavItem[] }[] = [
     { to: '/presidente/procedimientos', label: 'Procedimientos', icon: I.list },
     { to: '/presidente/protocolos',     label: 'Protocolos',     icon: I.shield },
     { to: '/presidente/comunicados',    label: 'Comunicados',    icon: I.bullhorn },
+    { to: '/presidente/cartas',         label: 'Mandar carta',   icon: I.mail },
   ] },
 ];
 
@@ -65,6 +66,7 @@ const TITLES: Record<string, [string, string]> = {
   '/presidente/procedimientos': ['Procedimientos', 'Documentación de procesos institucionales'],
   '/presidente/protocolos':     ['Protocolos',     'Protocolos oficiales de actuación'],
   '/presidente/comunicados':    ['Comunicados',    'Avisos institucionales para voluntarios'],
+  '/presidente/cartas':         ['Mandar carta',   'Cartas con numeración y firma institucional'],
 };
 
 function tituloDe(pathname: string): [string, string] {

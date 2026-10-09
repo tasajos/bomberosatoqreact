@@ -7,6 +7,7 @@ const ROTULOS: Record<string, string> = {
   procedimiento: 'PROCEDIMIENTO',
   protocolo: 'PROTOCOLO',
   comunicado: 'COMUNICADO',
+  carta: 'CARTA',
 };
 
 const MARGEN_IZQ = 15;
@@ -438,12 +439,12 @@ export async function generarComunicadoPDF(documento: DocumentoPresidencia) {
 
 export async function generarDocumentoPDF(documento: DocumentoPresidencia) {
   if (documento.tipo === 'resolucion') return generarResolucionPDF(documento);
-  if (documento.tipo === 'comunicado') return generarComunicadoPDF(documento);
+  if (documento.tipo === 'comunicado' || documento.tipo === 'carta') return generarComunicadoPDF(documento);
   return generarPasosPDF(documento);
 }
 
 function nombreArchivo(documento: DocumentoPresidencia) {
-  const prefijos: Record<string, string> = { resolucion: 'RES', procedimiento: 'PROC', protocolo: 'PROT', comunicado: 'COM' };
+  const prefijos: Record<string, string> = { resolucion: 'RES', procedimiento: 'PROC', protocolo: 'PROT', comunicado: 'COM', carta: 'PYA' };
   return `${prefijos[documento.tipo]}_${String(documento.numero).padStart(3, '0')}-${documento.anio}.pdf`;
 }
 
