@@ -25,6 +25,7 @@ import milestonesRoutes      from './routes/milestones.js';
 import personalRoutes        from './routes/personal.js';
 import ordenesOperacionRoutes from './routes/ordenesOperacion.js';
 import documentosPresidenciaRoutes from './routes/documentosPresidencia.js';
+import { noticiaOgHandler } from './routes/ogMeta.js';
 
 dotenv.config();
 
@@ -68,6 +69,8 @@ app.get('/api/health', (_, res) => res.json({ status: 'ok', ts: new Date().toISO
 // Servir frontend estático (producción)
 const frontendDir = path.join(__dirname, '..', 'bomberosatoq.org');
 app.use(express.static(frontendDir));
+// Noticias con meta Open Graph para que Facebook/WhatsApp muestren título, resumen e imagen
+app.get('/notas/:id', noticiaOgHandler(frontendDir));
 app.get('*', (req, res) => {
   res.sendFile(path.join(frontendDir, 'index.html'));
 });
