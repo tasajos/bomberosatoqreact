@@ -25,7 +25,7 @@ import milestonesRoutes      from './routes/milestones.js';
 import personalRoutes        from './routes/personal.js';
 import ordenesOperacionRoutes from './routes/ordenesOperacion.js';
 import documentosPresidenciaRoutes from './routes/documentosPresidencia.js';
-import { noticiaOgHandler } from './routes/ogMeta.js';
+import { noticiaOgHandler, pageOgHandler, OG_PAGE_PATHS } from './routes/ogMeta.js';
 
 dotenv.config();
 
@@ -71,6 +71,7 @@ const frontendDir = path.join(__dirname, '..', 'bomberosatoq.org');
 app.use(express.static(frontendDir));
 // Noticias con meta Open Graph para que Facebook/WhatsApp muestren título, resumen e imagen
 app.get('/notas/:id', noticiaOgHandler(frontendDir));
+app.get(OG_PAGE_PATHS, pageOgHandler(frontendDir));
 app.get('*', (req, res) => {
   res.sendFile(path.join(frontendDir, 'index.html'));
 });
