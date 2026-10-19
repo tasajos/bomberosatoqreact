@@ -29,6 +29,13 @@ export default function NotePage() {
     }
   }, [notaId]);
 
+  useEffect(() => {
+    if (!nota) return;
+    const prev = document.title;
+    document.title = `${nota.titulo} · Yunka Atoq`;
+    return () => { document.title = prev; };
+  }, [nota]);
+
   if (loading) return <div className={styles.status}>Cargando nota...</div>;
 
   if (!nota) {
