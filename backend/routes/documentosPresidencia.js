@@ -43,8 +43,46 @@ async function initTables() {
       FOREIGN KEY (voluntario_id) REFERENCES users(id)                  ON DELETE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
   `).catch(() => {});
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS configuracion (
+      clave  VARCHAR(100) PRIMARY KEY,
+      valor  TEXT NOT NULL,
+      label  VARCHAR(200)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+  `).catch(() => {});
 }
 initTables();
+
+// ── Cabecera de los documentos (membrete editable) ────────────────
+const CABECERA_CLAVE = 'cabecera_documentos';
+const MAX_HITOS = 6;
+const txt = (v, max) => String(v ?? '').trim().slice(0, max);
+
+// Normaliza y limita lo que llega del formulario
+function limpiarCabecera(body = {}) {
+  const m = body.membresia || {};
+  const c = body.contacto || {};
+  return {
+    subtitulo:    txt(body.subtitulo, 60),
+    nombre:       txt(body.nombre, 40),
+    nombre_legal: txt(body.nombre_legal, 160),
+    hitos: (Array.isArray(body.hitos) ? body.hitos : [])
+      .map(h => ({ texto: txt(h?.texto, 160), destacado: !!h?.destacado }))
+      .filter(h => h.texto)
+      .slice(0, MAX_HITOS),
+    membresia: {
+      mostrar:      m.mostrar !== false,
+      titulo:       txt(m.titulo, 40),
+      organizacion: txt(m.organizacion, 80),
+      fecha:        txt(m.fecha, 60),
+    },
+    contacto: {
+      telefono: txt(c.telefono, 40),
+      web:      txt(c.web, 80),
+      email:    txt(c.email, 80),
+    },
+  };
+}
 
 function codigoCompleto(doc) {
   const rotuloNumero = doc.tipo === 'carta' ? 'NRO' : 'N°';
@@ -85,6 +123,30 @@ router.get('/', verifyToken, async (req, res) => {
     );
     const data = await Promise.all(rows.map(hidratarDocumento));
     res.json({ data });
+  } catch (err) { console.error(err); res.status(500).json({ error: 'Error del servidor' }); }
+});
+
+// CABECERA — null si aún no se personalizó (el frontend usa sus valores por defecto)
+router.get('/cabecera', verifyToken, async (_req, res) => {
+  try {
+    const [[row]] = await pool.query('SELECT valor FROM configuracion WHERE clave = ?', [CABECERA_CLAVE]);
+    let cabecera = null;
+    if (row) { try { cabecera = JSON.parse(row.valor); } catch { cabecera = null; } }
+    res.json({ cabecera });
+  } catch (err) { console.error(err); res.status(500).json({ error: 'Error del servidor' }); }
+});
+
+router.put('/cabecera', verifyToken, requireRole(...DOC_ROLES), async (req, res) => {
+  const cabecera = limpiarCabecera(req.body);
+  if (!cabecera.nombre) return res.status(400).json({ error: 'El nombre de la institución es requerido' });
+  try {
+    const valor = JSON.stringify(cabecera);
+    await pool.query(
+      `INSERT INTO configuracion (clave, valor, label) VALUES (?, ?, 'Cabecera de documentos')
+       ON DUPLICATE KEY UPDATE valor = VALUES(valor)`,
+      [CABECERA_CLAVE, valor]
+    );
+    res.json({ ok: true, cabecera });
   } catch (err) { console.error(err); res.status(500).json({ error: 'Error del servidor' }); }
 });
 
