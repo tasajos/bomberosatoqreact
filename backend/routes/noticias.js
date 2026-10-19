@@ -30,8 +30,31 @@ async function initTables() {
   await pool.query(`
     ALTER TABLE noticias ADD COLUMN IF NOT EXISTS destacada TINYINT(1) NOT NULL DEFAULT 0 AFTER publicado
   `).catch(() => {});
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS noticia_imagenes (
+      id          INT PRIMARY KEY AUTO_INCREMENT,
+      noticia_id  INT NOT NULL,
+      url         VARCHAR(500) NOT NULL,
+      orden       INT NOT NULL DEFAULT 0,
+      created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
+      INDEX idx_noticia (noticia_id, orden),
+      FOREIGN KEY (noticia_id) REFERENCES noticias(id) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+  `).catch(() => {});
 }
 initTables();
+
+// Reemplaza la galería de fotos de una noticia (solo si se envía el arreglo)
+async function saveImagenes(noticiaId, imagenes) {
+  if (!Array.isArray(imagenes)) return;
+  await pool.query('DELETE FROM noticia_imagenes WHERE noticia_id = ?', [noticiaId]);
+  const urls = imagenes.filter(u => typeof u === 'string' && u.trim()).slice(0, 30);
+  if (urls.length === 0) return;
+  await pool.query(
+    'INSERT INTO noticia_imagenes (noticia_id, url, orden) VALUES ?',
+    [urls.map((url, i) => [noticiaId, url.trim(), i])]
+  );
+}
 
 // Cuenta destacadas excluyendo una noticia (para validar el máximo al editar)
 async function countDestacadas(excludeId = 0) {
@@ -96,7 +119,10 @@ router.get('/:id', async (req, res) => {
        WHERE n.id = ?`, [req.params.id]
     );
     if (!row) return res.status(404).json({ error: 'Noticia no encontrada' });
-    res.json(row);
+    const [imgs] = await pool.query(
+      'SELECT url FROM noticia_imagenes WHERE noticia_id = ? ORDER BY orden, id', [row.id]
+    );
+    res.json({ ...row, imagenes: imgs.map(i => i.url) });
   } catch (err) { console.error(err); res.status(500).json({ error: 'Error del servidor' }); }
 });
 
@@ -105,7 +131,7 @@ router.post('/', verifyToken, requireRole('voluntario', 'admin'), async (req, re
   const {
     titulo, resumen, contenido, imagen_url, fecha,
     tipo = 'propia', fuente_nombre = '', fuente_url = '',
-    categoria = 'General', publicado = 0, destacada = 0,
+    categoria = 'General', publicado = 0, destacada = 0, imagenes,
   } = req.body;
 
   if (!titulo) return res.status(400).json({ error: 'El título es requerido' });
@@ -131,6 +157,7 @@ router.post('/', verifyToken, requireRole('voluntario', 'admin'), async (req, re
         tipo, fuente_nombre, fuente_url, categoria,
       ]
     );
+    await saveImagenes(result.insertId, imagenes);
     res.status(201).json({ id: result.insertId });
   } catch (err) { console.error(err); res.status(500).json({ error: 'Error del servidor' }); }
 });
@@ -139,7 +166,7 @@ router.post('/', verifyToken, requireRole('voluntario', 'admin'), async (req, re
 router.put('/:id', verifyToken, requireRole('admin'), async (req, res) => {
   const {
     titulo, resumen, contenido, imagen_url, fecha,
-    tipo, fuente_nombre, fuente_url, categoria, publicado, destacada,
+    tipo, fuente_nombre, fuente_url, categoria, publicado, destacada, imagenes,
   } = req.body;
   try {
     if (destacada && await countDestacadas(req.params.id) >= MAX_DESTACADAS) {
@@ -159,6 +186,7 @@ router.put('/:id', verifyToken, requireRole('admin'), async (req, res) => {
         req.params.id,
       ]
     );
+    await saveImagenes(req.params.id, imagenes);
     res.json({ ok: true });
   } catch (err) { console.error(err); res.status(500).json({ error: 'Error del servidor' }); }
 });

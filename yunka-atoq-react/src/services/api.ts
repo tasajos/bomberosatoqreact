@@ -556,6 +556,7 @@ export interface Noticia {
   fuente_url: string;
   categoria: string;
   created_at: string;
+  imagenes?: string[]; // galería (solo en GET /noticias/:id)
 }
 
 export interface NoticiasResponse {

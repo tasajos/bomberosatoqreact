@@ -57,33 +57,32 @@ export default function NewsPage() {
     setPage(1);
   };
 
-  const currentUrl = window.location.href;
-
   function NewsCard({ n, large }: { n: Noticia; large?: boolean }) {
     const img = resolveImg(n.imagen_url);
     const isExternal = n.tipo === 'externa';
-    const shareUrl = isExternal ? n.fuente_url : currentUrl;
+    const noteUrl = `/notas/${n.id}`;
+    const shareUrl = isExternal ? n.fuente_url : `${window.location.origin}${noteUrl}`;
     return (
       <article className={`${styles.card} ${large ? styles.cardLarge : styles.cardSmall}`}>
-        <div className={styles.cardPhoto}>
+        <Link to={noteUrl} className={styles.cardPhoto} aria-label={n.titulo}>
           {img
             ? <img src={img} alt={n.titulo} onError={e=>{(e.target as HTMLImageElement).style.display='none';}} />
             : <span className={styles.cardPhotoPlaceholder}>{isExternal ? '🔗' : '📰'}</span>
           }
           {isExternal && <span className={styles.externalBadge}>🔗 {n.fuente_nombre || 'Fuente externa'}</span>}
-        </div>
+        </Link>
         <div className={styles.cardBody}>
           <div className={styles.cardMeta}>
             <span className={styles.cardCategory}>{n.categoria || 'General'}</span>
             <span className={styles.cardDot}>·</span>
             <span className={styles.cardDate}>{fmtDate(n.fecha)}</span>
           </div>
-          <h2 className={styles.cardTitle}>{n.titulo}</h2>
+          <h2 className={styles.cardTitle}><Link to={noteUrl}>{n.titulo}</Link></h2>
           {n.resumen && <p className={styles.cardExcerpt}>{large ? n.resumen : n.resumen.slice(0,100) + (n.resumen.length > 100 ? '…' : '')}</p>}
           <div className={styles.cardActions}>
             {isExternal
               ? <a href={n.fuente_url} target="_blank" rel="noreferrer" className={styles.btnSource}>Ver noticia original →</a>
-              : <span />
+              : <Link to={noteUrl} className={styles.btnRead}>Leer más →</Link>
             }
             <button className={styles.btnShare} onClick={() => shareOnFacebook(shareUrl)}>
               <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">

@@ -22,8 +22,11 @@ const EMPTY: Omit<Noticia,'id'|'created_at'|'autor'> = {
 
 // ── Modal ──────────────────────────────────────────────────────────
 const MAX_DESTACADAS = 3;
+const MAX_GALLERY    = 20;
 const TITLE_REC   = 90;
 const RESUMEN_REC = 220;
+
+interface GalleryItem { key: string; url?: string; file?: File; preview: string; }
 
 interface ModalProps {
   noticia: Noticia|null;
@@ -52,7 +55,43 @@ function NewsModal({ noticia, destacadasOtras, onClose, onSaved }: ModalProps) {
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver]   = useState(false);
   const [err, setErr]             = useState('');
-  const fileRef = useRef<HTMLInputElement>(null);
+  const [gallery, setGallery]     = useState<GalleryItem[]>([]);
+  // Hasta cargar la galería existente no se envía, para no borrarla por accidente
+  const [galleryLoaded, setGalleryLoaded] = useState(isNew);
+  const [galleryDrag, setGalleryDrag]     = useState(false);
+  const [uploadMsg, setUploadMsg]         = useState('');
+  const fileRef    = useRef<HTMLInputElement>(null);
+  const galleryRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (isNew) return;
+    noticiasApi.get(noticia!.id)
+      .then(n => {
+        setGallery((n.imagenes ?? []).map(url => ({ key: url, url, preview: resolveImg(url) || url })));
+        setGalleryLoaded(true);
+      })
+      .catch(() => setErr('No se pudo cargar la galería de fotos.'));
+  }, [isNew, noticia]);
+
+  const addGalleryFiles = (files: FileList | File[]) => {
+    const imgs = Array.from(files).filter(f => f.type.startsWith('image/'));
+    const libres = MAX_GALLERY - gallery.length;
+    if (imgs.length > libres) setErr(`Máximo ${MAX_GALLERY} fotos en la galería.`);
+    imgs.slice(0, Math.max(0, libres)).forEach(file => {
+      const key = `${file.name}-${file.size}-${Math.random()}`;
+      const r = new FileReader();
+      r.onload = e => setGallery(g => [...g, { key, file, preview: e.target?.result as string }]);
+      r.readAsDataURL(file);
+    });
+  };
+  const moveGallery = (i: number, dir: -1 | 1) => setGallery(g => {
+    const j = i + dir;
+    if (j < 0 || j >= g.length) return g;
+    const copy = [...g];
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+    return copy;
+  });
+  const removeGallery = (i: number) => setGallery(g => g.filter((_, k) => k !== i));
 
   const set = (k: keyof typeof form, v: unknown) => setForm(f=>({...f,[k]:v}));
   const destacadasLlenas = destacadasOtras >= MAX_DESTACADAS;
@@ -75,10 +114,10 @@ function NewsModal({ noticia, destacadasOtras, onClose, onSaved }: ModalProps) {
     if (!form.titulo.trim()) { setErr('El título es requerido.'); return; }
     if (form.tipo === 'externa' && !form.fuente_url.trim()) { setErr('La URL de la fuente es requerida.'); return; }
     setSaving(true); setErr('');
-    let finalForm = { ...form };
+    const finalForm = { ...form };
 
     if (imgFile) {
-      setUploading(true);
+      setUploading(true); setUploadMsg('Subiendo portada…');
       try {
         const { url } = await noticiasApi.uploadImage(imgFile);
         finalForm.imagen_url = url;
@@ -86,9 +125,29 @@ function NewsModal({ noticia, destacadasOtras, onClose, onSaved }: ModalProps) {
       setUploading(false);
     }
 
+    // Galería: sube las fotos nuevas y envía la lista final en orden
+    let imagenes: string[] | undefined;
+    if (form.tipo === 'propia' && galleryLoaded) {
+      setUploading(true);
+      try {
+        const pendientes = gallery.filter(g => g.file).length;
+        let subidas = 0;
+        const urls: string[] = [];
+        for (const item of gallery) {
+          if (item.file) {
+            setUploadMsg(`Subiendo fotos ${++subidas}/${pendientes}…`);
+            urls.push((await noticiasApi.uploadImage(item.file)).url);
+          } else if (item.url) urls.push(item.url);
+        }
+        imagenes = urls;
+      } catch { setErr('Error al subir las fotos de la galería'); setSaving(false); setUploading(false); return; }
+      setUploading(false);
+    }
+
     try {
-      if (isNew) await noticiasApi.create(finalForm);
-      else       await noticiasApi.update(noticia!.id, finalForm);
+      const payload = { ...finalForm, imagenes };
+      if (isNew) await noticiasApi.create(payload);
+      else       await noticiasApi.update(noticia!.id, payload);
       onSaved(); onClose();
     } catch (e:unknown) { setErr(e instanceof Error ? e.message : 'Error al guardar'); }
     finally { setSaving(false); }
@@ -193,6 +252,49 @@ function NewsModal({ noticia, destacadasOtras, onClose, onSaved }: ModalProps) {
                     value={form.contenido} onChange={e=>set('contenido',e.target.value)} />
                 </div>
               )}
+
+              {form.tipo === 'propia' && (
+                <div className={styles.field}>
+                  <div className={styles.labelRow}>
+                    <label className={styles.label}>Galería de fotos</label>
+                    <span className={styles.counter}>{gallery.length}/{MAX_GALLERY}</span>
+                  </div>
+                  <p className={styles.fieldHint}>
+                    Se muestran en un carrusel dentro de la noticia, después de la portada. Usa las flechas para ordenarlas.
+                  </p>
+                  {!galleryLoaded && <p className={styles.fieldHint}>Cargando galería…</p>}
+                  {galleryLoaded && (
+                    <div className={styles.galleryGrid}>
+                      {gallery.map((g, i) => (
+                        <div key={g.key} className={styles.galleryItem}>
+                          <img src={g.preview} alt="" onError={e=>(e.currentTarget.style.opacity='.2')} />
+                          <span className={styles.galleryNum}>{i + 1}</span>
+                          {g.file && <span className={styles.galleryNew}>Nueva</span>}
+                          <div className={styles.galleryActions}>
+                            <button type="button" onClick={()=>moveGallery(i,-1)} disabled={i===0} title="Mover antes">←</button>
+                            <button type="button" onClick={()=>moveGallery(i,1)} disabled={i===gallery.length-1} title="Mover después">→</button>
+                            <button type="button" onClick={()=>removeGallery(i)} title="Quitar" className={styles.galleryRemove}>✕</button>
+                          </div>
+                        </div>
+                      ))}
+                      {gallery.length < MAX_GALLERY && (
+                        <button type="button"
+                          className={`${styles.galleryAdd} ${galleryDrag ? styles.uploadZoneOver : ''}`}
+                          onClick={()=>galleryRef.current?.click()}
+                          onDragOver={e=>{ e.preventDefault(); setGalleryDrag(true); }}
+                          onDragLeave={()=>setGalleryDrag(false)}
+                          onDrop={e=>{ e.preventDefault(); setGalleryDrag(false); addGalleryFiles(e.dataTransfer.files); }}>
+                          <span className={styles.galleryAddIcon}>＋</span>
+                          <span>Agregar fotos</span>
+                          <span className={styles.uploadSub}>Puedes elegir o arrastrar varias</span>
+                        </button>
+                      )}
+                    </div>
+                  )}
+                  <input ref={galleryRef} type="file" accept="image/*" multiple style={{display:'none'}}
+                    onChange={e=>{ if(e.target.files) addGalleryFiles(e.target.files); e.target.value=''; }} />
+                </div>
+              )}
             </div>
 
             {/* ── Columna lateral: portada, visibilidad y vista previa ── */}
@@ -289,7 +391,7 @@ function NewsModal({ noticia, destacadasOtras, onClose, onSaved }: ModalProps) {
         <div className={styles.modalFooter}>
           <button className={styles.btnCancel} onClick={onClose}>Cancelar</button>
           <button className={styles.btnSave} onClick={handleSave} disabled={saving||uploading}>
-            {uploading?'Subiendo imagen…':saving?'Guardando…':isNew?(form.publicado?'Publicar noticia':'Guardar borrador'):'Guardar cambios'}
+            {uploading?(uploadMsg||'Subiendo…'):saving?'Guardando…':isNew?(form.publicado?'Publicar noticia':'Guardar borrador'):'Guardar cambios'}
           </button>
         </div>
       </div>

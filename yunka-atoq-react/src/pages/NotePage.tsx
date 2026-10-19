@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { noticiasApi, type Noticia, API_BASE } from '../services/api';
+import NewsCarousel from '../components/NewsCarousel';
 import styles from './NotePage.module.css';
 
 function resolveImg(url: string | null) {
@@ -40,6 +41,9 @@ export default function NotePage() {
   }
 
   const img = resolveImg(nota.imagen_url);
+  // Carrusel: portada + galería (solo si hay fotos adicionales)
+  const galeria = (nota.imagenes ?? []).map(resolveImg).filter((u): u is string => !!u);
+  const fotos = galeria.length > 0 ? [...new Set([...(img ? [img] : []), ...galeria])] : [];
   const shareFb = () => window.open(
     `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`,
     '_blank', 'width=600,height=400'
@@ -64,6 +68,7 @@ export default function NotePage() {
 
       <article className={styles.body}>
         {nota.resumen && <p className={styles.lead}>{nota.resumen}</p>}
+        {fotos.length > 0 && <NewsCarousel images={fotos} title={nota.titulo} />}
         {nota.contenido && <div className={styles.description}>{nota.contenido}</div>}
 
         <div className={styles.actions}>

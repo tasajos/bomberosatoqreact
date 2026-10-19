@@ -320,6 +320,47 @@
   display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
 }
 
+/* Galería de fotos */
+.fieldHint { font-size: .75rem; color: var(--color-gray); line-height: 1.4; }
+.galleryGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: .75rem; }
+.galleryItem {
+  position: relative; aspect-ratio: 4 / 3; border-radius: 8px; overflow: hidden;
+  background: #EEF0F3; border: 1px solid #E2E5EA;
+}
+.galleryItem img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.galleryNum {
+  position: absolute; top: .35rem; left: .35rem; min-width: 22px; height: 22px; padding: 0 .3rem;
+  border-radius: 999px; background: rgba(11,23,41,.75); color: white;
+  font-family: var(--font-condensed); font-size: .72rem; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+.galleryNew {
+  position: absolute; top: .35rem; right: .35rem; background: #16a34a; color: white;
+  font-family: var(--font-condensed); font-size: .58rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+  padding: .12rem .4rem; border-radius: 3px;
+}
+.galleryActions {
+  position: absolute; left: 0; right: 0; bottom: 0; display: flex; justify-content: center; gap: .3rem;
+  padding: .35rem; background: linear-gradient(0deg, rgba(11,23,41,.8), transparent);
+  opacity: 0; transition: opacity var(--transition);
+}
+.galleryItem:hover .galleryActions, .galleryItem:focus-within .galleryActions { opacity: 1; }
+.galleryActions button {
+  width: 28px; height: 26px; border-radius: 4px; border: none; cursor: pointer;
+  background: rgba(255,255,255,.9); color: var(--color-dark); font-size: .8rem; font-weight: 700;
+}
+.galleryActions button:disabled { opacity: .35; cursor: not-allowed; }
+.galleryActions .galleryRemove { background: var(--color-red); color: white; }
+.galleryAdd {
+  aspect-ratio: 4 / 3; border-radius: 8px; border: 1.5px dashed #CBD0D8; background: #FAFBFC;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .2rem;
+  cursor: pointer; font-family: var(--font-condensed); font-size: .85rem; font-weight: 700; color: var(--color-dark);
+  transition: border-color var(--transition), background var(--transition); padding: .5rem; text-align: center;
+}
+.galleryAdd:hover { border-color: var(--color-red); background: rgba(196,30,30,.03); }
+.galleryAddIcon { font-size: 1.4rem; color: var(--color-red); line-height: 1; }
+@media (hover: none) { .galleryActions { opacity: 1; } }
+
 @media (max-width: 960px) {
   .modalGrid { grid-template-columns: 1fr; }
   .sideCol { position: static; }
