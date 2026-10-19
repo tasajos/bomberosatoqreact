@@ -23,10 +23,47 @@ const upload = multer({
 });
 
 const router = Router();
+const MAX_DESTACADAS = 3;
+
+// ── Inicialización idempotente de columnas ────────────────────────
+async function initTables() {
+  await pool.query(`
+    ALTER TABLE noticias ADD COLUMN IF NOT EXISTS destacada TINYINT(1) NOT NULL DEFAULT 0 AFTER publicado
+  `).catch(() => {});
+}
+initTables();
+
+// Cuenta destacadas excluyendo una noticia (para validar el máximo al editar)
+async function countDestacadas(excludeId = 0) {
+  const [[{ total }]] = await pool.query(
+    'SELECT COUNT(*) AS total FROM noticias WHERE destacada = 1 AND id <> ?', [excludeId]
+  );
+  return total;
+}
 
 const COLS = `n.id, n.titulo, n.resumen, n.contenido, n.imagen_url,
-  n.fecha, n.publicado, n.tipo, n.fuente_nombre, n.fuente_url, n.categoria,
+  n.fecha, n.publicado, n.destacada, n.tipo, n.fuente_nombre, n.fuente_url, n.categoria,
   n.created_at, u.nombre AS autor`;
+
+// GET /api/noticias/destacadas — hasta 3 publicadas para el slider de inicio.
+// Si no hay destacadas, devuelve las más recientes con imagen.
+router.get('/destacadas', async (_req, res) => {
+  try {
+    let [rows] = await pool.query(
+      `SELECT ${COLS} FROM noticias n LEFT JOIN users u ON n.autor_id = u.id
+       WHERE n.publicado = 1 AND n.destacada = 1
+       ORDER BY n.fecha DESC LIMIT ?`, [MAX_DESTACADAS]
+    );
+    if (rows.length === 0) {
+      [rows] = await pool.query(
+        `SELECT ${COLS} FROM noticias n LEFT JOIN users u ON n.autor_id = u.id
+         WHERE n.publicado = 1 AND n.imagen_url IS NOT NULL AND n.imagen_url <> ''
+         ORDER BY n.fecha DESC LIMIT ?`, [MAX_DESTACADAS]
+      );
+    }
+    res.json(rows);
+  } catch (err) { console.error(err); res.status(500).json({ error: 'Error del servidor' }); }
+});
 
 // GET /api/noticias — públicas o todas (admin)
 router.get('/', async (req, res) => {
@@ -68,23 +105,29 @@ router.post('/', verifyToken, requireRole('voluntario', 'admin'), async (req, re
   const {
     titulo, resumen, contenido, imagen_url, fecha,
     tipo = 'propia', fuente_nombre = '', fuente_url = '',
-    categoria = 'General', publicado = 0,
+    categoria = 'General', publicado = 0, destacada = 0,
   } = req.body;
 
   if (!titulo) return res.status(400).json({ error: 'El título es requerido' });
   if (tipo === 'externa' && !fuente_url) return res.status(400).json({ error: 'La URL de la fuente es requerida' });
+  // Solo admin puede destacar
+  const esDestacada = destacada && req.user.role === 'admin' ? 1 : 0;
 
   try {
+    if (esDestacada && await countDestacadas() >= MAX_DESTACADAS) {
+      return res.status(400).json({ error: `Máximo ${MAX_DESTACADAS} noticias destacadas. Quita una antes de destacar otra.` });
+    }
     const [result] = await pool.query(
       `INSERT INTO noticias
-       (titulo,resumen,contenido,imagen_url,fecha,autor_id,publicado,tipo,fuente_nombre,fuente_url,categoria)
-       VALUES (?,?,?,?,?,?,?,?,?,?,?)`,
+       (titulo,resumen,contenido,imagen_url,fecha,autor_id,publicado,destacada,tipo,fuente_nombre,fuente_url,categoria)
+       VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`,
       [
         titulo, resumen || '', contenido || '',
         imagen_url || null,
         fecha || new Date(),
         req.user.id,
         publicado ? 1 : 0,
+        esDestacada,
         tipo, fuente_nombre, fuente_url, categoria,
       ]
     );
@@ -96,18 +139,22 @@ router.post('/', verifyToken, requireRole('voluntario', 'admin'), async (req, re
 router.put('/:id', verifyToken, requireRole('admin'), async (req, res) => {
   const {
     titulo, resumen, contenido, imagen_url, fecha,
-    tipo, fuente_nombre, fuente_url, categoria, publicado,
+    tipo, fuente_nombre, fuente_url, categoria, publicado, destacada,
   } = req.body;
   try {
+    if (destacada && await countDestacadas(req.params.id) >= MAX_DESTACADAS) {
+      return res.status(400).json({ error: `Máximo ${MAX_DESTACADAS} noticias destacadas. Quita una antes de destacar otra.` });
+    }
     await pool.query(
       `UPDATE noticias SET
-       titulo=?,resumen=?,contenido=?,imagen_url=?,fecha=?,publicado=?,
+       titulo=?,resumen=?,contenido=?,imagen_url=?,fecha=?,publicado=?,destacada=?,
        tipo=?,fuente_nombre=?,fuente_url=?,categoria=?
        WHERE id=?`,
       [
         titulo, resumen || '', contenido || '',
         imagen_url || null, fecha,
         publicado ? 1 : 0,
+        destacada ? 1 : 0,
         tipo, fuente_nombre || '', fuente_url || '', categoria || 'General',
         req.params.id,
       ]
@@ -121,6 +168,18 @@ router.put('/:id/publicar', verifyToken, requireRole('admin'), async (req, res) 
   const { publicado } = req.body;
   try {
     await pool.query('UPDATE noticias SET publicado=? WHERE id=?', [publicado ? 1 : 0, req.params.id]);
+    res.json({ ok: true });
+  } catch (err) { console.error(err); res.status(500).json({ error: 'Error del servidor' }); }
+});
+
+// PUT /api/noticias/:id/destacar
+router.put('/:id/destacar', verifyToken, requireRole('admin'), async (req, res) => {
+  const { destacada } = req.body;
+  try {
+    if (destacada && await countDestacadas(req.params.id) >= MAX_DESTACADAS) {
+      return res.status(400).json({ error: `Máximo ${MAX_DESTACADAS} noticias destacadas. Quita una antes de destacar otra.` });
+    }
+    await pool.query('UPDATE noticias SET destacada=? WHERE id=?', [destacada ? 1 : 0, req.params.id]);
     res.json({ ok: true });
   } catch (err) { console.error(err); res.status(500).json({ error: 'Error del servidor' }); }
 });

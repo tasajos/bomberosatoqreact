@@ -71,12 +71,15 @@ export const noticiasApi = {
   list: (page = 1, limit = 12, all = false) =>
     request<NoticiasResponse>(`/noticias?page=${page}&limit=${limit}${all ? '&all=true' : ''}`),
   get:    (id: number) => request<Noticia>(`/noticias/${id}`),
+  destacadas: () => request<Noticia[]>('/noticias/destacadas'),
   create: (data: Partial<Noticia>) =>
     request<{ id: number }>('/noticias', { method: 'POST', body: JSON.stringify(data) }),
   update: (id: number, data: Partial<Noticia>) =>
     request<{ ok: boolean }>(`/noticias/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   togglePublish: (id: number, publicado: boolean) =>
     request<{ ok: boolean }>(`/noticias/${id}/publicar`, { method: 'PUT', body: JSON.stringify({ publicado }) }),
+  toggleDestacada: (id: number, destacada: boolean) =>
+    request<{ ok: boolean }>(`/noticias/${id}/destacar`, { method: 'PUT', body: JSON.stringify({ destacada }) }),
   delete: (id: number) =>
     request<{ ok: boolean }>(`/noticias/${id}`, { method: 'DELETE' }),
   uploadImage: (file: File) => {
@@ -547,6 +550,7 @@ export interface Noticia {
   fecha: string;
   autor: string;
   publicado: number;
+  destacada: number;
   tipo: 'propia' | 'externa';
   fuente_nombre: string;
   fuente_url: string;

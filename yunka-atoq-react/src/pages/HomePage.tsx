@@ -1,5 +1,6 @@
 import HeroSection from '../components/HeroSection';
 import ImageSlider from '../components/ImageSlider';
+import FeaturedNewsSlider from '../components/FeaturedNewsSlider';
 import StatsBar from '../components/StatsBar';
 import HistorySection from '../components/HistorySection';
 import ServicesSection from '../components/ServicesSection';
@@ -12,6 +13,7 @@ function HomePage() {
   return (
     <>
       <ImageSlider />
+      <FeaturedNewsSlider />
       <HeroSection />
       <StatsBar />
       <TikTokSection />
