@@ -1040,4 +1040,20 @@ export const documentosPresidenciaApi = {
   update: (id: number, data: Partial<DocumentoPresidenciaData>) =>
     request<{ ok: boolean }>(`/documentos-presidencia/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   remove: (id: number) => request<{ ok: boolean }>(`/documentos-presidencia/${id}`, { method: 'DELETE' }),
+  cabecera: () => request<{ cabecera: CabeceraDocumentos | null }>('/documentos-presidencia/cabecera'),
+  guardarCabecera: (data: CabeceraDocumentos) =>
+    request<{ ok: boolean; cabecera: CabeceraDocumentos }>('/documentos-presidencia/cabecera', {
+      method: 'PUT', body: JSON.stringify(data),
+    }),
 };
+
+// Membrete de los documentos (editable por presidencia)
+export interface HitoCabecera { texto: string; destacado: boolean; }
+export interface CabeceraDocumentos {
+  subtitulo: string;
+  nombre: string;
+  nombre_legal: string;
+  hitos: HitoCabecera[];
+  membresia: { mostrar: boolean; titulo: string; organizacion: string; fecha: string };
+  contacto: { telefono: string; web: string; email: string };
+}

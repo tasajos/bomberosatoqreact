@@ -9,6 +9,7 @@ import { descargarDocumentoPDF, compartirDocumentoPDF } from '../../utils/docume
 import { MOTIVOS_RESOLUCION } from '../../utils/motivosResolucion';
 import { GRADOS, RankBadgeSVG } from '../../utils/rankBadge';
 import styles from './DocumentosPresidencia.module.css';
+import CabeceraEditor from './CabeceraEditor';
 
 const ROTULOS: Record<TipoDocumentoPresidencia, { singular: string; plural: string; nuevo: string; de: string }> = {
   resolucion:    { singular: 'Resolución',    plural: 'Resoluciones',   nuevo: 'Nueva', de: 'de la' },
@@ -110,6 +111,7 @@ export default function DocumentosPresidencia({ tipo }: { tipo: TipoDocumentoPre
   const [guardando, setGuardando] = useState(false);
   const [busy, setBusy] = useState<number | null>(null);
   const [error, setError] = useState('');
+  const [editarCabecera, setEditarCabecera] = useState(false);
 
   const load = () => {
     setLoading(true);
@@ -262,8 +264,13 @@ export default function DocumentosPresidencia({ tipo }: { tipo: TipoDocumentoPre
           <div className={styles.headerTitle}>{rotulo.plural}</div>
           <div className={styles.headerSub}>{documentos.length} documento{documentos.length === 1 ? '' : 's'} registrado{documentos.length === 1 ? '' : 's'}</div>
         </div>
-        <button className={styles.primaryBtn} onClick={abrirCrear}>+ {rotulo.nuevo} {rotulo.singular}</button>
+        <div className={styles.headerActions}>
+          <button className={styles.secondaryBtn} onClick={() => setEditarCabecera(true)}>🖋 Editar cabecera</button>
+          <button className={styles.primaryBtn} onClick={abrirCrear}>+ {rotulo.nuevo} {rotulo.singular}</button>
+        </div>
       </div>
+
+      {editarCabecera && <CabeceraEditor onClose={() => setEditarCabecera(false)} />}
 
       {loading && <p className={styles.empty}>Cargando…</p>}
       {!loading && documentos.length === 0 && (

@@ -1,4 +1,5 @@
-import type { DocumentoPresidencia, ContenidoResolucion, ContenidoPasos, ContenidoComunicado } from '../services/api';
+import type { DocumentoPresidencia, ContenidoResolucion, ContenidoPasos, ContenidoComunicado, CabeceraDocumentos } from '../services/api';
+import { documentosPresidenciaApi } from '../services/api';
 import { GRADOS } from './rankBadge';
 import { gradoBadgePNG } from './gradoBadgeImage';
 
@@ -16,8 +17,55 @@ const ANCHO = MARGEN_DER - MARGEN_IZQ;
 const CIUDAD = 'Cochabamba';
 
 const NAVY: [number, number, number] = [26, 31, 94];
-const RIBBON: [number, number, number] = [163, 177, 205];
-const NOMBRE_FUNDACION = 'Fundación de Voluntarios de Salvamento, Rescate y Protección Ambiental "Yunka Atoq"';
+const OBA_LOGO_RATIO = 516 / 424; // ancho / alto de /oba_logo.png
+
+// ── Cabecera editable ─────────────────────────────────────────────
+export const MAX_HITOS_CABECERA = 6;
+export const CABECERA_POR_DEFECTO: CabeceraDocumentos = {
+  subtitulo: 'BOMBEROS VOLUNTARIOS',
+  nombre: 'YUNKA ATOQ',
+  nombre_legal: 'Fundación de Voluntarios de Salvamento, Rescate y Protección Ambiental "Yunka Atoq"',
+  hitos: [
+    { texto: 'Personería Jurídica Nro: 0304/2025', destacado: true },
+    { texto: 'Reconocimiento Cámara de Diputados - Asamblea Legislativa Plurinacional de Bolivia - 08/2025', destacado: false },
+  ],
+  membresia: {
+    mostrar: true,
+    titulo: 'MIEMBRO ADHERENTE',
+    organizacion: 'ORGANIZACIÓN DE BOMBEROS AMERICANOS',
+    fecha: 'Desde el 09 de octubre de 2026',
+  },
+  contacto: { telefono: '+591 68503758', web: 'www.bomberosatoq.org', email: 'informacion@bomberosatoq.org' },
+};
+
+// Completa con los valores por defecto lo que falte en la configuración guardada
+export function normalizarCabecera(c?: Partial<CabeceraDocumentos> | null): CabeceraDocumentos {
+  const d = CABECERA_POR_DEFECTO;
+  if (!c) return structuredClone(d);
+  return {
+    subtitulo:    c.subtitulo ?? d.subtitulo,
+    nombre:       c.nombre || d.nombre,
+    nombre_legal: c.nombre_legal ?? d.nombre_legal,
+    hitos:        Array.isArray(c.hitos) ? c.hitos.slice(0, MAX_HITOS_CABECERA) : structuredClone(d.hitos),
+    membresia:    { ...d.membresia, ...c.membresia },
+    contacto:     { ...d.contacto, ...c.contacto },
+  };
+}
+
+let cabeceraCache: CabeceraDocumentos | null = null;
+export async function obtenerCabecera(): Promise<CabeceraDocumentos> {
+  if (cabeceraCache) return cabeceraCache;
+  try {
+    const { cabecera } = await documentosPresidenciaApi.cabecera();
+    cabeceraCache = normalizarCabecera(cabecera);
+  } catch {
+    return normalizarCabecera(null); // sin conexión: membrete por defecto, sin cachear
+  }
+  return cabeceraCache;
+}
+export function actualizarCabeceraCache(c: CabeceraDocumentos) {
+  cabeceraCache = normalizarCabecera(c);
+}
 
 const MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
 
@@ -27,23 +75,28 @@ function fechaLarga(fechaISO: string): string {
   return `${d.getUTCDate()} de ${mes.charAt(0).toUpperCase() + mes.slice(1)} de ${d.getUTCFullYear()}`;
 }
 
-let logoCache: string | null = null;
-async function cargarLogoBase64(): Promise<string | null> {
-  if (logoCache) return logoCache;
+const imagenCache = new Map<string, string>();
+async function cargarImagenBase64(url: string): Promise<string | null> {
+  const cached = imagenCache.get(url);
+  if (cached) return cached;
   try {
-    const res = await fetch('/yunka_atoq_log.png');
+    const res = await fetch(url);
+    if (!res.ok) return null;
     const blob = await res.blob();
-    logoCache = await new Promise<string>((resolve, reject) => {
+    const data = await new Promise<string>((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => resolve(reader.result as string);
       reader.onerror = reject;
       reader.readAsDataURL(blob);
     });
-    return logoCache;
+    imagenCache.set(url, data);
+    return data;
   } catch {
     return null;
   }
 }
+const cargarLogoBase64 = () => cargarImagenBase64('/yunka_atoq_transparente.png');
+const cargarLogoOBA    = () => cargarImagenBase64('/oba_logo.png');
 
 type Run = { text: string; bold?: boolean; italic?: boolean };
 
@@ -201,55 +254,125 @@ function iconoSobre(doc: any, cx: number, cy: number, r: number) {
   doc.line(cx + w / 2, cy - h / 2, cx, cy + h * 0.15);
 }
 
-// Membrete institucional: cinta + logo, personería jurídica, reconocimiento y contacto
-async function dibujarCabeceraInstitucional(doc: any): Promise<number> {
-  const barY = 8, barH = 34, barBottom = barY + barH;
-  const ribbonX = 10, ribbonW = 36;
+// Un solo membrete integra identidad, hitos, membresía y contactos.
+// La altura crece si el nombre legal o los hitos ocupan más líneas.
+async function dibujarCabeceraInstitucional(doc: any, cfg: CabeceraDocumentos): Promise<number> {
+  const m = cfg.membresia;
+  const [logo, oba] = await Promise.all([cargarLogoBase64(), m.mostrar ? cargarLogoOBA() : null]);
+  const blue: [number, number, number] = [8, 42, 78];
+  const gris: [number, number, number] = [66, 84, 107];
+  const textX = 50;
+  const textW = m.mostrar ? 107 : 142;
+  const lh = (pt: number) => pt * 0.3528 * 1.2; // alto de línea en mm
 
-  doc.setFillColor(...NAVY);
-  doc.rect(0, barY, 210, barH, 'F');
+  // 1) Medir el bloque de texto para conocer la altura total
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7.3);
+  const legal = cfg.nombre_legal ? doc.splitTextToSize(cfg.nombre_legal, textW) : [];
+  const hitos = cfg.hitos.filter(h => h.texto.trim()).map(h => {
+    doc.setFont('helvetica', h.destacado ? 'bold' : 'normal');
+    doc.setFontSize(h.destacado ? 7.5 : 6.2);
+    return { ...h, lineas: doc.splitTextToSize(h.texto, textW) as string[] };
+  });
 
-  doc.setFillColor(...RIBBON);
-  doc.rect(ribbonX, 3, ribbonW, barBottom - 3, 'F');
-  doc.triangle(ribbonX, barBottom, ribbonX + ribbonW, barBottom, ribbonX + ribbonW / 2, barBottom + 10, 'F');
+  let y = 29;
+  const yLegal = y;
+  if (legal.length) y += (legal.length - 1) * lh(7.3) + 9;
+  else y += 4;
+  const yHitos: number[] = [];
+  hitos.forEach(h => {
+    yHitos.push(y);
+    y += (h.lineas.length - 1) * lh(h.destacado ? 7.5 : 6.2) + 4;
+  });
+  const textoFin = (hitos.length ? y - 4 : y - 9) + 1;
+  const filaContactos = Math.max(55, textoFin + 8);
+  const panelFin = filaContactos + 5;
 
-  const logo = await cargarLogoBase64();
-  if (logo) {
-    const d = 30;
-    doc.addImage(logo, 'PNG', ribbonX + ribbonW / 2 - d / 2, barY + barH / 2 - d / 2, d, d);
+  // 2) Fondo
+  doc.setFillColor(234, 237, 242);
+  doc.roundedRect(9, 8, 192, panelFin - 8, 2, 2, 'F');
+  doc.setFillColor(224, 230, 238);
+  doc.triangle(143, 8, 199, 8, 199, 48, 'F');
+  doc.setFillColor(205, 35, 45);
+  doc.rect(12, panelFin - 1, 186, 1, 'F');
+
+  if (logo) doc.addImage(logo, 'PNG', 14, 13, 30, 31.5);
+
+  // 3) Identidad
+  doc.setTextColor(...blue);
+  doc.setFont('helvetica', 'bold');
+  if (cfg.subtitulo) {
+    doc.setFontSize(7);
+    doc.text(cfg.subtitulo.toUpperCase(), textX, 16);
+  }
+  doc.setFontSize(19);
+  doc.text(cfg.nombre.toUpperCase(), textX, 24);
+  if (legal.length) {
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7.3);
+    doc.text(legal, textX, yLegal, { lineHeightFactor: 1.2 });
   }
 
-  const textoX = ribbonX + ribbonW + 6;
-  doc.setTextColor(255, 255, 255);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(8);
-  const lineasNombre = doc.splitTextToSize(NOMBRE_FUNDACION.toUpperCase(), 78);
-  doc.text(lineasNombre, textoX, 15);
-  let ty = 15 + lineasNombre.length * 3.6 + 3;
+  // 4) Hitos: destacados en negrita azul, el resto en gris
+  hitos.forEach((h, i) => {
+    doc.setFont('helvetica', h.destacado ? 'bold' : 'normal');
+    doc.setFontSize(h.destacado ? 7.5 : 6.2);
+    doc.setTextColor(...(h.destacado ? blue : gris));
+    doc.text(h.lineas, textX, yHitos[i], { lineHeightFactor: 1.2 });
+  });
 
-  doc.setFontSize(9.5);
-  doc.text('Personería Jurídica Nro: 0304/2025', textoX, ty);
-  ty += 4.5;
+  // 5) Membresía
+  if (m.mostrar) {
+    const obaH = 19, obaW = obaH * OBA_LOGO_RATIO;
+    if (oba) doc.addImage(oba, 'PNG', 181 - obaW / 2, 13, obaW, obaH);
+    doc.setTextColor(...blue);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(6.3);
+    if (m.titulo) doc.text(m.titulo.toUpperCase(), 181, 36, { align: 'center' });
+    doc.setFontSize(5.4);
+    const org = m.organizacion ? doc.splitTextToSize(m.organizacion.toUpperCase(), 24) as string[] : [];
+    if (org.length) doc.text(org, 181, 39.5, { align: 'center', lineHeightFactor: 1.2 });
+    if (m.fecha) {
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(5.7);
+      doc.text(m.fecha, 181, 39.5 + Math.max(2, org.length) * lh(5.4) + 2.9, { align: 'center' });
+    }
+  }
 
-  doc.setFontSize(7);
-  const lineasReconocimiento = doc.splitTextToSize(
-    'Reconocimiento Cámara de Diputados - Asamblea Legislativa Plurinacional de Bolivia - 08/2025', 78
-  );
-  doc.text(lineasReconocimiento, textoX, ty);
-
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(8);
-  const contactoX = 178, iconoX = 186;
-  doc.text('+591 68503758', contactoX, 15, { align: 'right' });
-  iconoTelefono(doc, iconoX, 13.5, 2.8);
-  doc.text('www.bomberosatoq.org', contactoX, 24, { align: 'right' });
-  iconoGlobo(doc, iconoX, 22.5, 2.8);
-  doc.text('informacion@bomberosatoq.org', contactoX, 33, { align: 'right' });
-  iconoSobre(doc, iconoX, 31.5, 2.8);
+  // 6) Contactos (solo los que tienen valor)
+  const contactos = [
+    { value: cfg.contacto.telefono, icon: iconoTelefono },
+    { value: cfg.contacto.web, icon: iconoGlobo },
+    { value: cfg.contacto.email, icon: iconoSobre },
+  ].filter(c => c.value);
+  const slots = [16, 67, 127];
+  contactos.forEach(({ value, icon }, i) => {
+    const x = slots[i];
+    icon(doc, x + 2, filaContactos - 1, 1.9);
+    doc.setTextColor(...blue);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(6.8);
+    doc.text(value, x + 6, filaContactos);
+  });
 
   doc.setTextColor(0, 0, 0);
   doc.setDrawColor(0, 0, 0);
-  return barBottom + 16;
+  return panelFin + 12;
+}
+
+// Vista previa del membrete para el formulario de edición (URL blob de un PDF de una página)
+export async function generarVistaPreviaCabecera(cfg: CabeceraDocumentos): Promise<string> {
+  const { jsPDF } = await import('jspdf');
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+  let y = await dibujarCabeceraInstitucional(doc, normalizarCabecera(cfg));
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(12);
+  doc.text('COMUNICADO COM N° 001/2026', 105, y, { align: 'center' });
+  doc.setDrawColor(225);
+  doc.setFillColor(238, 240, 243);
+  y += 10;
+  for (let i = 0; i < 9; i++) doc.rect(MARGEN_IZQ, y + i * 7, i % 3 === 2 ? ANCHO * 0.6 : ANCHO, 3, 'F');
+  return doc.output('bloburl') as unknown as string;
 }
 
 async function crearBaseGenerica(documento: DocumentoPresidencia) {
@@ -258,7 +381,7 @@ async function crearBaseGenerica(documento: DocumentoPresidencia) {
   const autoTable = autoTableModule.default;
   const doc = new jsPDF({ unit: 'mm', format: 'a4' });
 
-  const yTrasCabecera = await dibujarCabeceraInstitucional(doc);
+  const yTrasCabecera = await dibujarCabeceraInstitucional(doc, await obtenerCabecera());
 
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(12);
@@ -283,7 +406,24 @@ export async function generarResolucionPDF(documento: DocumentoPresidencia) {
   const contenido = documento.contenido as ContenidoResolucion;
 
   const logo = await cargarLogoBase64();
-  if (logo) doc.addImage(logo, 'PNG', 92, 10, 26, 26);
+  if (logo) doc.addImage(logo, 'PNG', 92.62, 10, 24.77, 26);
+
+  // Escudo O.B.A. a la derecha, con la fecha de membresía (según la cabecera configurada)
+  const { membresia } = await obtenerCabecera();
+  const oba = membresia.mostrar ? await cargarLogoOBA() : null;
+  if (oba) {
+    const obaH = 20, obaW = obaH * OBA_LOGO_RATIO;
+    const obaCx = MARGEN_DER - obaW / 2;
+    doc.addImage(oba, 'PNG', MARGEN_DER - obaW, 12, obaW, obaH);
+    doc.setTextColor(...NAVY);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(6.5);
+    if (membresia.titulo) doc.text(`${membresia.titulo} O.B.A.`, obaCx, 36, { align: 'center' });
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(6);
+    if (membresia.fecha) doc.text(membresia.fecha, obaCx, 39, { align: 'center' });
+    doc.setTextColor(0, 0, 0);
+  }
 
   doc.setFont('times', 'bolditalic');
   doc.setFontSize(18);
