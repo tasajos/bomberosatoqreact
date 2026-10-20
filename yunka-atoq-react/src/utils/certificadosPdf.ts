@@ -58,7 +58,11 @@ function centrado(doc: jsPDF, texto: string, y: number, ancho: number, tamano: n
 
 async function cargarLogo(url: string): Promise<Uint8Array> {
   const response = await fetch(url);
-  if (!response.ok) throw new Error('No se pudo cargar un logo oficial. Recarga e intenta nuevamente.');
+  // Un archivo faltante llega como el index.html de la SPA con 200: se valida el tipo
+  const tipo = response.headers.get('content-type') || '';
+  if (!response.ok || !tipo.startsWith('image/')) {
+    throw new Error(`Falta el logo ${url} en el servidor. Súbelo a la carpeta pública del sitio.`);
+  }
   return new Uint8Array(await response.arrayBuffer());
 }
 

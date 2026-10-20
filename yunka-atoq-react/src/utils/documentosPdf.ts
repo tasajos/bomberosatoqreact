@@ -83,6 +83,8 @@ async function cargarImagenBase64(url: string): Promise<string | null> {
     const res = await fetch(url);
     if (!res.ok) return null;
     const blob = await res.blob();
+    // Si el archivo no existe, el servidor devuelve el index.html de la SPA con 200
+    if (!blob.type.startsWith('image/')) return null;
     const data = await new Promise<string>((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => resolve(reader.result as string);
@@ -95,7 +97,8 @@ async function cargarImagenBase64(url: string): Promise<string | null> {
     return null;
   }
 }
-const cargarLogoBase64 = () => cargarImagenBase64('/yunka_atoq_transparente.png');
+const cargarLogoBase64 = async () =>
+  (await cargarImagenBase64('/yunka_atoq_transparente.png')) ?? cargarImagenBase64('/yunka_atoq_log.png');
 const cargarLogoOBA    = () => cargarImagenBase64('/oba_logo.png');
 
 type Run = { text: string; bold?: boolean; italic?: boolean };
