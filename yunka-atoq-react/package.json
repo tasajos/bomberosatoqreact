@@ -8,6 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "test:certificados": "node --test tests/certificadosPdf.test.mjs",
+    "test:resoluciones": "node --test tests/resolucionesPdf.test.mjs",
     "preview": "vite preview"
   },
   "dependencies": {

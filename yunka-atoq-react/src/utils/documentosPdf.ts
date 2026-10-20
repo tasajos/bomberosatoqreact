@@ -1,4 +1,4 @@
-import type { DocumentoPresidencia, ContenidoResolucion, ContenidoPasos, ContenidoComunicado, CabeceraDocumentos } from '../services/api';
+import type { DocumentoPresidencia, ContenidoPasos, ContenidoComunicado, CabeceraDocumentos } from '../services/api';
 import { documentosPresidenciaApi } from '../services/api';
 import { GRADOS } from './rankBadge';
 import { gradoBadgePNG } from './gradoBadgeImage';
@@ -14,7 +14,6 @@ const ROTULOS: Record<string, string> = {
 const MARGEN_IZQ = 15;
 const MARGEN_DER = 195;
 const ANCHO = MARGEN_DER - MARGEN_IZQ;
-const CIUDAD = 'Cochabamba';
 
 const NAVY: [number, number, number] = [26, 31, 94];
 const OBA_LOGO_RATIO = 516 / 424; // ancho / alto de /oba_logo.png
@@ -100,52 +99,6 @@ async function cargarImagenBase64(url: string): Promise<string | null> {
 const cargarLogoBase64 = async () =>
   (await cargarImagenBase64('/yunka_atoq_transparente.png')) ?? cargarImagenBase64('/yunka_atoq_log.png');
 const cargarLogoOBA    = () => cargarImagenBase64('/oba_logo.png');
-
-type Run = { text: string; bold?: boolean; italic?: boolean };
-
-// Escribe un párrafo mezclando tramos normales/negrita (word-wrap manual) y devuelve el y final
-function escribirRuns(doc: any, runs: Run[], y: number, opts: { fontSize?: number; lineHeight?: number; font?: string } = {}): number {
-  const font = opts.font || 'times';
-  const fontSize = opts.fontSize || 10;
-  const lineHeight = opts.lineHeight || 5;
-  doc.setFontSize(fontSize);
-
-  let line: Run[] = [];
-  let lineWidth = 0;
-
-  const estilo = (r: Run) => (r.bold && r.italic ? 'bolditalic' : r.bold ? 'bold' : r.italic ? 'italic' : 'normal');
-
-  const flushLine = () => {
-    if (y > 280) { doc.addPage(); y = 20; }
-    let cx = MARGEN_IZQ;
-    for (const seg of line) {
-      doc.setFont(font, estilo(seg));
-      doc.text(seg.text, cx, y);
-      cx += doc.getTextWidth(seg.text);
-    }
-    line = [];
-    lineWidth = 0;
-    y += lineHeight;
-  };
-
-  for (const run of runs) {
-    if (!run.text) continue;
-    const words = run.text.split(' ');
-    for (let i = 0; i < words.length; i++) {
-      const isLast = i === words.length - 1;
-      const word = words[i] + (isLast ? '' : ' ');
-      if (!word) continue;
-      doc.setFont(font, estilo(run));
-      doc.setFontSize(fontSize);
-      const w = doc.getTextWidth(word);
-      if (lineWidth + w > ANCHO && line.length > 0) flushLine();
-      line.push({ text: word, bold: run.bold, italic: run.italic });
-      lineWidth += w;
-    }
-  }
-  if (line.length) flushLine();
-  return y;
-}
 
 function tablaVoluntarios(doc: any, autoTable: any, y: number, voluntarios: DocumentoPresidencia['voluntarios']): number {
   if (!voluntarios.length) return y;
@@ -404,98 +357,12 @@ async function crearBaseGenerica(documento: DocumentoPresidencia) {
 }
 
 export async function generarResolucionPDF(documento: DocumentoPresidencia) {
-  const { jsPDF } = await import('jspdf');
-  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
-  const contenido = documento.contenido as ContenidoResolucion;
-
-  const logo = await cargarLogoBase64();
-  if (logo) doc.addImage(logo, 'PNG', 92.62, 10, 24.77, 26);
-
-  // Escudo O.B.A. a la derecha, con la fecha de membresía (según la cabecera configurada)
-  const { membresia } = await obtenerCabecera();
-  const oba = membresia.mostrar ? await cargarLogoOBA() : null;
-  if (oba) {
-    const obaH = 20, obaW = obaH * OBA_LOGO_RATIO;
-    const obaCx = MARGEN_DER - obaW / 2;
-    doc.addImage(oba, 'PNG', MARGEN_DER - obaW, 12, obaW, obaH);
-    doc.setTextColor(...NAVY);
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(6.5);
-    if (membresia.titulo) doc.text(`${membresia.titulo} O.B.A.`, obaCx, 36, { align: 'center' });
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(6);
-    if (membresia.fecha) doc.text(membresia.fecha, obaCx, 39, { align: 'center' });
-    doc.setTextColor(0, 0, 0);
-  }
-
-  doc.setFont('times', 'bolditalic');
-  doc.setFontSize(18);
-  doc.text('Resolución Jefatural', 105, 48, { align: 'center' });
-
-  doc.setFont('times', 'italic');
-  doc.setFontSize(12);
-  doc.text(`Nro ${String(documento.numero).padStart(3, '0')} – ${documento.anio}`, 105, 56, { align: 'center' });
-
-  doc.setFont('times', 'normal');
-  doc.setFontSize(10);
-  doc.text(`${CIUDAD}, ${fechaLarga(documento.fecha)}`, MARGEN_DER, 70, { align: 'right' });
-
-  let y = 82;
-
-  if (contenido.vistos) {
-    y = escribirRuns(doc, [{ text: 'VISTOS:', bold: true, italic: true }], y);
-    y += 1;
-    y = escribirRuns(doc, [{ text: contenido.vistos }], y);
-    y += 4;
-  }
-
-  if (contenido.considerandos?.length) {
-    y = escribirRuns(doc, [{ text: 'CONSIDERANDO:', bold: true, italic: true }], y);
-    y += 1;
-    for (const c of contenido.considerandos) {
-      y = escribirRuns(doc, [{ text: 'Que, ' + c }], y);
-      y += 2;
-    }
-    y += 2;
-  }
-
-  if (contenido.articulos?.length) {
-    y = escribirRuns(doc, [{ text: 'RESUELVE:', bold: true, italic: true }], y);
-    y += 1;
-    for (const a of contenido.articulos) {
-      const encabezado = a.titulo ? `ARTÍCULO ${a.numero}.- ${a.titulo.toUpperCase()}.` : `ARTÍCULO ${a.numero}.-`;
-      y = escribirRuns(doc, [{ text: encabezado, bold: true }, { text: ' ' + a.texto }], y);
-      y += 3;
-    }
-
-    if (contenido.gradoNuevo) {
-      y = await dibujarAscensoGrados(doc, y, contenido.gradoActual, contenido.gradoNuevo);
-    }
-
-    if (documento.voluntarios.length) {
-      y += 1;
-      for (const v of documento.voluntarios) {
-        const runs: Run[] = [{ text: '•  ' }];
-        if (v.rol) runs.push({ text: `${v.rol}:  `, bold: true });
-        runs.push({ text: v.nombre });
-        y = escribirRuns(doc, runs, y);
-        y += 1;
-      }
-      y += 3;
-    }
-  }
-
-  y += 6;
-  y = escribirRuns(doc, [{ text: 'Regístrese, Comuníquese y Cúmplase.', bold: true }], y, { fontSize: 10 });
-
-  y = pieFirmante(doc, y, documento, 'times');
-
-  if (y > 270) { doc.addPage(); y = 20; }
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(9);
-  doc.text('cc: Personal', MARGEN_IZQ, 285);
-
-  return doc;
+  const { componerResolucionPDF } = await import('./resolucionesPdf');
+  const cabecera = await obtenerCabecera();
+  const [logo, oba] = await Promise.all([cargarLogoBase64(), cabecera.membresia.mostrar ? cargarLogoOBA() : null]);
+  return componerResolucionPDF(documento, {
+    cabecera, logo, oba, fecha: fechaLarga(documento.fecha), dibujarGrados: dibujarAscensoGrados,
+  });
 }
 
 export async function generarPasosPDF(documento: DocumentoPresidencia) {
