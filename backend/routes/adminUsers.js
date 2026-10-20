@@ -8,7 +8,8 @@ const router = Router();
 const COLS = `id, nombre, apellido_paterno, apellido_materno, fecha_nacimiento,
   carnet_identidad, domicilio, telefono, contacto_nombre, contacto_telefono,
   codigo, matricula, especialidad, tipo_sangre, grado, cargo_directiva,
-  email, role, activo, created_at`;
+  email, role, activo, created_at,
+  COALESCE(estado_personal,'activo') AS estado, COALESCE(antiguedad_anios,0) AS antiguedad_anios`;
 
 // POST /api/admin/users/recalculate-points — recalcula total_puntos de todos (admin)
 router.post('/recalculate-points', verifyToken, requireRole('admin','presidente'), async (req, res) => {
