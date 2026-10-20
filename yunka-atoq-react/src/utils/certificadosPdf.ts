@@ -56,14 +56,46 @@ function centrado(doc: jsPDF, texto: string, y: number, ancho: number, tamano: n
   throw new Error('El texto es demasiado largo para la plantilla. Reduce el nombre o el título del curso.');
 }
 
-async function cargarLogo(url: string): Promise<Uint8Array> {
+// El segundo firmante se omite solo si el nombre del instructor y su cargo están vacíos
+export function haySegundoFirmante(datos: Pick<DatosCertificado, 'instructor' | 'cargoInstructor'>): boolean {
+  return !!(datos.instructor.trim() || datos.cargoInstructor.trim());
+}
+
+interface LogoCertificado { datos:Uint8Array; ancho:number; alto:number; }
+const logosCache = new Map<string, Promise<LogoCertificado>>();
+
+async function leerLogo(url: string): Promise<LogoCertificado> {
   const response = await fetch(url);
   // Un archivo faltante llega como el index.html de la SPA con 200: se valida el tipo
   const tipo = response.headers.get('content-type') || '';
   if (!response.ok || !tipo.startsWith('image/')) {
     throw new Error(`Falta el logo ${url} en el servidor. Súbelo a la carpeta pública del sitio.`);
   }
-  return new Uint8Array(await response.arrayBuffer());
+  const datos = new Uint8Array(await response.arrayBuffer());
+  const firmaPNG = [137,80,78,71,13,10,26,10];
+  if (datos.length < 24 || firmaPNG.some((byte,i) => datos[i] !== byte)) {
+    throw new Error(`El logo ${url} no es un PNG válido.`);
+  }
+  // Las dimensiones ya están en IHDR: no hace falta descomprimir el PNG para medirlo.
+  const cabecera = new DataView(datos.buffer,datos.byteOffset,datos.byteLength);
+  const ancho = cabecera.getUint32(16), alto = cabecera.getUint32(20);
+  if (!ancho || !alto) throw new Error(`El logo ${url} tiene dimensiones inválidas.`);
+  return { datos, ancho, alto };
+}
+
+function cargarLogo(url: string): Promise<LogoCertificado> {
+  let carga = logosCache.get(url);
+  if (!carga) {
+    carga = leerLogo(url).catch(e => { logosCache.delete(url); throw e; });
+    logosCache.set(url,carga);
+  }
+  return carga;
+}
+
+// Se prepara al abrir el editor mientras el usuario completa el formulario.
+export async function prepararRecursosCertificado(): Promise<void> {
+  await Promise.all([import('jspdf'), import('qrcode'), obtenerCabecera(),
+    cargarLogo('/yunka_atoq_transparente.png'), cargarLogo('/oba_logo.png')]);
 }
 
 export interface EmisionCertificadoPDF { urlVerificacion: string; }
@@ -119,7 +151,7 @@ function temarioEnColumnas(doc: jsPDF, temario: string) {
   throw new Error('El temario no cabe en el reverso. Resume los módulos o reduce su cantidad. No se ha emitido el certificado.');
 }
 
-export async function crearCertificadoPDF(datos: DatosCertificado, emision?: EmisionCertificadoPDF) {
+async function construirCertificadoPDF(datos: DatosCertificado, emision?: EmisionCertificadoPDF, soloValidar = false) {
   if (datos.horas && (!Number.isFinite(Number(datos.horas)) || Number(datos.horas) <= 0)) {
     throw new Error('La carga horaria debe ser mayor que cero.');
   }
@@ -130,7 +162,7 @@ export async function crearCertificadoPDF(datos: DatosCertificado, emision?: Emi
     import('jspdf'), obtenerCabecera(),
     cargarLogo('/yunka_atoq_transparente.png'), cargarLogo('/oba_logo.png'),
   ]);
-  const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+  const doc = new jsPDF({ orientation:'landscape', unit:'mm', format:'a4', compress:true, putOnlyUsedFonts:true });
   doc.setProperties({ title: `Certificado - ${datos.curso || 'Plantilla de curso'}`, author: identidad.nombre });
   const registrado = !!emision && /^CRTYA-\d+$/.test(datos.codigo);
   const control = registrado ? `${datos.codigo} - ${datos.curso}` : 'BORRADOR · SIN REGISTRO';
@@ -141,14 +173,12 @@ export async function crearCertificadoPDF(datos: DatosCertificado, emision?: Emi
   }
   marco(doc);
 
-  const img = doc.getImageProperties(logo);
   const logoH = 25;
-  const logoW = logoH * img.width / img.height;
-  doc.addImage(logo, 'PNG', 36 - logoW / 2, 22, logoW, logoH);
+  const logoW = logoH * logo.ancho / logo.alto;
+  if (!soloValidar) doc.addImage(logo.datos, 'PNG', 36 - logoW / 2, 22, logoW, logoH, 'logo-atoq', 'FAST');
   if (identidad.membresia.mostrar) {
-    const image = doc.getImageProperties(oba);
-    const h = 20, w = h * image.width / image.height;
-    doc.addImage(oba, 'PNG', 261 - w / 2, 23, w, h);
+    const h = 20, w = h * oba.ancho / oba.alto;
+    if (!soloValidar) doc.addImage(oba.datos, 'PNG', 261 - w / 2, 23, w, h, 'logo-oba', 'FAST');
     doc.setTextColor(...GRAY);
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(5.7);
@@ -214,10 +244,17 @@ export async function crearCertificadoPDF(datos: DatosCertificado, emision?: Emi
     doc.setTextColor(...GRAY);
     centrado(doc, cargo, 187, 80, 7.5, 2, 3.5, x);
   };
-  firma(datos.presidente.trim() || '[NOMBRE DEL PRESIDENTE]', datos.cargoPresidente || 'Presidente de la Fundación', 78);
-  firma(datos.instructor.trim() || '[NOMBRE DEL INSTRUCTOR]', datos.cargoInstructor || 'Instructor del curso', 174);
+  const nombrePresidente = datos.presidente.trim() || '[NOMBRE DEL PRESIDENTE]';
+  const cargoPresidente = datos.cargoPresidente || 'Presidente de la Fundación';
+  if (haySegundoFirmante(datos)) {
+    firma(nombrePresidente, cargoPresidente, 78);
+    firma(datos.instructor.trim() || '[NOMBRE DEL INSTRUCTOR]', datos.cargoInstructor || 'Instructor del curso', 174);
+  } else {
+    // Sin instructor ni cargo del segundo firmante: el firmante principal va al centro
+    firma(nombrePresidente, cargoPresidente, 148.5);
+  }
   if (qr) {
-    doc.addImage(qr,'PNG',244,159,28,28);
+    doc.addImage(qr,'PNG',244,159,28,28,'qr-verificacion','FAST');
     doc.link(244,159,28,28,{url:emision!.urlVerificacion});
   } else if (!registrado && datos.incluirQR) {
     doc.setDrawColor(213,218,224); doc.rect(246,162,24,24);
@@ -231,7 +268,7 @@ export async function crearCertificadoPDF(datos: DatosCertificado, emision?: Emi
 
   // Reverso: programa del curso, QR y recuadro del libro de capacitaciones.
   doc.addPage('a4','landscape'); marco(doc);
-  doc.addImage(logo,'PNG',26,22,18*img.width/img.height,18);
+  if (!soloValidar) doc.addImage(logo.datos,'PNG',26,22,18*logo.ancho/logo.alto,18,'logo-atoq','FAST');
   doc.setTextColor(...NAVY); doc.setFont('helvetica','bold');
   centrado(doc, 'PROGRAMA ACADÉMICO',31,205,17);
   doc.setFont('helvetica','normal'); doc.setTextColor(...GRAY);
@@ -242,7 +279,7 @@ export async function crearCertificadoPDF(datos: DatosCertificado, emision?: Emi
   temarioEnColumnas(doc,datos.temario);
   doc.setDrawColor(...GOLD); doc.line(26,150,271,150);
   if (qr) {
-    doc.addImage(qr,'PNG',176,156,29,29);
+    doc.addImage(qr,'PNG',176,156,29,29,'qr-verificacion','FAST');
     doc.link(176,156,29,29,{url:emision!.urlVerificacion});
   }
   // Recuadro de control del libro de capacitaciones.
@@ -257,6 +294,15 @@ export async function crearCertificadoPDF(datos: DatosCertificado, emision?: Emi
   doc.setFont('helvetica','normal'); doc.setTextColor(...GRAY);
   centrado(doc, control,193,238,7);
   return doc;
+}
+
+// Valida el mismo diseño sin incrustar ni comprimir imágenes, y sin generar un archivo.
+export async function validarDisenoCertificado(datos: DatosCertificado): Promise<void> {
+  await construirCertificadoPDF(datos,undefined,true);
+}
+
+export async function crearCertificadoPDF(datos: DatosCertificado, emision?: EmisionCertificadoPDF) {
+  return construirCertificadoPDF(datos,emision);
 }
 
 export function nombreArchivoCertificado(datos: DatosCertificado): string {

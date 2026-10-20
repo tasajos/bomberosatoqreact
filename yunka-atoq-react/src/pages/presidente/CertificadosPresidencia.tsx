@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { capacitacionesApi, type Capacitacion } from '../../services/api';
-import { crearCertificadoPDF, datosCertificadoVacios, nombreArchivoCertificado, type DatosCertificado } from '../../utils/certificadosPdf';
+import { crearCertificadoPDF, datosCertificadoVacios, nombreArchivoCertificado, haySegundoFirmante,
+  prepararRecursosCertificado, validarDisenoCertificado, type DatosCertificado } from '../../utils/certificadosPdf';
 import { certificadosApi, urlVerificacionCertificado, type CertificadoRegistrado } from '../../services/certificadosApi';
 import styles from './CertificadosPresidencia.module.css';
 
@@ -43,6 +44,10 @@ export default function CertificadosPresidencia() {
   const cargarLibro = () => certificadosApi.listar().then(r => { setRegistros(r.data); setAvisoLibro(''); })
     .catch(() => setAvisoLibro('No se pudo cargar el registro de certificados. Comprueba que el backend esté actualizado.'));
   useEffect(() => { void cargarLibro(); }, []);
+  useEffect(() => {
+    // Una carga anticipada fallida se reintentará al generar, mostrando entonces el error.
+    void prepararRecursosCertificado().catch(() => {});
+  }, []);
 
   useEffect(() => {
     let activo = true;
@@ -68,19 +73,23 @@ export default function CertificadosPresidencia() {
     try {
       for (const [campo,label] of Object.entries({ participante:'participante', curso:'curso', horas:'carga horaria',
         fechaInicio:'fecha de inicio', fechaFin:'fecha de fin', fechaEmision:'fecha de emisión', lugar:'lugar',
-        presidente:'presidente', instructor:'instructor', temario:'temario' })) {
+        presidente:'presidente', temario:'temario' })) {
         if (!String(datos[campo as keyof DatosCertificado] || '').trim()) throw new Error(`Completa ${label} antes de emitir.`);
       }
-      // Comprueba el diseño antes de reservar un número permanente.
-      await crearCertificadoPDF(datos);
+      // El segundo firmante es opcional, pero un cargo sin nombre no se puede firmar
+      if (haySegundoFirmante(datos) && !datos.instructor.trim()) {
+        throw new Error('Completa el nombre del instructor, o deja vacío también el cargo del segundo firmante para usar una sola firma.');
+      }
       const huella = huellaDatos(datos);
       if (!emision.current || emision.current.huella !== huella) emision.current = { huella, clave:crypto.randomUUID() };
       const intento = emision.current;
+      // Verifica el texto y los recursos sin renderizar dos veces los logos del PDF.
+      if (!intento.pdf && intento.registro?.estado !== 'emitido') await validarDisenoCertificado(datos);
       const reserva = intento.registro || await certificadosApi.reservar(datos,intento.clave);
       intento.registro = reserva;
       let registro = reserva;
       let blob: Blob;
-      if (reserva.estado === 'emitido') blob = await certificadosApi.descargar(reserva);
+      if (reserva.estado === 'emitido') blob = intento.pdf || await certificadosApi.descargar(reserva);
       else {
         if (!intento.pdf) {
           const pdf = await crearCertificadoPDF(reserva.datos,{ urlVerificacion:urlVerificacionCertificado(reserva) });
@@ -90,9 +99,10 @@ export default function CertificadosPresidencia() {
         registro = await certificadosApi.subirPDF(reserva.id,blob);
         intento.registro = registro;
       }
+      intento.pdf = blob;
       setEmitido(registro); setPreview(URL.createObjectURL(blob)); setModificado(false);
       descargarBlob(blob,`${registro.codigo}.pdf`);
-      await cargarLibro();
+      void cargarLibro();
     } catch (e) { setError(e instanceof Error ? e.message : 'No se pudo emitir el certificado.'); void cargarLibro(); }
     finally { setOcupado(false); }
   };
@@ -105,7 +115,11 @@ export default function CertificadosPresidencia() {
 
   const descargarOriginal = async (registro: CertificadoRegistrado) => {
     setOcupado(true); setError('');
-    try { descargarBlob(await certificadosApi.descargar(registro),`${registro.codigo}.pdf`); }
+    try {
+      const blob = emision.current?.registro?.id === registro.id && emision.current.pdf
+        ? emision.current.pdf : await certificadosApi.descargar(registro);
+      descargarBlob(blob,`${registro.codigo}.pdf`);
+    }
     catch (e) { setError(e instanceof Error ? e.message : 'No se pudo descargar el original.'); }
     finally { setOcupado(false); }
   };
@@ -114,7 +128,9 @@ export default function CertificadosPresidencia() {
     setOcupado(true); setError('');
     try {
       if (!plantilla && emitido && !modificado) {
-        setPreview(URL.createObjectURL(await certificadosApi.descargar(emitido)));
+        const blob = emision.current?.registro?.id === emitido.id && emision.current.pdf
+          ? emision.current.pdf : await certificadosApi.descargar(emitido);
+        setPreview(URL.createObjectURL(blob));
         return;
       }
       const valores = plantilla ? { ...datosCertificadoVacios(), lugar: '', fechaEmision: '' } : datos;
