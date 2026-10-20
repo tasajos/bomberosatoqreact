@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import {
   capacitacionesApi, adminUsersApi, API_BASE,
   type Capacitacion, type Inscripcion, type VoluntarioPerfil,
@@ -201,6 +202,7 @@ function TabCapacitaciones({ onSelect }: { onSelect:(c:Capacitacion)=>void }) {
                   <button className={pStyles.btnIconDel}  onClick={()=>remove(c.id)}>🗑</button>
                 </div>
               </div>
+              <Link className={pStyles.btnLink} to={`/presidente/certificados?curso=${c.id}`}>Preparar certificado →</Link>
             </div>
           );
         })}

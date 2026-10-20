@@ -19,6 +19,7 @@ import StatsPage from './pages/StatsPage.tsx';
 import GalleryPage from './pages/GalleryPage.tsx';
 import VolunteeringPage from './pages/VolunteeringPage.tsx';
 import NewsPage from './pages/NewsPage.tsx';
+import VerificarCertificadoPage from './pages/VerificarCertificadoPage';
 
 import { AuthProvider } from './context/AuthContext.tsx';
 import ProtectedRoute from './auth/ProtectedRoute';
@@ -40,6 +41,7 @@ import PresidenteVolunteers     from './pages/presidente/PresidenteVolunteers';
 import PresidentePersonal       from './pages/presidente/PresidentePersonal';
 import PresidenteCapacitaciones from './pages/presidente/PresidenteCapacitaciones';
 import DocumentosPresidencia from './pages/presidente/DocumentosPresidencia';
+import CertificadosPresidencia from './pages/presidente/CertificadosPresidencia';
 import OperacionesLayout from './layouts/OperacionesLayout';
 import OpsTabsLayout from './layouts/OpsTabsLayout';
 import OpsDashboard     from './pages/operaciones/OpsDashboard';
@@ -84,6 +86,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
             <Route path="galeria"        element={<GalleryPage />} />
             <Route path="voluntarios"    element={<VolunteeringPage />} />
             <Route path="noticias"       element={<NewsPage />} />
+            <Route path="certificados/verificar/:token" element={<VerificarCertificadoPage />} />
           </Route>
 
           {/* Login standalone — sin header/footer */}
@@ -134,6 +137,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
               <Route path="protocolos"      element={<DocumentosPresidencia tipo="protocolo" />} />
               <Route path="comunicados"     element={<DocumentosPresidencia tipo="comunicado" />} />
               <Route path="cartas"          element={<DocumentosPresidencia tipo="carta" />} />
+              <Route path="certificados"    element={<CertificadosPresidencia />} />
               {/* Operaciones con sub-opciones como pestañas, dentro del shell presidencial */}
               <Route path="operaciones" element={<OpsTabsLayout />}>
                 <Route index element={<OpsDashboard />} />

@@ -1,0 +1,50 @@
+.page { display: flex; flex-direction: column; gap: 1.25rem; }
+.header { display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; }
+.header h1 { margin: 0; font-family: var(--font-condensed); font-size: 1.8rem; color: #082a4e; }
+.header p, .hint { font-size: .85rem; color: #64748b; line-height: 1.5; }
+.header p { margin: .4rem 0 0; }
+.layout { display: grid; grid-template-columns: minmax(300px, 420px) minmax(0, 1fr); gap: 1.25rem; align-items: start; }
+.form, .preview { background: #fff; border: 1px solid #dfe5ed; border-radius: 12px; overflow: hidden; }
+.form { padding: 1.25rem; }
+.form section + section { border-top: 1px solid #e2e8f0; margin-top: 1.3rem; padding-top: 1rem; }
+.form h2, .preview h2 { color: #082a4e; font-size: 1rem; margin: 0 0 1rem; }
+.field { display: flex; flex-direction: column; gap: .35rem; margin-bottom: .85rem; min-width: 0; }
+.field span { font-size: .8rem; color: #334155; font-weight: 600; }
+.field input, .field select, .field textarea { width: 100%; box-sizing: border-box; min-width: 0; border: 1px solid #cbd5e1; border-radius: 7px; padding: .6rem .65rem; font: inherit; font-size: .85rem; color: #0f172a; background: #fff; }
+.field textarea { resize: vertical; line-height: 1.6; }
+.field input:focus, .field select:focus { outline: 2px solid #8cabc8; outline-offset: 1px; }
+.row { display: grid; grid-template-columns: 1fr 1fr; gap: .8rem; }
+.actions { display: flex; flex-wrap: wrap; gap: .65rem; }
+.primary, .secondary { padding: .65rem .9rem; border-radius: 7px; font: inherit; font-size: .85rem; font-weight: 600; cursor: pointer; }
+.primary { background: #b9232e; color: #fff; border: 1px solid #b9232e; }
+.primary:hover { background: #991c25; }
+.secondary { color: #082a4e; border: 1px solid #cbd5e1; background: #fff; }
+.primary:disabled, .secondary:disabled { opacity: .6; cursor: wait; }
+.error { background: #fff1f2; color: #991b1b; border: 1px solid #fecdd3; padding: .85rem; border-radius: 8px; }
+.preview { position: sticky; top: 1rem; }
+.previewHeader { display: flex; justify-content: space-between; padding: 1rem; align-items: center; border-bottom: 1px solid #e2e8f0; gap: 1rem; }
+.previewHeader h2 { margin: 0; }
+.previewHeader span { font-size: .75rem; color: #64748b; }
+.pdf { width: 100%; height: 680px; border: 0; display: block; }
+.empty { min-height: 390px; padding: 2rem; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; background: #f8fafc; }
+.empty img { width: 80px; height: 85px; object-fit: contain; }
+.empty h3 { color: #082a4e; margin-bottom: 0; }
+.empty p { max-width: 360px; color: #64748b; font-size: .9rem; line-height: 1.6; }
+.pending { padding: .75rem 1rem; margin: 0; background: #fffbeb; color: #92400e; font-size: .8rem; }
+.openPdf { display: block; padding: .9rem; color: #082a4e; font-size: .85rem; }
+.fields { border: 0; margin: 0; padding: 0; min-width: 0; }
+.control { display: flex; flex-direction: column; gap: .4rem; padding: .9rem; border: 1px solid #e1d6bc; background: #fcfaf4; border-radius: 8px; color: #082a4e; margin-bottom: 1rem; }
+.control span, .control small { font-size: .8rem; line-height: 1.5; }
+.check { display: flex; align-items: flex-start; gap: .6rem; color: #334155; font-size: .85rem; line-height: 1.5; }
+.check input { margin-top: .25rem; }
+.success { background: #effaf3; color: #166534; padding: 1rem; border: 1px solid #bbdfc8; border-radius: 8px; line-height: 1.6; }
+.book { border: 1px solid #dfe5ed; border-radius: 12px; background: #fff; overflow: hidden; }
+.book > p { padding: 0 1rem; }
+.tableWrap { overflow-x: auto; }
+.book table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+.book th, .book td { text-align: left; padding: .9rem 1rem; border-bottom: 1px solid #e2e8f0; line-height: 1.6; }
+.book th { background: #f8fafc; color: #64748b; }
+.book td strong { color: #082a4e; }
+.book a { color: #082a4e; }
+@media (max-width: 1100px) { .layout { grid-template-columns: 1fr; } .preview { position: static; } .pdf { height: 520px; } }
+@media (max-width: 480px) { .row { grid-template-columns: 1fr; gap: 0; } .form { padding: 1rem; } }
