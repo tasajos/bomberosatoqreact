@@ -25,6 +25,7 @@ import milestonesRoutes      from './routes/milestones.js';
 import personalRoutes        from './routes/personal.js';
 import ordenesOperacionRoutes from './routes/ordenesOperacion.js';
 import documentosPresidenciaRoutes from './routes/documentosPresidencia.js';
+import certificadosRoutes from './routes/certificados.js';
 import { noticiaOgHandler, pageOgHandler, OG_PAGE_PATHS } from './routes/ogMeta.js';
 
 dotenv.config();
@@ -63,11 +64,17 @@ app.use('/api/milestones',      milestonesRoutes);
 app.use('/api/personal',        personalRoutes);
 app.use('/api/ordenes-operacion', ordenesOperacionRoutes);
 app.use('/api/documentos-presidencia', documentosPresidenciaRoutes);
+app.use('/api/certificados', certificadosRoutes);
 
 app.get('/api/health', (_, res) => res.json({ status: 'ok', ts: new Date().toISOString() }));
 
 // Servir frontend estático (producción)
 const frontendDir = path.join(__dirname, '..', 'bomberosatoq.org');
+app.get('/certificados/verificar/:token', (_req,res) => {
+  res.set('X-Robots-Tag','noindex, nofollow');
+  res.set('Cache-Control','private, no-store');
+  res.sendFile(path.join(frontendDir,'index.html'));
+});
 app.use(express.static(frontendDir));
 // Noticias con meta Open Graph para que Facebook/WhatsApp muestren título, resumen e imagen
 app.get('/notas/:id', noticiaOgHandler(frontendDir));
