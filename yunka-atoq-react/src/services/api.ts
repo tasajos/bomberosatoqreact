@@ -324,6 +324,8 @@ export interface AdminUser {
   activo: number;
   created_at: string;
   total_puntos?: number;
+  estado?: EstadoPersonal;
+  antiguedad_anios?: number;
 }
 
 export interface ContactoItem {

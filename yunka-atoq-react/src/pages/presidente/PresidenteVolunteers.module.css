@@ -42,6 +42,19 @@
   border-radius: 6px; color: #111827; font-size: 0.85rem; font-family: var(--font-body);
   outline: none; transition: border-color var(--transition); min-width: 220px;
 }
+.filterSelect {
+  padding: 0.42rem 0.75rem; background: #F9FAFB; border: 1.5px solid #E5E7EB;
+  border-radius: 6px; color: #374151; cursor: pointer; outline: none;
+  font-family: var(--font-condensed); font-size: 0.75rem; font-weight: 600; letter-spacing: 0.04em;
+  transition: border-color var(--transition);
+}
+.filterSelect:hover, .filterSelect:focus { border-color: #374151; }
+.cardEstado {
+  position: absolute; top: 0.625rem; left: 0.625rem;
+  font-family: var(--font-condensed); font-size: 0.6rem; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  padding: 0.2rem 0.55rem; border-radius: 999px; border: 1px solid;
+}
 .search::placeholder { color: #9CA3AF; }
 .search:focus { border-color: #374151; }
 

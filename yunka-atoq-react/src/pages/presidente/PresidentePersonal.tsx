@@ -6,8 +6,11 @@ import {
   type EstadoPersonal,
 } from '../../services/api';
 import { RankBadgeSVG, GRADOS } from '../../utils/rankBadge';
+import { ESTADO_META, ESTADO_LIST, compararAntiguedad, compararNombre } from '../../utils/personalOrden';
 
 type Filtro = 'todos' | 'voluntarios' | 'postulantes';
+type FiltroCodigo = 'todos' | 'VF' | 'VR' | 'VC';
+type Orden = 'antiguedad' | 'puntos' | 'nombre';
 type Tab = 'resumen' | 'editar' | 'meritos' | 'asistencia' | 'file' | 'historial';
 
 function fmt(n: number) { return new Intl.NumberFormat('es-BO').format(n); }
@@ -65,15 +68,6 @@ const LOG_META: Record<VoluntarioLogItem['accion'], { icon: string; label: strin
   grado:     { icon: '⭐', label: 'Grado',     color: '#f59e0b' },
   estado:    { icon: '🔁', label: 'Estado',    color: '#34d399' },
 };
-
-const ESTADO_META: Record<EstadoPersonal, { label: string; color: string }> = {
-  activo:     { label: 'Activo',     color: '#16a34a' },
-  baja:       { label: 'Baja',       color: '#b91c1c' },
-  pasiva:     { label: 'Pasiva',     color: '#d97706' },
-  cooperador: { label: 'Cooperador', color: '#2563eb' },
-  comision:   { label: 'Comisión',   color: '#7c3aed' },
-};
-const ESTADO_LIST: EstadoPersonal[] = ['activo', 'baja', 'pasiva', 'cooperador', 'comision'];
 
 const EST_LABEL: Record<string, string> = { presente:'Presente', tarde:'Tarde', falta:'Falta', permiso:'Permiso', comision:'Comisión' };
 const EST_CLASS: Record<string, string> = {
@@ -1075,6 +1069,9 @@ export default function PresidentePersonal() {
   const [vista, setVista]       = useState<'lista' | 'asistencia'>('lista');
   const [filtro, setFiltro]     = useState<Filtro>('todos');
   const [search, setSearch]     = useState('');
+  const [fEstado, setFEstado]   = useState<EstadoPersonal | 'todos'>('todos');
+  const [fCodigo, setFCodigo]   = useState<FiltroCodigo>('todos');
+  const [orden, setOrden]       = useState<Orden>('antiguedad');
   const [selected, setSelected] = useState<PersonalItem | null>(null);
   const [comisionFor, setComisionFor] = useState<PersonalItem | null>(null);
 
@@ -1094,6 +1091,8 @@ export default function PresidentePersonal() {
 
   const visible = personal
     .filter(p => filtro === 'todos' || (filtro === 'voluntarios' ? p.role !== 'postulante' : p.role === 'postulante'))
+    .filter(p => fEstado === 'todos' || p.estado === fEstado)
+    .filter(p => fCodigo === 'todos' || p.codigo === fCodigo)
     .filter(p => {
       if (!search) return true;
       const s = search.toLowerCase();
@@ -1101,40 +1100,51 @@ export default function PresidentePersonal() {
         || (p.matricula || '').toLowerCase().includes(s)
         || (p.carnet_identidad || '').includes(s)
         || (p.especialidad || '').toLowerCase().includes(s);
-    });
+    })
+    .sort(orden === 'antiguedad' ? compararAntiguedad
+      : orden === 'nombre' ? compararNombre
+      : (a, b) => (b.total_puntos - a.total_puntos) || compararNombre(a, b));
+
+  const hayFiltros = filtro !== 'todos' || fEstado !== 'todos' || fCodigo !== 'todos' || search !== '';
 
   const [descargando, setDescargando] = useState(false);
 
   const descargarExcel = async () => {
-    if (descargando || voluntarios.length === 0) return;
+    if (descargando || visible.length === 0) return;
     setDescargando(true);
     try {
       const ExcelJS = (await import('exceljs')).default;
       const wb = new ExcelJS.Workbook();
       wb.creator = 'Yunka Atoq';
       wb.created = new Date();
-      const ws = wb.addWorksheet('Voluntarios', {
+      const ws = wb.addWorksheet('Personal', {
         views: [{ state: 'frozen', ySplit: 1 }],
       });
 
       ws.columns = [
+        { header: 'N°',                  key: 'n',        width: 6  },
         { header: 'Nombre',              key: 'nombre',   width: 18 },
         { header: 'Apellido paterno',    key: 'ap',       width: 18 },
         { header: 'Apellido materno',    key: 'am',       width: 18 },
         { header: 'Teléfono',            key: 'tel',      width: 14 },
         { header: 'Grado',               key: 'grado',    width: 24 },
         { header: 'Código',              key: 'codigo',   width: 10 },
+        { header: 'Matrícula',           key: 'mat',      width: 12 },
+        { header: 'Estado',              key: 'estado',   width: 13 },
         { header: 'Carnet de identidad', key: 'ci',       width: 18 },
         { header: 'Fecha de nacimiento', key: 'fnac',     width: 18 },
       ];
 
-      voluntarios.forEach(p => ws.addRow({
+      visible.forEach((p, i) => ws.addRow({
+        n: i + 1,
         nombre: p.nombre,
         ap: p.apellido_paterno,
         am: p.apellido_materno,
         tel: p.telefono,
         grado: gradoLabel(p.grado),
         codigo: p.codigo,
+        mat: p.matricula,
+        estado: ESTADO_META[p.estado]?.label ?? p.estado,
         ci: p.carnet_identidad,
         fnac: (p.fecha_nacimiento || '').slice(0, 10),
       }));
@@ -1169,7 +1179,12 @@ export default function PresidentePersonal() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `voluntarios_yunka_atoq_${today()}.xlsx`;
+      const sufijo = [
+        filtro !== 'todos' ? filtro : '',
+        fCodigo !== 'todos' ? fCodigo : '',
+        fEstado !== 'todos' ? fEstado : '',
+      ].filter(Boolean).join('_');
+      a.download = `personal_yunka_atoq_${sufijo ? sufijo + '_' : ''}${today()}.xlsx`;
       a.click();
       URL.revokeObjectURL(url);
     } catch (e) {
@@ -1190,19 +1205,19 @@ export default function PresidentePersonal() {
         </div>
         <button
           onClick={descargarExcel}
-          disabled={loading || descargando || voluntarios.length === 0}
-          title="Descargar datos de todos los voluntarios en Excel"
+          disabled={loading || descargando || visible.length === 0}
+          title={hayFiltros ? 'Exportar a Excel la lista filtrada' : 'Exportar a Excel toda la lista de personal'}
           style={{
             display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
             fontFamily: 'var(--font-condensed)', fontWeight: 700, fontSize: '0.82rem', letterSpacing: '0.04em',
-            background: loading || descargando || voluntarios.length === 0 ? '#9CA3AF' : '#1D6F42', color: '#fff',
+            background: loading || descargando || visible.length === 0 ? '#9CA3AF' : '#1D6F42', color: '#fff',
             border: 'none', borderRadius: '10px', padding: '0.7rem 1.1rem',
-            cursor: loading || descargando || voluntarios.length === 0 ? 'not-allowed' : 'pointer',
+            cursor: loading || descargando || visible.length === 0 ? 'not-allowed' : 'pointer',
           }}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" />
           </svg>
-          {descargando ? 'Generando…' : 'Descargar Excel'}
+          {descargando ? 'Generando…' : `Exportar Excel (${visible.length})`}
         </button>
       </div>
 
@@ -1252,6 +1267,24 @@ export default function PresidentePersonal() {
             className={`${styles.filterBtn} ${filtro===f?styles.filterBtnActive:''}`}
             onClick={() => setFiltro(f)}>{label}</button>
         ))}
+        <select className={styles.filterSelect} value={fCodigo}
+          onChange={e => setFCodigo(e.target.value as FiltroCodigo)} title="Filtrar por código">
+          <option value="todos">Código: todos</option>
+          <option value="VF">VF — Fundadores</option>
+          <option value="VR">VR — Rescatistas</option>
+          <option value="VC">VC — Colaboradores</option>
+        </select>
+        <select className={styles.filterSelect} value={fEstado}
+          onChange={e => setFEstado(e.target.value as EstadoPersonal | 'todos')} title="Filtrar por estado">
+          <option value="todos">Estado: todos</option>
+          {ESTADO_LIST.map(s => <option key={s} value={s}>{ESTADO_META[s].label}</option>)}
+        </select>
+        <select className={styles.filterSelect} value={orden}
+          onChange={e => setOrden(e.target.value as Orden)} title="Orden de la lista y del Excel">
+          <option value="antiguedad">Orden: antigüedad (grado · VF · VR · VC)</option>
+          <option value="puntos">Orden: puntos</option>
+          <option value="nombre">Orden: apellido A–Z</option>
+        </select>
         <input className={styles.search} placeholder="Buscar nombre, matrícula, CI o especialidad…"
           value={search} onChange={e => setSearch(e.target.value)} />
         <span className={styles.countLabel}>{visible.length} registros</span>

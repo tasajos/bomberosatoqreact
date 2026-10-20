@@ -1,9 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import styles from './PresidenteVolunteers.module.css';
-import { adminUsersApi, type AdminUser } from '../../services/api';
+import { adminUsersApi, type AdminUser, type EstadoPersonal } from '../../services/api';
 import { RankBadgeSVG, GRADOS, DIRECTIVA } from '../../utils/rankBadge';
+import { ESTADO_META, ESTADO_LIST, compararAntiguedad, compararNombre } from '../../utils/personalOrden';
 
 type Filter = 'Todos' | 'VF' | 'VC' | 'VR';
+type Orden = 'antiguedad' | 'nombre';
 
 function calcEdad(f: string | null) {
   if (!f) return null;
@@ -225,6 +227,8 @@ export default function PresidenteVolunteers() {
   const [loading,  setLoading]  = useState(true);
   const [filter,   setFilter]   = useState<Filter>('Todos');
   const [search,   setSearch]   = useState('');
+  const [estado,   setEstado]   = useState<EstadoPersonal | 'todos'>('todos');
+  const [orden,    setOrden]    = useState<Orden>('antiguedad');
   const [selected, setSelected] = useState<AdminUser | null>(null);
 
   const load = useCallback(() => {
@@ -239,13 +243,15 @@ export default function PresidenteVolunteers() {
 
   const visible = users
     .filter(u => filter === 'Todos' || u.codigo === filter)
+    .filter(u => estado === 'todos' || (u.estado ?? 'activo') === estado)
     .filter(u => {
       if (!search) return true;
       const s = search.toLowerCase();
       return `${u.nombre} ${u.apellido_paterno} ${u.apellido_materno}`.toLowerCase().includes(s)
         || u.matricula?.toLowerCase().includes(s)
         || u.carnet_identidad?.includes(s);
-    });
+    })
+    .sort(orden === 'antiguedad' ? compararAntiguedad : compararNombre);
 
   const codePillClass = (c: string) =>
     c === 'VF' ? styles.pillVF : c === 'VC' ? styles.pillVC : styles.pillVR;
@@ -275,6 +281,16 @@ export default function PresidenteVolunteers() {
             {f === 'Todos' ? 'Todos' : f === 'VF' ? '🦊 VF — Fundadores' : f === 'VC' ? '🤝 VC — Colaboradores' : '🧑‍🚒 VR — Rescatistas'}
           </button>
         ))}
+        <select className={styles.filterSelect} value={estado}
+          onChange={e => setEstado(e.target.value as EstadoPersonal | 'todos')} title="Filtrar por estado">
+          <option value="todos">Estado: todos</option>
+          {ESTADO_LIST.map(s => <option key={s} value={s}>{ESTADO_META[s].label}</option>)}
+        </select>
+        <select className={styles.filterSelect} value={orden}
+          onChange={e => setOrden(e.target.value as Orden)} title="Orden de la lista">
+          <option value="antiguedad">Orden: antigüedad (grado · VF · VR · VC)</option>
+          <option value="nombre">Orden: apellido A–Z</option>
+        </select>
         <input
           className={styles.search}
           placeholder="Buscar nombre, matrícula o CI…"
@@ -300,6 +316,12 @@ export default function PresidenteVolunteers() {
               {u.codigo && (
                 <span className={`${styles.cardCodePill} ${codePillClass(u.codigo)}`}>
                   {u.codigo}
+                </span>
+              )}
+              {u.estado && u.estado !== 'activo' && (
+                <span className={styles.cardEstado}
+                  style={{ color: ESTADO_META[u.estado].color, borderColor: `${ESTADO_META[u.estado].color}66`, background: `${ESTADO_META[u.estado].color}1f` }}>
+                  {ESTADO_META[u.estado].label}
                 </span>
               )}
             </div>
