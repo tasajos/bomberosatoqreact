@@ -17,8 +17,12 @@ export function validarDatosCertificado(input) {
     datos[campo] = (input[campo] || '').trim();
     if (datos[campo].length > maximo) throw new ErrorCertificado(400, `El campo ${campo} es demasiado largo.`);
   }
-  for (const campo of ['participante','curso','horas','lugar','presidente','instructor','temario']) {
+  for (const campo of ['participante','curso','horas','lugar','presidente','temario']) {
     if (!datos[campo]) throw new ErrorCertificado(400, `Completa el campo ${campo} antes de emitir.`);
+  }
+  // Segundo firmante opcional: se omite solo si nombre y cargo están vacíos
+  if (!datos.instructor && datos.cargoInstructor) {
+    throw new ErrorCertificado(400, 'Completa el nombre del instructor o deja vacío también su cargo.');
   }
   for (const campo of ['fechaInicio','fechaFin','fechaEmision']) {
     const value = input[campo];
@@ -52,7 +56,7 @@ export function informacionPublicaCertificado(registro) {
   return { codigo:registro.codigo, estado:registro.estado, participante:d.participante, curso:d.curso,
     modalidad:d.modalidad, horas:d.horas, fechaInicio:d.fechaInicio, fechaFin:d.fechaFin,
     fechaEmision:d.fechaEmision, lugar:d.lugar, temario:d.temario,
-    firmantes:[{nombre:d.presidente,cargo:d.cargoPresidente},{nombre:d.instructor,cargo:d.cargoInstructor}],
+    firmantes:[{nombre:d.presidente,cargo:d.cargoPresidente},{nombre:d.instructor,cargo:d.cargoInstructor}].filter(f => f.nombre),
     libro:'Libro de capacitaciones' };
 }
 
