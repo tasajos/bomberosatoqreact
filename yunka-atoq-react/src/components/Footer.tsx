@@ -104,7 +104,7 @@ function Footer() {
           <h4 className={styles.colTitle}>Contacto</h4>
           <ul className={styles.colList}>
        
-            <li><a href="mailto:contacto@yunkaatoq.bo">informaciones@bomberosatoq.org</a></li>
+            <li><a href="mailto:informaciones@bomberosatoq.org">informaciones@bomberosatoq.org</a></li>
             <li className={styles.emergency}>Emergencias · 68503758</li>
           </ul>
         </div>

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { voluntariosApi, type PostulacionItem as Postulacion } from '../../services/api';
+import ConvocatoriaPanel from '../../components/admin/ConvocatoriaPanel';
 
 function fmtDate(s: string) {
   const d = new Date(s);
@@ -65,6 +66,8 @@ export default function PostulacionesPage() {
           Personas que llenaron el formulario de postulación al voluntariado.
         </p>
       </div>
+
+      <ConvocatoriaPanel />
 
       {/* Toolbar */}
       <div style={{

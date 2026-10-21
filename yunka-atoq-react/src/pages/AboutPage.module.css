@@ -1,370 +1,101 @@
-/* ===== Hero ===== */
-.hero {
-  background: var(--color-light);
-  padding: 3rem var(--section-px) var(--section-py);
+.page { background: var(--color-light); }
+.inner { max-width: 1280px; margin-inline: auto; }
+.hero { padding: 2rem var(--section-px) 4.5rem; }
+.breadcrumb { display: flex; gap: .75rem; color: var(--color-gray); font-size: .8rem; margin-bottom: 2.5rem; }
+.breadcrumb a:hover { color: var(--color-red); }
+.breadcrumb [aria-current] { color: var(--color-dark); }
+.heroGrid { display: grid; grid-template-columns: 1.1fr 1fr; gap: clamp(2rem, 5vw, 5rem); align-items: center; }
+.heroContent { padding-block: 1rem; }
+.heroTitle { font-family: var(--font-condensed); font-size: clamp(3rem, 5.3vw, 5.5rem); font-weight: 800; line-height: 1.03; letter-spacing: -.025em; }
+.heroTitle em { font-style: normal; color: var(--color-red); }
+.heroDesc { max-width: 470px; margin-top: 1.6rem; color: #59616d; font-size: 1.05rem; line-height: 1.8; }
+.storyLink { display: inline-flex; align-items: center; gap: 2rem; margin-top: 1.75rem; padding-bottom: .55rem; border-bottom: 1px solid var(--color-red); font-weight: 600; }
+.storyLink span { color: var(--color-red); font-size: 1.5rem; }
+.storyLink:hover { color: var(--color-red); }
+.heroFacts { display: grid; grid-template-columns: 1fr .9fr 1.1fr; gap: 1rem; margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid var(--color-border); }
+.heroFacts strong { display: block; font-family: var(--font-condensed); font-size: 1.75rem; font-weight: 700; line-height: 1.2; }
+.heroFacts span { display: block; margin-top: .4rem; font-size: .75rem; color: #59616d; }
+.heroPhoto { position: relative; min-width: 0; height: clamp(400px, 40vw, 540px); border-radius: 12px; overflow: hidden; background: var(--color-navy); }
+.heroPhoto img { width: 100%; height: 100%; object-fit: cover; object-position: center 40%; }
+.heroPhoto::after { content: ''; position: absolute; inset: 35% 0 0; background: linear-gradient(transparent, rgba(11, 23, 41, .9)); }
+.heroPhoto figcaption { position: absolute; z-index: 1; bottom: 2rem; left: 2rem; right: 2rem; color: white; }
+.heroPhoto figcaption span { display: block; font-size: .7rem; text-transform: uppercase; letter-spacing: .12em; margin-bottom: .5rem; }
+.heroPhoto figcaption strong { display: block; max-width: 300px; font-family: var(--font-condensed); font-size: 2rem; line-height: 1.1; font-weight: 600; }
+.timeline { padding: 4.5rem var(--section-px); border-top: 1px solid var(--color-border); scroll-margin-top: 110px; background: #f1eee8; }
+.sectionHeader { display: flex; justify-content: space-between; align-items: flex-end; gap: 2rem; margin-bottom: 3rem; }
+.sectionTitle { font-family: var(--font-condensed); font-size: clamp(2.5rem, 4vw, 3.75rem); font-weight: 700; line-height: 1.08; letter-spacing: -.02em; }
+.historyIntro, .sectionDescription { max-width: 370px; color: #59616d; font-size: .95rem; line-height: 1.75; }
+.orderLabel { display: inline-flex; gap: .6rem; align-items: center; margin-top: 1rem; color: var(--color-dark); font-size: .75rem; font-weight: 600; }
+.orderLabel > span { color: var(--color-red); font-size: 1.2rem; }
+.timelineTrack, .milestoneGrid { list-style: none; }
+.yearGroup { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 2rem; position: relative; padding-bottom: 2.5rem; }
+.yearGroup:last-child { padding-bottom: 0; }
+.yearGroup::before { content: ''; position: absolute; left: 111px; top: 20px; bottom: -20px; width: 1px; background: #d5cdc1; }
+.yearGroup:last-child::before { bottom: 0; }
+.yearMarker { position: relative; align-self: start; }
+.yearMarker::after { content: ''; position: absolute; top: 20px; right: 3px; width: 12px; height: 12px; border: 3px solid #f1eee8; border-radius: 50%; background: var(--color-red); box-shadow: 0 0 0 1px #cbbdaf; }
+.yearMarker h3 { font-family: var(--font-condensed); font-size: 2.5rem; font-weight: 600; line-height: 1.2; }
+.yearMarker span { font-size: .75rem; color: #59616d; }
+.milestoneGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.1rem; }
+.milestoneCard { background: var(--color-white); padding: 1.7rem; border: 1px solid #e3ddd4; border-radius: 10px; box-shadow: 0 4px 12px #0b172903; overflow-wrap: anywhere; }
+.cardMeta { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; }
+.milestoneDate { font-size: .72rem; color: #8e3d27; font-weight: 600; line-height: 1.6; }
+.milestoneCard h4 { font-family: var(--font-condensed); font-size: 1.65rem; line-height: 1.15; font-weight: 700; margin-bottom: .85rem; }
+.milestoneCard p { font-size: .9rem; line-height: 1.8; color: #59616d; white-space: pre-line; }
+.latestCard { grid-column: 1 / -1; background: var(--color-dark); border-color: var(--color-dark); padding: 2rem; color: white; }
+.latestCard h4 { font-size: 2rem; }
+.latestCard p { color: #ccd2db; max-width: 740px; }
+.latestCard .milestoneDate { color: #e5b697; }
+.latestBadge { flex-shrink: 0; padding: .25rem .65rem; border: 1px solid #637083; border-radius: 100px; color: #f5ede3; font-size: .65rem; letter-spacing: .03em; }
+.timelineNotice { padding: 2.5rem; background: white; border: 1px solid var(--color-border); border-radius: 10px; color: #59616d; }
+.retryButton { display: inline-flex; gap: 1rem; margin-top: 1rem; border: 1px solid var(--color-border); border-radius: 6px; padding: .75rem 1rem; background: var(--color-light); color: var(--color-dark); font: inherit; cursor: pointer; }
+.retryButton:hover { border-color: var(--color-red); }
+.manifesto { padding: 4.5rem var(--section-px); background: var(--color-white); }
+.principles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 2rem; }
+.principle { border-top: 1px solid var(--color-border); padding-top: 1.4rem; }
+.principleNum { color: var(--color-red); font-family: var(--font-condensed); font-size: .95rem; font-weight: 600; }
+.principle h3 { font-family: var(--font-condensed); font-size: 1.5rem; line-height: 1.2; margin: 1rem 0 .75rem; }
+.principle p { color: #59616d; font-size: .9rem; line-height: 1.8; }
+.joinBanner { margin-top: 4rem; padding: 2rem 2.5rem; border-radius: 10px; background: var(--color-light); display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; }
+.joinBanner > div > span { color: #59616d; font-size: .8rem; }
+.joinBanner h2 { font-family: var(--font-condensed); font-size: 2rem; line-height: 1.2; margin-top: .4rem; }
+.page a:focus-visible, .page button:focus-visible { outline: 3px solid var(--color-red); outline-offset: 5px; }
+@media (max-width: 1000px) {
+  .heroGrid { gap: 2rem; }
+  .heroTitle { font-size: 3.5rem; }
+  .heroFacts { gap: .75rem; }
+  .heroFacts strong { font-size: 1.5rem; }
+  .principles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .yearGroup { grid-template-columns: 90px minmax(0, 1fr); gap: 1.5rem; }
+  .yearGroup::before { left: 81px; }
 }
-
-.heroInner {
-  max-width: 1280px;
-  margin-inline: auto;
+@media (max-width: 760px) {
+  .hero { padding-top: 1.5rem; padding-bottom: 3rem; }
+  .breadcrumb { margin-bottom: 1.5rem; }
+  .heroGrid { grid-template-columns: 1fr; }
+  .heroTitle { font-size: clamp(3rem, 9vw, 4.5rem); }
+  .heroContent { padding: 0; }
+  .heroDesc { max-width: 540px; }
+  .heroPhoto { height: 380px; }
+  .heroPhoto img { object-position: center 36%; }
+  .sectionHeader { flex-direction: column; align-items: flex-start; gap: 1.5rem; margin-bottom: 2rem; }
+  .historyIntro, .sectionDescription { max-width: 550px; }
+  .timeline, .manifesto { padding-block: 3rem; }
+  .milestoneGrid { grid-template-columns: 1fr; }
+  .latestCard { grid-column: auto; }
+  .joinBanner { padding: 1.75rem; align-items: flex-start; flex-direction: column; margin-top: 3rem; }
 }
-
-.breadcrumb {
-  font-family: var(--font-condensed);
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  color: var(--color-gray);
-  margin-bottom: 2rem;
-}
-
-.breadcrumb a {
-  color: var(--color-gray);
-  transition: color var(--transition);
-}
-.breadcrumb a:hover { color: var(--color-dark); }
-.breadcrumb span { margin-inline: 0.5rem; }
-
-.heroTitle {
-  font-family: var(--font-condensed);
-  font-size: clamp(3rem, 7vw, 6rem);
-  font-weight: 900;
-  line-height: 0.93;
-  color: var(--color-dark);
-  max-width: 700px;
-  margin-bottom: 1.75rem;
-}
-
-.heroDesc {
-  font-size: 1.05rem;
-  color: var(--color-gray);
-  max-width: 560px;
-  line-height: 1.7;
-}
-
-/* ===== Manifiesto ===== */
-.manifesto {
-  background: var(--color-white);
-  padding: var(--section-py) var(--section-px);
-  border-top: 1px solid var(--color-border);
-}
-
-.manifestoInner {
-  max-width: 1280px;
-  margin-inline: auto;
-  display: grid;
-  grid-template-columns: 1fr 2fr;
-  gap: 5rem;
-  align-items: start;
-}
-
-.manifestoLeft {}
-
-.manifestoTitle {
-  font-family: var(--font-condensed);
-  font-size: clamp(2rem, 4vw, 3rem);
-  font-weight: 900;
-  color: var(--color-dark);
-  line-height: 1;
-}
-
-.manifestoSub {
-  font-size: 0.875rem;
-  color: var(--color-gray);
-  margin-top: 0.75rem;
-  line-height: 1.6;
-}
-
-.principles {
-  display: flex;
-  flex-direction: column;
-}
-
-.principle {
-  display: grid;
-  grid-template-columns: 3rem 1fr;
-  gap: 1.5rem;
-  padding: 2rem 0;
-  border-bottom: 1px solid var(--color-border);
-  align-items: start;
-}
-
-.principle:first-child { border-top: 1px solid var(--color-border); }
-
-.principleNum {
-  font-family: var(--font-condensed);
-  font-size: 1rem;
-  font-weight: 800;
-  color: var(--color-red);
-  padding-top: 0.2rem;
-}
-
-.principleBody {}
-
-.principleTitle {
-  font-family: var(--font-condensed);
-  font-size: 1.35rem;
-  font-weight: 800;
-  color: var(--color-dark);
-  margin-bottom: 0.5rem;
-}
-
-.principleDesc {
-  font-size: 0.9rem;
-  color: var(--color-gray);
-  line-height: 1.65;
-}
-
-/* ===== Timeline ===== */
-.timeline {
-  background: var(--color-light);
-  padding: var(--section-py) var(--section-px);
-  border-top: 1px solid var(--color-border);
-}
-
-.timelineInner {
-  max-width: 1280px;
-  margin-inline: auto;
-}
-
-.timelineTitle {
-  font-family: var(--font-condensed);
-  font-size: clamp(2.5rem, 5vw, 4.5rem);
-  font-weight: 900;
-  line-height: 0.95;
-  color: var(--color-dark);
-  margin-bottom: 4rem;
-}
-
-.timelineTrack {
-  display: flex;
-  flex-direction: column;
-  max-width: 860px;
-}
-
-.timelineItem {
-  display: grid;
-  grid-template-columns: 2.5rem 1fr;
-  grid-template-rows: auto auto;
-  column-gap: 1.5rem;
-  padding: 1.5rem 0;
-  border-bottom: 1px solid var(--color-border);
-}
-
-.timelineItem:first-child { padding-top: 0; }
-
-.timelineYear {
-  grid-column: 1;
-  grid-row: 1 / 3;
-  padding-top: 0.2rem;
-}
-
-.timelineYearText {
-  font-family: var(--font-condensed);
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--color-amber);
-  letter-spacing: 0.05em;
-}
-
-.timelineEvent {
-  grid-column: 2;
-  grid-row: 1;
-  font-family: var(--font-condensed);
-  font-size: 1.2rem;
-  font-weight: 800;
-  color: var(--color-dark);
-  margin-bottom: 0.375rem;
-  line-height: 1.2;
-}
-
-.timelineDesc {
-  grid-column: 2;
-  grid-row: 2;
-  font-size: 0.875rem;
-  color: var(--color-gray);
-  line-height: 1.6;
-  border-left: 2px solid var(--color-border);
-  padding-left: 1rem;
-}
-
-/* Paginador del timeline en AboutPage */
-.timelinePaginator {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-top: 2rem;
-  flex-wrap: wrap;
-}
-
-.timelinePageBtn {
-  width: 36px;
-  height: 36px;
-  border-radius: 6px;
-  border: 1.5px solid var(--color-border);
-  background: white;
-  color: var(--color-dark);
-  font-size: 1rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.15s, border-color 0.15s;
-}
-.timelinePageBtn:hover:not(:disabled) {
-  background: var(--color-light);
-  border-color: var(--color-dark);
-}
-.timelinePageBtn:disabled { opacity: 0.25; cursor: not-allowed; }
-.timelinePageBtnActive {
-  background: var(--color-red);
-  border-color: var(--color-red);
-  color: white;
-}
-
-.timelinePageInfo {
-  font-family: var(--font-condensed);
-  font-size: 0.7rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  color: var(--color-gray);
-  margin-left: 0.5rem;
-  text-transform: uppercase;
-}
-
-/* ===== Comandancia ===== */
-.leadership {
-  background: var(--color-light);
-  padding: var(--section-py) var(--section-px);
-  border-top: 1px solid var(--color-border);
-}
-
-.leadershipInner {
-  max-width: 1280px;
-  margin-inline: auto;
-}
-
-.leadershipHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  margin-bottom: 3rem;
-  flex-wrap: wrap;
-  gap: 1rem;
-}
-
-.leadershipTitle {
-  font-family: var(--font-condensed);
-  font-size: clamp(2.5rem, 5vw, 4.5rem);
-  font-weight: 900;
-  line-height: 0.95;
-  color: var(--color-dark);
-}
-
-.leadershipPeriod {
-  font-family: var(--font-condensed);
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  color: var(--color-gray);
-}
-
-.leadershipGrid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1.25rem;
-}
-
-.memberCard {
-  background: var(--color-white);
-  border: 1px solid var(--color-border);
-  border-radius: 10px;
-  overflow: hidden;
-}
-
-.memberPhoto {
-  position: relative;
-  aspect-ratio: 3/4;
-  background: var(--color-navy);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.memberPhoto img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.memberPhotoPlaceholder {
-  font-family: var(--font-condensed);
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  color: rgba(255,255,255,0.25);
-}
-
-.memberBadge {
-  position: absolute;
-  top: 0.875rem;
-  left: 0.875rem;
-  background: var(--color-red);
-  color: var(--color-white);
-  font-family: var(--font-condensed);
-  font-size: 0.6rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  padding: 0.3rem 0.65rem;
-  border-radius: 999px;
-}
-
-.memberInfo {
-  padding: 1.25rem;
-}
-
-.memberName {
-  font-family: var(--font-condensed);
-  font-size: 1.05rem;
-  font-weight: 800;
-  color: var(--color-dark);
-  margin-bottom: 0.25rem;
-}
-
-.memberRole {
-  font-family: var(--font-condensed);
-  font-size: 0.65rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--color-red);
-  margin-bottom: 0.625rem;
-}
-
-.memberDesc {
-  font-size: 0.82rem;
-  color: var(--color-gray);
-  line-height: 1.5;
-}
-
-/* Responsive */
-@media (max-width: 1024px) {
-  .manifestoInner { grid-template-columns: 1fr; gap: 2.5rem; }
-  .leadershipGrid { grid-template-columns: repeat(2, 1fr); }
-}
-
-@media (max-width: 640px) {
-  .leadershipGrid { grid-template-columns: repeat(2, 1fr); }
-  .timelineItem { column-gap: 1rem; }
-  .timelineEvent { font-size: 1rem; }
-  .timelinePaginator { gap: 0.375rem; }
-  .timelinePageBtn { width: 32px; height: 32px; font-size: 0.85rem; }
-}
-
 @media (max-width: 480px) {
-  .leadershipGrid { grid-template-columns: 1fr; }
+  .heroPhoto { height: 330px; }
+  .heroPhoto figcaption { left: 1.5rem; right: 1.5rem; bottom: 1.5rem; }
+  .heroFacts span { font-size: .7rem; }
+  .yearGroup { grid-template-columns: minmax(0, 1fr); gap: 1rem; padding-left: 1.3rem; padding-bottom: 2rem; }
+  .yearGroup::before { left: 0; }
+  .yearMarker::after { left: calc(-1.3rem - 5px); right: auto; top: 17px; }
+  .yearMarker { display: flex; align-items: center; gap: .75rem; }
+  .yearMarker h3 { font-size: 2rem; }
+  .milestoneCard, .latestCard { padding: 1.3rem; }
+  .cardMeta { flex-wrap: wrap; gap: .6rem; }
+  .latestCard h4 { font-size: 1.75rem; }
+  .principles { grid-template-columns: 1fr; gap: 1.5rem; }
 }

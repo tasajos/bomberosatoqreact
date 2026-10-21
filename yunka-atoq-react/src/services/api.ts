@@ -109,6 +109,13 @@ export interface PostulacionItem {
   created_at: string;
 }
 
+export interface Convocatoria {
+  inicio: string;            // AAAA-MM-DD o ''
+  cierre: string;            // AAAA-MM-DD o ''
+  plazas: number | null;
+  postulantes: number | null;
+}
+
 export const voluntariosApi = {
   list: () => request<Voluntario[]>('/voluntarios'),
   postular: (data: PostulacionData) =>
@@ -119,6 +126,9 @@ export const voluntariosApi = {
   postulaciones: () => request<PostulacionItem[]>('/voluntarios/postulaciones'),
   revisarPostulacion: (id: number) =>
     request<{ ok: boolean }>(`/voluntarios/postulaciones/${id}/revisar`, { method: 'PATCH' }),
+  convocatoria: () => request<Convocatoria>('/voluntarios/convocatoria'),
+  updateConvocatoria: (data: { inicio: string; cierre: string; plazas: string }) =>
+    request<{ ok: boolean }>('/voluntarios/convocatoria', { method: 'PUT', body: JSON.stringify(data) }),
 };
 
 // Departamento de Operaciones
