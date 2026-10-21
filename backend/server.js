@@ -42,6 +42,8 @@ app.use(cors({
   origin: process.env.FRONTEND_URL || 'http://localhost:5173',
   credentials: true,
 }));
+// Los convenios pueden incluir el logo de la contraparte (imagen reducida en el navegador).
+app.use('/api/documentos-presidencia', express.json({ limit: '1mb' }));
 app.use(express.json());
 
 // Servir archivos subidos (imágenes del slider, etc.)

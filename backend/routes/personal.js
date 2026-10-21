@@ -438,12 +438,13 @@ router.post('/:id/documentos', verifyToken, requireRole(...PERSONAL_ROLES),
 
 router.delete('/documentos/:did', verifyToken, requireRole(...PERSONAL_ROLES), async (req, res) => {
   try {
-    const [[doc]] = await pool.query('SELECT archivo_url FROM voluntario_documentos WHERE id=?', [req.params.did]);
+    const [[doc]] = await pool.query('SELECT voluntario_id, nombre, categoria, archivo_url FROM voluntario_documentos WHERE id=?', [req.params.did]);
     if (doc?.archivo_url) {
       const fp = path.join(__dirname, '..', doc.archivo_url.replace(/^\//, ''));
       fs.promises.unlink(fp).catch(() => {});
     }
     await pool.query('DELETE FROM voluntario_documentos WHERE id=?', [req.params.did]);
+    if (doc) await logAccion(doc.voluntario_id, 'documento', `Documento eliminado del file: "${doc.nombre}" (${doc.categoria})`, req.user.id);
     res.json({ ok: true });
   } catch (err) { console.error(err); res.status(500).json({ error: 'Error del servidor' }); }
 });
