@@ -15,6 +15,7 @@
     "test:personal": "node --test tests/personal.test.mjs",
     "test:convenios": "node --test tests/conveniosPdf.test.mjs",
     "test:procedimientos": "node --test tests/procedimientosPdf.test.mjs",
+    "test:whatsapp": "node --test tests/whatsapp.test.mjs",
     "preview": "vite preview"
   },
   "dependencies": {

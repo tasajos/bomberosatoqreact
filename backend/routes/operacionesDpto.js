@@ -4,7 +4,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import pool from '../db.js';
 import { verifyToken, requireRole } from '../middleware/auth.js';
-import { fecha as validarFecha, exigir } from '../services/gestion.js';
+import { fecha as validarFecha, exigir, ROLES_GUARDIA } from '../services/gestion.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const storage = multer.diskStorage({
@@ -19,6 +19,31 @@ const upload = multer({ storage, limits: { fileSize: 15 * 1024 * 1024 } });
 export function crearRouterOperaciones(pool) {
 const router = Router();
 const OPS_ROLES = ['admin','presidente','jefe_operaciones','coordinador'];
+// Reglamento RO-001/25: puntos por operación según su alcance.
+const PUNTOS_OPERACION = { local: 2, nacional: 10, internacional: 15 };
+// Personal que puede figurar como participante (no administradores, postulantes ni bajas).
+const SQL_COMPANERO = `activo=1 AND role NOT IN ('admin','postulante') AND COALESCE(estado_personal,'activo')<>'baja'`;
+
+// GET /api/operaciones-dpto/companeros — personal que se puede etiquetar en una operación
+router.get('/companeros', verifyToken, requireRole(...OPS_ROLES, 'voluntario'), async (req, res) => {
+  try {
+    const [rows] = await pool.query(
+      `SELECT id, TRIM(CONCAT_WS(' ',nombre,apellido_paterno,apellido_materno)) AS nombre, matricula, grado
+       FROM users WHERE ${SQL_COMPANERO} AND id<>? ORDER BY nombre, apellido_paterno`, [req.user.id]);
+    res.json(rows);
+  } catch (err) { console.error(err); res.status(500).json({ error:'Error del servidor' }); }
+});
+
+// GET /api/operaciones-dpto/contactos-validacion — quienes aprueban (para avisar por WhatsApp)
+router.get('/contactos-validacion', verifyToken, requireRole(...OPS_ROLES, 'voluntario'), async (_req, res) => {
+  try {
+    const [rows] = await pool.query(
+      `SELECT TRIM(CONCAT_WS(' ',nombre,apellido_paterno)) AS nombre, role, telefono FROM users
+       WHERE activo=1 AND role IN ('jefe_operaciones','presidente') AND COALESCE(telefono,'')<>''
+       ORDER BY FIELD(role,'jefe_operaciones','presidente'), nombre`);
+    res.json(rows.map(r => ({ nombre: r.nombre, cargo: r.role === 'presidente' ? 'Presidente' : 'Jefe de Operaciones', telefono: r.telefono })));
+  } catch (err) { console.error(err); res.status(500).json({ error:'Error del servidor' }); }
+});
 
 // ══════════════════════════════════════════════════════════════════
 // OPERACIONES
@@ -72,9 +97,22 @@ router.post('/', verifyToken, requireRole(...OPS_ROLES, 'voluntario'),
   try { validarFecha(fecha.slice(0,10)); } catch { return res.status(400).json({error:'Fecha inválida'}); }
   const imagen_url = req.file ? `/uploads/operaciones/${req.file.filename}` : '';
   try {
-    const personal = personal_participante
+    let personal = personal_participante
       ? (typeof personal_participante === 'string' ? personal_participante : JSON.stringify(personal_participante))
       : '[]';
+    // El voluntario figura siempre como participante y puede etiquetar a compañeros activos.
+    if (req.user.role === 'voluntario') {
+      let etiquetas = req.body.participantes ?? [];
+      if (typeof etiquetas === 'string') { try { etiquetas = JSON.parse(etiquetas); } catch { etiquetas = null; } }
+      if (!Array.isArray(etiquetas) || etiquetas.length > 50 || !etiquetas.every(id => Number.isInteger(Number(id)) && Number(id) > 0))
+        return res.status(400).json({ error: 'Participantes inválidos' });
+      const ids = [...new Set(etiquetas.map(Number).filter(id => id !== req.user.id))];
+      if (ids.length) {
+        const [validos] = await pool.query(`SELECT id FROM users WHERE id IN (?) AND ${SQL_COMPANERO}`, [ids]);
+        if (validos.length !== ids.length) return res.status(400).json({ error: 'Solo puede etiquetar a personal activo de la institución' });
+      }
+      personal = JSON.stringify([req.user.id, ...ids]);
+    }
     const [r] = await pool.query(
       `INSERT INTO operaciones
        (tipo,titulo,descripcion,lugar,fecha,duracion_horas,
@@ -83,7 +121,7 @@ router.post('/', verifyToken, requireRole(...OPS_ROLES, 'voluntario'),
        VALUES (?,?,?,?,?,?,?,?,?,?,?,'pendiente')`,
       [tipo||'local', titulo, descripcion||'', lugar||'', fecha, duracion_horas||0,
        req.user.role === 'voluntario' ? req.user.id : voluntario_id||null, oficial_responsable_id||null,
-       req.user.role === 'voluntario' ? JSON.stringify([req.user.id]) : personal,
+       personal,
        imagen_url, req.user.id]
     );
     res.status(201).json({ id: r.insertId });
@@ -92,37 +130,38 @@ router.post('/', verifyToken, requireRole(...OPS_ROLES, 'voluntario'),
 
 // PUT /api/operaciones-dpto/:id/validar — validar o rechazar
 router.put('/:id/validar', verifyToken, requireRole(...OPS_ROLES), async (req, res) => {
-  const { estado, puntos_asignados = 0, observacion_validacion = '' } = req.body;
+  const { estado, observacion_validacion = '', participantes } = req.body;
   if (!['validado','rechazado'].includes(estado)) return res.status(400).json({ error:'Estado inválido' });
-  if (!Number.isInteger(Number(puntos_asignados)) || Number(puntos_asignados)<0 || Number(puntos_asignados)>10000) return res.status(400).json({error:'Puntos inválidos'});
+  if (participantes !== undefined && (!Array.isArray(participantes) || !participantes.every(id => Number.isInteger(Number(id)) && Number(id) > 0)))
+    return res.status(400).json({ error:'Participantes inválidos' });
   let conn;
   try {
     conn = await pool.getConnection();
     await conn.beginTransaction();
-    const [[actual]] = await conn.query('SELECT estado FROM operaciones WHERE id=? FOR UPDATE',[req.params.id]);
-    exigir(actual,'Operación no encontrada',404);
-    exigir(actual.estado==='pendiente','La operación ya fue validada o rechazada',409);
+    const [[op]] = await conn.query('SELECT estado, tipo, voluntario_id, titulo, personal_participante FROM operaciones WHERE id=? FOR UPDATE',[req.params.id]);
+    exigir(op,'Operación no encontrada',404);
+    exigir(op.estado==='pendiente','La operación ya fue validada o rechazada',409);
+    // Participantes registrados: personal_participante + voluntario responsable.
+    const registrados = new Set();
+    try {
+      const parsed = typeof op.personal_participante === 'string' ? JSON.parse(op.personal_participante || '[]') : op.personal_participante || [];
+      if (Array.isArray(parsed)) parsed.forEach(id => { if(Number.isInteger(Number(id)) && Number(id)>0) registrados.add(Number(id)); });
+    } catch {}
+    if (op.voluntario_id) registrados.add(Number(op.voluntario_id));
+    // Quien valida puede confirmar solo a una parte de los etiquetados (no agregar nuevos).
+    const confirmados = participantes ? [...new Set(participantes.map(Number))] : [...registrados];
+    exigir(confirmados.every(id => registrados.has(id)), 'Solo se pueden confirmar participantes registrados en la operación');
+    exigir(estado === 'rechazado' || confirmados.length > 0, 'Confirme al menos un participante');
+    // Puntos según el Reglamento RO-001/25: no se escriben a mano.
+    const puntos_asignados = estado === 'validado' ? PUNTOS_OPERACION[op.tipo] ?? PUNTOS_OPERACION.local : 0;
     await conn.query(
-      `UPDATE operaciones SET estado=?,puntos_asignados=?,observacion_validacion=?,validado_por=? WHERE id=?`,
-      [estado, puntos_asignados, observacion_validacion, req.user.id, req.params.id]
+      `UPDATE operaciones SET estado=?,puntos_asignados=?,observacion_validacion=?,validado_por=?,personal_participante=? WHERE id=?`,
+      [estado, puntos_asignados, observacion_validacion, req.user.id, JSON.stringify(estado === 'validado' ? confirmados : [...registrados]), req.params.id]
     );
-    // Asignar puntos a TODOS los participantes si se valida
+    // Asignar puntos a los participantes confirmados si se valida
     if (estado === 'validado' && puntos_asignados > 0) {
-      const [[op]] = await conn.query(
-        'SELECT voluntario_id, titulo, personal_participante FROM operaciones WHERE id=?',
-        [req.params.id]
-      );
-
-      // Construir lista de IDs a los que asignar puntos:
-      // personal_participante + voluntario_id (si no está ya en la lista)
-      let ids = new Set();
-      try {
-        const parsed = typeof op?.personal_participante === 'string' ? JSON.parse(op.personal_participante) : op?.personal_participante || [];
-        if (Array.isArray(parsed)) parsed.forEach(id => { if(Number.isInteger(Number(id)) && Number(id)>0) ids.add(Number(id)); });
-      } catch {}
-      if (op?.voluntario_id) ids.add(Number(op.voluntario_id));
-
-      const concepto = `Operación validada: ${op?.titulo || ''}`;
+      const ids = new Set(confirmados);
+      const concepto = `Operación validada: ${op.titulo || ''}`;
 
       for (const vid of ids) {
         // Registrar en historial de puntos
@@ -145,7 +184,7 @@ router.put('/:id/validar', verifyToken, requireRole(...OPS_ROLES), async (req, r
       }
     }
     await conn.commit();
-    res.json({ ok: true, participantes_actualizados: true });
+    res.json({ ok: true, puntos_asignados, participantes: estado === 'validado' ? confirmados.length : 0 });
   } catch(err) { if(conn) await conn.rollback(); console.error(err.message); res.status(err.status||500).json({ error:err.status?err.message:'Error del servidor' }); }
   finally { if(conn)conn.release(); }
 });
@@ -189,6 +228,7 @@ router.post('/guardias', verifyToken, requireRole(...OPS_ROLES, 'voluntario'), a
   const voluntarioId = req.user.role === 'voluntario' ? req.user.id : voluntario_id;
   if (!fecha || !voluntarioId) return res.status(400).json({ error:'Fecha y voluntario requeridos' });
   try { validarFecha(fecha); } catch { return res.status(400).json({error:'Fecha inválida'}); }
+  if (rol_guardia && !ROLES_GUARDIA.includes(rol_guardia)) return res.status(400).json({ error:`Rol de guardia inválido. Opciones: ${ROLES_GUARDIA.join(', ')}` });
   if (!['diurno','nocturno','24h'].includes(turno || 'diurno')) return res.status(400).json({error:'Turno inválido'});
   try {
     const [r] = await pool.query(

@@ -126,6 +126,12 @@ test('flujos completos, roles, concurrencia y correos persistentes', {skip:proce
     const [correos]=await f.pool.query('SELECT * FROM gestion_correos WHERE evento=?',[`solicitud:${solicitudId}:registrada`]);
     assert.deepEqual(correos.map(c=>c.destinatario).sort(),['finanzas@example.invalid','presidente@example.invalid','voluntario@example.invalid']);
     const s=await api('voluntario','/gestion/solicitudes',{concepto:'instruccion',monto:20,detalle:'Instrucción semanal'});
+    // Conceptos ampliados y «Otro» con detalle obligatorio.
+    await api('voluntario','/gestion/solicitudes',{concepto:'otro',monto:15,detalle:'Sin especificar'},400);
+    await api('voluntario','/gestion/solicitudes',{concepto:'inventado',monto:15,detalle:'X'},400);
+    const otra=await api('voluntario','/gestion/solicitudes',{concepto:'otro',concepto_otro:'Impresión de manuales',monto:15,detalle:'Material para curso'});
+    await api('voluntario','/gestion/solicitudes',{concepto:'combustible',monto:15,detalle:'Traslado a la operación'});
+    assert.equal((await api('voluntario','/gestion/solicitudes')).find(x=>x.id===otra.id).concepto_otro,'Impresión de manuales');
     const fail=crearProcesadorCorreos(f.pool,f.gestion,async()=>{throw new Error('SMTP fuera de servicio');});await fail();
     const [[fallo]]=await f.pool.query('SELECT * FROM gestion_correos WHERE evento=? LIMIT 1',[`solicitud:${s.id}:registrada`]);assert.equal(fallo.intentos,1);assert.equal(fallo.enviado_at,null);
     await f.pool.query('UPDATE gestion_correos SET proximo_intento=NOW() WHERE enviado_at IS NULL');
@@ -247,15 +253,41 @@ test('flujos completos, roles, concurrencia y correos persistentes', {skip:proce
     await api('finanzas','/gestion/reportes/finanzas?desde=2026-10-10&hasta=2026-10-01',undefined,400);
   });
   await t.test('voluntario solo registra y consulta su actividad; validación única',async()=>{
-    const op=await api('voluntario','/operaciones-dpto',{tipo:'local',titulo:'Operación de prueba',fecha:'2026-10-21T10:00',voluntario_id:f.ids.otro,personal_participante:[f.ids.otro],duracion_horas:2},201);
+    // El voluntario etiqueta a compañeros activos; no a administradores ni a inexistentes.
+    const companeros=await api('voluntario','/operaciones-dpto/companeros');
+    assert.ok(companeros.some(c=>c.id===f.ids.otro));assert.ok(!companeros.some(c=>c.id===f.ids.voluntario||c.id===f.ids.admin));
+    await api('voluntario','/operaciones-dpto',{tipo:'local',titulo:'X',fecha:'2026-10-21T10:00',participantes:[f.ids.admin]},400);
+    await api('voluntario','/operaciones-dpto',{tipo:'local',titulo:'X',fecha:'2026-10-21T10:00',participantes:[999999]},400);
+    const op=await api('voluntario','/operaciones-dpto',{tipo:'local',titulo:'Operación de prueba',fecha:'2026-10-21T10:00',voluntario_id:f.ids.otro,participantes:[f.ids.otro],duracion_horas:2},201);
     const [[stored]]=await f.pool.query('SELECT * FROM operaciones WHERE id=?',[op.id]);assert.equal(stored.voluntario_id,f.ids.voluntario);assert.equal(stored.estado,'pendiente');
-    assert.equal((await api('otro','/operaciones-dpto')).data.length,0);
+    assert.deepEqual(JSON.parse(stored.personal_participante),[f.ids.voluntario,f.ids.otro]);
+    assert.equal((await api('otro','/operaciones-dpto')).data.length,1);
     await api('voluntario',`/operaciones-dpto/${op.id}/validar`,{estado:'validado'},403,randomUUID(),'PUT');
-    await api('operaciones',`/operaciones-dpto/${op.id}/validar`,{estado:'validado',puntos_asignados:5},200,randomUUID(),'PUT');
-    await api('operaciones',`/operaciones-dpto/${op.id}/validar`,{estado:'validado',puntos_asignados:5},409,randomUUID(),'PUT');
-    const [[puntos]]=await f.pool.query('SELECT total_puntos FROM users WHERE id=?',[f.ids.voluntario]);assert.equal(puntos.total_puntos,5);
+    // Los puntos salen del reglamento (local = 2); un valor enviado a mano se ignora.
+    const v1=await api('operaciones',`/operaciones-dpto/${op.id}/validar`,{estado:'validado',puntos_asignados:5},200,randomUUID(),'PUT');
+    assert.equal(v1.puntos_asignados,2);assert.equal(v1.participantes,2);
+    await api('operaciones',`/operaciones-dpto/${op.id}/validar`,{estado:'validado'},409,randomUUID(),'PUT');
+    const pts=async id=>(await f.pool.query('SELECT total_puntos FROM users WHERE id=?',[id]))[0][0].total_puntos;
+    assert.equal(await pts(f.ids.voluntario),2);assert.equal(await pts(f.ids.otro),2);
+    // Nacional = 10; el presidente aprueba y desmarca a quien no participó.
+    const op2=await api('voluntario','/operaciones-dpto',{tipo:'nacional',titulo:'Incendio forestal',fecha:'2026-10-22T08:00',participantes:[f.ids.otro]},201);
+    await api('presidente',`/operaciones-dpto/${op2.id}/validar`,{estado:'validado',participantes:[f.ids.admin]},400,randomUUID(),'PUT');
+    await api('presidente',`/operaciones-dpto/${op2.id}/validar`,{estado:'validado',participantes:[]},400,randomUUID(),'PUT');
+    assert.equal((await api('presidente',`/operaciones-dpto/${op2.id}/validar`,{estado:'validado',participantes:[f.ids.voluntario]},200,randomUUID(),'PUT')).puntos_asignados,10);
+    assert.equal(await pts(f.ids.voluntario),12);assert.equal(await pts(f.ids.otro),2);
+    const op3=await api('voluntario','/operaciones-dpto',{tipo:'internacional',titulo:'Rechazada',fecha:'2026-10-23T08:00'},201);
+    await api('operaciones',`/operaciones-dpto/${op3.id}/validar`,{estado:'rechazado',observacion_validacion:'Sin respaldo'},200,randomUUID(),'PUT');
+    assert.equal(await pts(f.ids.voluntario),12);
+    // Contactos para avisar por WhatsApp: solo quienes aprueban y tienen teléfono.
+    assert.equal((await api('voluntario','/operaciones-dpto/contactos-validacion')).length,0);
+    await f.pool.query("UPDATE users SET telefono='71234567' WHERE id=?",[f.ids.operaciones]);
+    assert.deepEqual((await api('voluntario','/operaciones-dpto/contactos-validacion')).map(c=>[c.cargo,c.telefono]),[['Jefe de Operaciones','71234567']]);
     await api('voluntario','/operaciones-dpto/guardias',{fecha:'2026-10-21',turno:'nocturno',voluntario_id:f.ids.otro},201);
-    assert.equal((await api('voluntario','/operaciones-dpto/guardias')).length,1);assert.equal((await api('otro','/operaciones-dpto/guardias')).length,0);
+    // Solo roles institucionales: «Socorrista» se rechaza; «Rescatista» y «Bombero voluntario» son válidos.
+    await api('voluntario','/operaciones-dpto/guardias',{fecha:'2026-10-22',turno:'diurno',rol_guardia:'Socorrista'},400);
+    await api('voluntario','/operaciones-dpto/guardias',{fecha:'2026-10-22',turno:'diurno',rol_guardia:'Rescatista'},201);
+    await api('voluntario','/operaciones-dpto/guardias',{fecha:'2026-10-23',turno:'diurno',rol_guardia:'Bombero voluntario'},201);
+    assert.equal((await api('voluntario','/operaciones-dpto/guardias')).length,3);assert.equal((await api('otro','/operaciones-dpto/guardias')).length,0);
   });
   await t.test('personal: alta con matrícula, edición, código, comisión, llamadas, asistencia, bitácora y file',async()=>{
     await api('voluntario','/gestion/personal',undefined,403);

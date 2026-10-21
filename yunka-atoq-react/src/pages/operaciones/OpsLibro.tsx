@@ -20,6 +20,8 @@ const ROL_COLORS: Record<string, { color: string; bg: string }> = {
   'Jefe de guardia':        { color: '#991b1b', bg: '#fef2f2' },
   'Oficial de guardia':     { color: '#1e40af', bg: '#eff6ff' },
   'Maquinista':             { color: '#5b21b6', bg: '#f5f3ff' },
+  'Bombero voluntario':     { color: '#b91c1c', bg: '#fff1f2' },
+  'Rescatista':             { color: '#c2410c', bg: '#fff7ed' },
   'Voluntario de servicio': { color: '#166534', bg: '#f0fdf4' },
   'Apoyo logístico':        { color: '#92400e', bg: '#fffbeb' },
   'Comunicaciones':         { color: '#155e75', bg: '#ecfeff' },

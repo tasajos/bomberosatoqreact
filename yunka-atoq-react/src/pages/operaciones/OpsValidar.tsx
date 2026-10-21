@@ -14,15 +14,19 @@ function ValidarModal({ op, voluntarios, onClose, onDone }:{
   op: Operacion; voluntarios: AdminUser[]; onClose:()=>void; onDone:()=>void;
 }) {
   const [estado, setEstado] = useState<'validado'|'rechazado'>('validado');
-  const [puntos, setPuntos] = useState(String(PUNTOS_POR_TIPO[op.tipo] ?? 2));
   const [obs,    setObs]    = useState('');
   const [saving, setSaving] = useState(false);
   const [err,    setErr]    = useState('');
 
-  // Parsear personal_participante
+  // Puntos fijados por el Reglamento RO-001/25 según el tipo de operación.
+  const puntos = PUNTOS_POR_TIPO[op.tipo] ?? 2;
+  // Participantes registrados (etiquetados + responsable); quien valida confirma quiénes participaron.
   let participantesIds: number[] = [];
   try { participantesIds = JSON.parse(op.personal_participante || '[]'); } catch { participantesIds = []; }
+  if (op.voluntario_id && !participantesIds.includes(op.voluntario_id as number)) participantesIds = [...participantesIds, op.voluntario_id as number];
   const participantes = voluntarios.filter(v => participantesIds.includes(v.id));
+  const [confirmados, setConfirmados] = useState<number[]>(participantesIds);
+  const alternar = (id: number) => setConfirmados(c => c.includes(id) ? c.filter(x => x !== id) : [...c, id]);
 
   useEffect(() => {
     const h = (e:KeyboardEvent) => { if(e.key==='Escape') onClose(); };
@@ -35,8 +39,8 @@ function ValidarModal({ op, voluntarios, onClose, onDone }:{
     try {
       await opsDptoApi.validarOp(op.id, {
         estado,
-        puntos_asignados: Number(puntos)||0,
         observacion_validacion: obs,
+        participantes: estado === 'validado' ? confirmados : undefined,
       });
       onDone(); onClose();
     } catch(e:unknown) { setErr(e instanceof Error ? e.message : 'Error'); }
@@ -149,7 +153,7 @@ function ValidarModal({ op, voluntarios, onClose, onDone }:{
             <div style={{fontFamily:'var(--font-body)',fontSize:'0.75rem',fontWeight:700,
               letterSpacing:'0.06em',textTransform:'uppercase',color:'#64748B',
               marginBottom:'0.625rem',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
-              <span>👥 Personal que participó</span>
+              <span>👥 Personal que participó {estado === 'validado' && participantes.length > 0 && '· marque quienes estuvieron'}</span>
               <span style={{fontWeight:600,color:participantes.length>0?'#C41E1E':'#94A3B8'}}>
                 {participantes.length} persona{participantes.length!==1?'s':''}
               </span>
@@ -163,10 +167,12 @@ function ValidarModal({ op, voluntarios, onClose, onDone }:{
             ) : (
               <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(155px,1fr))',gap:'0.5rem'}}>
                 {participantes.map(v => (
-                  <div key={v.id} style={{
-                    padding:'0.625rem 0.875rem',borderRadius:'7px',
-                    background:'#C41E1E',
+                  <label key={v.id} style={{
+                    padding:'0.625rem 0.875rem',borderRadius:'7px',cursor:'pointer',display:'block',
+                    background: confirmados.includes(v.id) ? '#C41E1E' : '#94A3B8',
                   }}>
+                    <input type="checkbox" checked={confirmados.includes(v.id)} onChange={() => alternar(v.id)}
+                      style={{marginRight:'0.4rem',verticalAlign:'middle'}} aria-label={`Confirmar participación de ${v.nombre}`} />
                     <div style={{fontFamily:'var(--font-body)',fontSize:'0.82rem',fontWeight:700,
                       color:'white',lineHeight:1.3,marginBottom:'0.35rem'}}>
                       {v.nombre} {v.apellido_paterno}
@@ -187,7 +193,7 @@ function ValidarModal({ op, voluntarios, onClose, onDone }:{
                         </span>
                       )}
                     </div>
-                  </div>
+                  </label>
                 ))}
               </div>
             )}
@@ -214,19 +220,16 @@ function ValidarModal({ op, voluntarios, onClose, onDone }:{
 
           {estado === 'validado' && (
             <div className={styles.field}>
-              <label className={styles.label}>Puntos a asignar</label>
-              <input className={styles.input} type="number" min="0" max="100"
-                value={puntos} onChange={e=>setPuntos(e.target.value)} />
-              {Number(puntos) > 0 && (
+              <label className={styles.label}>Puntos según reglamento</label>
+              <div className={styles.input} style={{background:'#F8FAFC',fontWeight:700}}>{puntos} pts por participante</div>
+              {puntos > 0 && (
                 <div style={{marginTop:'0.375rem',background:'#EFF6FF',border:'1px solid #BFDBFE',
                   borderRadius:'6px',padding:'0.625rem 0.875rem',fontSize:'0.78rem',color:'#1E40AF'}}>
-                  <strong>Se asignarán {puntos} pts a cada participante:</strong>
+                  <strong>Se asignarán {puntos} pts a cada participante confirmado:</strong>
                   <br/>
-                  {participantes.length > 0
-                    ? `${participantes.length} participante${participantes.length!==1?'s':''} = ${participantes.length} × ${puntos} = ${participantes.length * Number(puntos)} pts en total`
-                    : 'Solo al voluntario responsable'}
-                  {op.voluntario_nombre && !participantesIds.includes(op.voluntario_id as number) &&
-                    ` + ${op.voluntario_nombre} (responsable)`}
+                  {confirmados.length > 0
+                    ? `${confirmados.length} participante${confirmados.length!==1?'s':''} × ${puntos} = ${confirmados.length * puntos} pts en total`
+                    : 'Marque al menos un participante para validar'}
                 </div>
               )}
             </div>

@@ -18,7 +18,10 @@ export function fecha(value) {
 }
 export const hoyBolivia = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/La_Paz' }).format(new Date());
 export const ESTADOS_EQUIPO = ['bueno', 'regular', 'mantenimiento', 'danado', 'baja'];
-export const CONCEPTOS = ['apoyo', 'instruccion', 'capacitacion', 'viaje'];
+// Conceptos de las solicitudes de dinero; «otro» exige especificar el concepto.
+export const CONCEPTOS = ['apoyo', 'operacion', 'instruccion', 'capacitacion', 'viaje', 'combustible', 'alimentacion', 'transporte', 'hospedaje', 'equipamiento', 'salud', 'comunicaciones', 'otro'];
+// Roles de guardia de la institución (los mismos que usa Operaciones).
+export const ROLES_GUARDIA = ['Jefe de guardia', 'Oficial de guardia', 'Maquinista', 'Bombero voluntario', 'Rescatista', 'Voluntario de servicio', 'Apoyo logístico', 'Comunicaciones', 'Observador'];
 // Conceptos de todos los movimientos. «manual» indica los que finanzas elige al registrar
 // un ingreso o egreso directo; los demás los asigna el sistema según el origen.
 export const CONCEPTOS_MOVIMIENTO = [
@@ -37,6 +40,12 @@ export const CONCEPTOS_MOVIMIENTO = [
   { clave: 'instruccion', nombre: 'Instrucción', tipo: 'egreso', manual: false },
   { clave: 'capacitacion', nombre: 'Capacitación', tipo: 'egreso', manual: false },
   { clave: 'viaje', nombre: 'Viaje', tipo: 'egreso', manual: false },
+  { clave: 'operacion', nombre: 'Apoyo a operación / emergencia', tipo: 'egreso', manual: false },
+  { clave: 'transporte', nombre: 'Transporte', tipo: 'egreso', manual: false },
+  { clave: 'hospedaje', nombre: 'Hospedaje', tipo: 'egreso', manual: false },
+  { clave: 'salud', nombre: 'Atención médica', tipo: 'egreso', manual: false },
+  { clave: 'comunicaciones', nombre: 'Comunicaciones', tipo: 'egreso', manual: false },
+  { clave: 'otro', nombre: 'Otro concepto', tipo: 'ambos', manual: false },
   { clave: 'mensualidad', nombre: 'Mensualidades', tipo: 'ingreso', manual: false },
   { clave: 'prestamo', nombre: 'Préstamo recibido', tipo: 'ingreso', manual: false },
   { clave: 'pago_deuda', nombre: 'Pago de deuda', tipo: 'egreso', manual: false },
@@ -49,6 +58,7 @@ const MIGRACIONES = [
   ['22_logistica_actas_tipos.sql', 'log_actas', 'codigo'],
   ['23_personal_gestion.sql', 'per_llamadas', 'codigo'],
   ['24_personal_reglamento.sql', 'per_llamadas', 'reglamento_id'],
+  ['26_conceptos_guardias.sql', 'fin_solicitudes', 'concepto_otro'],
 ];
 
 export function crearGestion(pool) {

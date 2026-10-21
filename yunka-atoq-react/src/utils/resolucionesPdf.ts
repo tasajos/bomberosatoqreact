@@ -1,5 +1,6 @@
 import { jsPDF } from 'jspdf';
 import type { CabeceraDocumentos, ContenidoResolucion, DocumentoPresidencia } from '../services/api';
+import { rolDocumento } from './funcionVoluntario';
 
 const AZUL: [number, number, number] = [8, 42, 78];
 const ORO: [number, number, number] = [174, 139, 73];
@@ -150,7 +151,8 @@ export async function componerResolucionPDF(documento: DocumentoPresidencia, rec
       y = await recursos.dibujarGrados(doc, y, contenido.gradoActual, contenido.gradoNuevo);
     }
     for (const voluntario of documento.voluntarios) {
-      parrafo(`•  ${voluntario.rol ? `${voluntario.rol}: ` : ''}${voluntario.nombre}`, { size: 10.5 });
+      const rol = rolDocumento(voluntario);
+      parrafo(`•  ${rol ? `${rol}: ` : ''}${voluntario.nombre}`, { size: 10.5 });
       y += 1;
     }
   }

@@ -59,6 +59,25 @@
 .tiposGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}.tipoCard{border:1px solid #dfe6f1;border-radius:12px;padding:14px 16px}
 .stackBar{display:flex;height:10px;border-radius:10px;overflow:hidden;background:#eef2f9;margin:8px 0}.stackBar span{height:100%}.barOff{background:#cbd5e1}
 .legendDark{display:flex;flex-wrap:wrap;gap:4px 12px;list-style:none;margin:6px 0 0;padding:0;font-size:12px;color:#4b5a75}.legendDark li{display:flex;align-items:center;gap:5px}.legendDark i{width:8px;height:8px;border-radius:3px;display:inline-block}
+/* Operaciones: compañeros etiquetados y aviso por WhatsApp */
+.etiquetas{border:1px solid #dfe6f1;border-radius:12px;padding:12px 14px;margin-bottom:16px;background:#f9fbfe;position:relative}
+.etiquetasTitulo{font-size:13px;font-weight:600}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chipFijo,.chipQuitar{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:5px 10px;font-size:12.5px;font-weight:600}
+.chipFijo{background:#e8f6ef;color:#166e4c}.chipQuitar{background:#edf3ff;color:#2456bd}
+.chipQuitar button{border:0;background:none;color:inherit;font-size:15px;line-height:1;cursor:pointer;padding:0 2px}
+.sugerencias{list-style:none;margin:4px 0 0;padding:4px 0;border:1px solid #dfe6f1;border-radius:10px;background:#fff;box-shadow:0 8px 24px #14213d1a;max-height:260px;overflow:auto}
+.sugerencias button{width:100%;text-align:left;border:0;background:none;padding:8px 12px;font:inherit;font-size:13px;cursor:pointer}.sugerencias button:hover{background:#f3f6fb}
+.whatsTexto{white-space:pre-wrap;font:13px/1.5 'IBM Plex Sans',sans-serif;background:#f3faf6;border:1px solid #cfe9dc;border-radius:10px;padding:12px 14px;margin:0}
+.button.whatsBoton,.page a.whatsBoton{background:#1f9d55;color:#fff}
+/* Mis obligaciones (panel del voluntario) */
+.obligaciones{margin:0}.obligaciones h2{margin:0}
+.obligacionesLista{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.obligacionesLista li{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;padding:10px 12px;border-radius:10px;border:1px solid #dfe6f1;border-left:4px solid #16a36b;background:#fbfdfc}
+.obligacionesLista li p{margin:2px 0 0;font-size:13px;color:#4b5a75}
+.obIcono{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-weight:700;background:#e8f6ef;color:#166e4c}
+.obligacionesLista li.ob_debe{border-left-color:#d43a5c;background:#fff8f9}.ob_debe .obIcono{background:#fcedf0;color:#b01e3c}
+.obligacionesLista li.ob_aviso{border-left-color:#e09b25;background:#fffcf4}.ob_aviso .obIcono{background:#fff6e2;color:#956415}
 /* Visor de documentos del file */
 .modal.visor{width:1000px;height:90vh;display:flex;flex-direction:column;gap:10px}.visor h2{overflow-wrap:anywhere}
 .visorMarco{flex:1;width:100%;border:1px solid #dfe6f1;border-radius:10px;background:#f7f9fc}

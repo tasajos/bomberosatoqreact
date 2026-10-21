@@ -41,7 +41,7 @@ export function crearRouterGestion(pool, servicio = crearGestion(pool)) {
   }
   async function avisarSolicitud(db, s, accion) {
     await servicio.notificar(db,`solicitud:${s.id}:${accion}`,'jefe_finanzas',s.solicitante_id,
-      `Solicitud #${s.id} · ${accion}`, `Solicitud #${s.id}\nTipo: ${s.tipo}\nConcepto: ${s.concepto}\nMonto: Bs ${s.monto}\nDetalle: ${s.detalle}\nEstado: ${accion}${s.rechazo_motivo ? `\nMotivo: ${s.rechazo_motivo}` : ''}\nConsulte el portal institucional para ver las autorizaciones y el voucher cuando se ejecute el egreso.`);
+      `Solicitud #${s.id} · ${accion}`, `Solicitud #${s.id}\nTipo: ${s.tipo}\nConcepto: ${s.concepto==='otro'?`Otro: ${s.concepto_otro}`:s.concepto}\nMonto: Bs ${s.monto}\nDetalle: ${s.detalle}\nEstado: ${accion}${s.rechazo_motivo ? `\nMotivo: ${s.rechazo_motivo}` : ''}\nConsulte el portal institucional para ver las autorizaciones y el voucher cuando se ejecute el egreso.`);
   }
   router.get('/finanzas', requireRole('jefe_finanzas','presidente'), get(async () => {
     const resumen = await servicio.saldo(pool);
@@ -129,8 +129,9 @@ export function crearRouterGestion(pool, servicio = crearGestion(pool)) {
     exigir(CONCEPTOS.includes(req.body.concepto),'Concepto inválido');
     if(req.user.role==='jefe_finanzas') exigir(req.body.concepto==='apoyo','Las solicitudes de finanzas son por apoyos');
     const cantidad=monto(req.body.monto), detalle=texto(req.body.detalle,'Detalle',2000);
+    const otro=req.body.concepto==='otro'?texto(req.body.concepto_otro,'Especifique el concepto',80):null;
     // Finanzas también deja su aprobación explícita en un paso separado.
-    const [r]=await db.query('INSERT INTO fin_solicitudes (solicitante_id,tipo,concepto,detalle,monto) VALUES (?,?,?,?,?)',[req.user.id,tipo,req.body.concepto,detalle,cantidad]);
+    const [r]=await db.query('INSERT INTO fin_solicitudes (solicitante_id,tipo,concepto,concepto_otro,detalle,monto) VALUES (?,?,?,?,?,?)',[req.user.id,tipo,req.body.concepto,otro,detalle,cantidad]);
     const s=await solicitud(db,r.insertId);
     await avisarSolicitud(db,s,'registrada'); await audit(db,req,'solicitud',s.id,'registrada'); return {id:s.id};
   }));
@@ -173,7 +174,7 @@ export function crearRouterGestion(pool, servicio = crearGestion(pool)) {
     exigir(/^FIN\d{3,}$/.test(codigo),'Voucher no encontrado',404);
     const [[m]]=await pool.query(`SELECT m.comprobante codigo,m.tipo clase,m.monto,m.detalle,m.referencia,m.created_at fecha,
       r.nombre registrado_nombre,s.id solicitud_id,u.id persona_id,m.voluntario_id mensualidad,COALESCE(s.concepto,m.concepto) concepto,s.created_at solicitud_fecha,
-      m.deuda_id,dd.acreedor deuda_acreedor,dd.tipo deuda_tipo,dd.monto deuda_monto,
+      m.deuda_id,dd.acreedor deuda_acreedor,dd.tipo deuda_tipo,dd.monto deuda_monto,s.concepto_otro,
       (SELECT COALESCE(SUM(x.monto),0) FROM fin_movimientos x WHERE x.deuda_id=m.deuda_id AND x.tipo='egreso' AND x.id<m.id) deuda_pagado_antes,
       ${NOMBRE('u')} beneficiario,u.carnet_identidad beneficiario_ci,u.grado beneficiario_grado,u.email beneficiario_email,
       ${NOMBRE('f')} finanzas_nombre,s.finanzas_fecha,${NOMBRE('p')} presidencia_nombre,s.presidencia_fecha
@@ -182,7 +183,7 @@ export function crearRouterGestion(pool, servicio = crearGestion(pool)) {
       LEFT JOIN users p ON p.id=s.presidencia_por LEFT JOIN fin_deudas dd ON dd.id=m.deuda_id WHERE m.comprobante=?`,[codigo]);
     if(m){
       exigir(req.user.role!=='voluntario'||m.persona_id===req.user.id,'Voucher no encontrado',404);
-      const {persona_id,mensualidad,...datos}=m,v={...datos,concepto_nombre:nombreConcepto(m.concepto)};
+      const {persona_id,mensualidad,...datos}=m,v={...datos,concepto_nombre:m.concepto_otro?`Otro: ${m.concepto_otro}`:nombreConcepto(m.concepto)};
       if(!mensualidad) return v;
       const [periodos]=await pool.query('SELECT p.periodo,p.monto FROM fin_mensualidad_pagos p JOIN fin_movimientos m ON m.id=p.movimiento_id WHERE m.comprobante=? ORDER BY p.periodo',[codigo]);
       return {...v,periodos};
@@ -226,7 +227,7 @@ export function crearRouterGestion(pool, servicio = crearGestion(pool)) {
     if(desde){cond.push('m.created_at>=?');params.push(`${desde} 00:00:00`);}
     if(hasta){cond.push('m.created_at<=?');params.push(`${hasta} 23:59:59`);}
     const where=cond.length?`WHERE ${cond.join(' AND ')}`:'';
-    const [movimientos]=await pool.query(`SELECT m.id,m.comprobante,m.tipo,m.concepto,m.monto,m.detalle,m.referencia,m.created_at,m.solicitud_id,
+    const [movimientos]=await pool.query(`SELECT m.id,m.comprobante,m.tipo,m.concepto,s.concepto_otro,m.monto,m.detalle,m.referencia,m.created_at,m.solicitud_id,
       u.nombre registrado_nombre,${NOMBRE('b')} beneficiario,dd.acreedor deuda_acreedor FROM fin_movimientos m JOIN users u ON u.id=m.registrado_por
       LEFT JOIN fin_solicitudes s ON s.id=m.solicitud_id LEFT JOIN users b ON b.id=COALESCE(s.solicitante_id,m.voluntario_id)
       LEFT JOIN fin_deudas dd ON dd.id=m.deuda_id ${where} ORDER BY m.created_at,m.id`,params);
@@ -234,7 +235,7 @@ export function crearRouterGestion(pool, servicio = crearGestion(pool)) {
       FROM fin_mensualidad_pagos p JOIN fin_movimientos m ON m.id=p.movimiento_id JOIN users u ON u.id=p.voluntario_id ${where} ORDER BY m.created_at,p.periodo`,params);
     const voluntarios=(await mens.estados(pool)).map(({meses,por_cobrar,...e})=>e);
     return {generado:new Date().toISOString(),hoy:hoyBolivia(),desde,hasta,resumen:await servicio.saldo(pool),conceptos:CONCEPTOS_MOVIMIENTO,
-      movimientos:movimientos.map(m=>({...m,concepto_nombre:nombreConcepto(m.concepto)})),deudas:await listarDeudas(pool),
+      movimientos:movimientos.map(m=>({...m,concepto_nombre:m.concepto_otro?`Otro: ${m.concepto_otro}`:nombreConcepto(m.concepto)})),deudas:await listarDeudas(pool),
       mensualidades:{pagos:pagosMensualidad,voluntarios}};
   }));
   // Mensualidades: la deuda se calcula a partir de tarifas, inicio, exenciones y pagos registrados.

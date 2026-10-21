@@ -1,6 +1,7 @@
 import type { DocumentoPresidencia, ContenidoPasos, ContenidoComunicado, CabeceraDocumentos } from '../services/api';
 import { documentosPresidenciaApi } from '../services/api';
 import { GRADOS } from './rankBadge';
+import { rolDocumento } from './funcionVoluntario';
 import { gradoBadgePNG } from './gradoBadgeImage';
 
 const ROTULOS: Record<string, string> = {
@@ -137,8 +138,9 @@ function tablaVoluntarios(doc: any, autoTable: any, y: number, voluntarios: Docu
   autoTable(doc, {
     startY: y + 3,
     margin: MARGENES_TABLA,
-    head: [['#', 'Nombre', 'Código', 'Rol', 'Especialidad']],
-    body: voluntarios.map((v, i) => [i + 1, textoPdf(v.nombre), v.matricula, textoPdf(v.rol || '-'), textoPdf(v.especialidad || '-')]),
+    head: [['#', 'Nombre', 'Código', 'Rol / función', 'Especialidad']],
+    // Sin rol propio del documento se muestra la función institucional de la persona.
+    body: voluntarios.map((v, i) => [i + 1, textoPdf(v.nombre), v.matricula, textoPdf(rolDocumento(v) || '-'), textoPdf(v.especialidad || '-')]),
     styles: { fontSize: 9, overflow: 'linebreak', valign: 'top' },
     columnStyles: { 0: { cellWidth: 9 }, 2: { cellWidth: 24 } },
     headStyles: { fillColor: [178, 34, 34] },

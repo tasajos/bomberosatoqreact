@@ -2,15 +2,7 @@ import { useState, useEffect } from 'react';
 import { opsDptoApi, adminUsersApi, type AdminUser } from '../../services/api';
 import styles from './Ops.module.css';
 
-const ROLES_GUARDIA = [
-  'Jefe de guardia',
-  'Oficial de guardia',
-  'Maquinista',
-  'Voluntario de servicio',
-  'Apoyo logístico',
-  'Comunicaciones',
-  'Observador',
-];
+import { ROLES_GUARDIA } from '../../utils/guardias';
 
 const TURNO_OPTIONS = [
   { value: 'diurno',   label: 'Diurno',    icon: '🌞', color: '#d97706' },

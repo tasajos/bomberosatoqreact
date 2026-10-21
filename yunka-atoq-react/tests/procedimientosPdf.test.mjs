@@ -8,6 +8,11 @@ test('procedimientos: tablas y textos dentro del margen, caracteres no represent
   const server = await createServer({ server: { middlewareMode: true }, logLevel: 'silent' });
   t.after(() => server.close());
   const { generarPasosPDF, textoPdf } = await server.ssrLoadModule('/src/utils/documentosPdf.ts');
+  const { rolDocumento } = await server.ssrLoadModule('/src/utils/funcionVoluntario.ts');
+  // El rol escrito para el documento manda; si falta, se usa la función institucional.
+  assert.equal(rolDocumento({ rol: null, cargo_directiva: 'jefe_finanzas' }), 'Jefe de Finanzas');
+  assert.equal(rolDocumento({ rol: 'Secretaria de actas', cargo_directiva: 'jefe_finanzas' }), 'Secretaria de actas');
+  assert.equal(rolDocumento({ rol: '', cargo_directiva: 'admin' }), '');
 
   assert.equal(textoPdf('el Voluntario solicita → el Director aprueba ⇒ Finanzas'), 'el Voluntario solicita -> el Director aprueba -> Finanzas');
   assert.equal(textoPdf('≥ 48 h – “plazo” • ✓ listo 🚒'), '>= 48 h – “plazo” • (v) listo ');
@@ -22,7 +27,9 @@ test('procedimientos: tablas y textos dentro del margen, caracteres no represent
         descripcion: i === 9 ? `${largo} Flujo: el Voluntario solicita → el Director aprueba → Finanzas aprueba.` : largo })),
     },
     firmante_nombre: 'Cap. Director. Carlos Andres Azcarraga Esquivel', firmante_cargo: 'PRESIDENTE DE LA FUNDACIÓN\nREPRESENTANTE LEGAL\nYUNKA ATOQ',
-    voluntarios: [{ voluntario_id: 1, rol: null, nombre: 'Karylia Guerrero', matricula: 'VR-019', codigo: 'VR', especialidad: 'Soporte Vital', cargo_directiva: '' }],
+    voluntarios: [{ voluntario_id: 1, rol: null, nombre: 'Karylia Guerrero', matricula: 'VR-019', codigo: 'VR', especialidad: 'Soporte Vital', cargo_directiva: 'jefe_finanzas' },
+      { voluntario_id: 2, rol: 'Secretaria de actas', nombre: 'Ana Rojas', matricula: 'VF-001', codigo: 'VF', especialidad: 'Fuego', cargo_directiva: 'jefe_finanzas' },
+      { voluntario_id: 3, rol: null, nombre: 'Beto Vera', matricula: 'VR-002', codigo: 'VR', especialidad: '', cargo_directiva: '' }],
   };
   const doc = await generarPasosPDF(documento);
   // Ningún elemento de las tablas puede pasar del margen derecho (195 mm).

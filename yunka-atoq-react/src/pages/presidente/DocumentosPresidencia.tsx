@@ -8,6 +8,7 @@ import {
 import { descargarDocumentoPDF, compartirDocumentoPDF } from '../../utils/documentosPdf';
 import { MOTIVOS_RESOLUCION } from '../../utils/motivosResolucion';
 import { GRADOS, RankBadgeSVG } from '../../utils/rankBadge';
+import { nombreFuncion } from '../../utils/funcionVoluntario';
 import styles from './DocumentosPresidencia.module.css';
 import CabeceraEditor from './CabeceraEditor';
 
@@ -478,7 +479,7 @@ export default function DocumentosPresidencia({ tipo }: { tipo: TipoDocumentoPre
                         {sel && (
                           <input
                             className={styles.volRolInput}
-                            placeholder="Rol (ej. Secretario, Vocal…)"
+                            placeholder={`Rol en el documento (si se deja vacío: ${nombreFuncion(p.cargo_directiva) || 'sin función'})`}
                             value={sel.rol}
                             onChange={e => setRolVoluntario(p.id, e.target.value)}
                           />

@@ -5,6 +5,8 @@ import EmergenciaMap, { type MapImage } from '../../components/EmergenciaMap';
 import { RankBadgeSVG, GRADOS } from '../../utils/rankBadge';
 import ord from './OrdenesVoluntario.module.css';
 import s from './VoluntarioDashboard.module.css';
+import { gestionApi, type EstadoMensualidad } from '../../services/gestionApi';
+import MisObligaciones from '../gestion/MisObligaciones';
 
 const NIVEL_ORDEN: Record<NivelDificultad, { label: string; icon: string; accent: string; tint: string; ink: string }> = {
   baja:    { label: 'Baja',    icon: '🟢', accent: 'linear-gradient(135deg,#34d399,#10b981)', tint: '#ecfdf5', ink: '#047857' },
@@ -1040,6 +1042,9 @@ export default function VoluntarioDashboard() {
   const [busy, setBusy]       = useState<number | null>(null);
   const [msg, setMsg]         = useState('');
   const [showDir, setShowDir] = useState(false);
+  // Estado real de mensualidades (reemplaza el saldo de la tabla anterior de finanzas).
+  const [mens, setMens] = useState<EstadoMensualidad | null>(null);
+  useEffect(() => { gestionApi.miMensualidad().then(setMens).catch(() => setMens(null)); }, []);
   const [ordenes, setOrdenes] = useState<OrdenOperacion[]>([]);
   const [busyOrden, setBusyOrden] = useState<number | null>(null);
   const [ordenSelId, setOrdenSelId] = useState<number | null>(null);
@@ -1212,9 +1217,12 @@ export default function VoluntarioDashboard() {
             <StatCard label="Capacitaciones" value={stats.caps_inscritas} accent="#7C5CFF" />
             <StatCard label="Permisos" value={stats.permisos} accent="#0EA5E9" />
             <StatCard label="Faltas" value={stats.faltas} accent="#B01E3C" note={stats.faltas === 0 ? 'Sin registros' : undefined} />
-            <StatCard label="Finanzas" value={stats.finanzas_balance > 0 ? `Bs. ${stats.finanzas_balance.toFixed(0)}` : 'Al día'}
-              accent={stats.finanzas_balance > 0 ? '#B01E3C' : '#1F9D6B'} note={stats.finanzas_balance > 0 ? 'Pendiente' : 'Sin deuda'} />
+            <StatCard label="Mensualidades"
+              value={!mens ? '—' : mens.estado === 'debe' ? `Bs. ${mens.deuda.toFixed(0)}` : 'Al día'}
+              accent={mens?.estado === 'debe' ? '#B01E3C' : '#1F9D6B'}
+              note={!mens ? 'Sin información' : !mens.voluntario.cobrable ? 'No sujeto a cobro' : mens.estado === 'debe' ? `${mens.meses_vencidos} ${mens.meses_vencidos === 1 ? 'mes vencido' : 'meses vencidos'}` : 'Sin deuda'} />
           </div>
+          <MisObligaciones />
         </div>
       </div>
 

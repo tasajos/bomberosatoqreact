@@ -1,7 +1,7 @@
 import { request } from './api';
 
 export interface Solicitud {
-  id:number; solicitante_nombre:string; tipo:'ingreso'|'egreso'; concepto:string; detalle:string; monto:string;
+  id:number; solicitante_nombre:string; tipo:'ingreso'|'egreso'; concepto:string; concepto_otro:string|null; detalle:string; monto:string;
   estado:string; finanzas_nombre:string|null; presidencia_nombre:string|null; finanzas_fecha:string|null;
   presidencia_fecha:string|null; rechazo_motivo:string|null; movimiento_id:number|null; comprobante:string|null; correos_pendientes:number;
 }

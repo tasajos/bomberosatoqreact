@@ -139,7 +139,7 @@ export const opsDptoApi = {
     return request<OpsResponse>(`/operaciones-dpto${qs}`);
   },
   createOp:      (d: Partial<Operacion>) => request<{id:number}>('/operaciones-dpto',{method:'POST',body:JSON.stringify(d)}),
-  validarOp:     (id:number,d:{estado:string;puntos_asignados?:number;observacion_validacion?:string}) =>
+  validarOp:     (id:number,d:{estado:string;observacion_validacion?:string;participantes?:number[]}) =>
     request<{ok:boolean}>(`/operaciones-dpto/${id}/validar`,{method:'PUT',body:JSON.stringify(d)}),
   deleteOp:      (id:number) => request<{ok:boolean}>(`/operaciones-dpto/${id}`,{method:'DELETE'}),
 
