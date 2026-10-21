@@ -62,6 +62,42 @@ export interface Tarifa { id:number; desde:string; monto:string; dia_vencimiento
 export interface MensualidadesData { hoy:string; tarifas:Tarifa[]; voluntarios:ResumenMensualidad[] }
 export interface MiFile { documentos:{id:number;nombre:string;categoria:string;descripcion:string;archivo_url:string}[]; resoluciones:{id:number;tipo:string;numero:number;anio:number;titulo:string;fecha:string}[]; memos:{id:number;tipo:string;titulo:string;descripcion:string;fecha:string}[] }
 export interface Correo {id:number;destinatario:string;asunto:string;intentos:number;enviado_at:string|null;ultimo_error:string|null}
+// ── Jefatura de personal ──
+export type EstadoPersona = 'activo'|'pasiva'|'cooperador'|'comision'|'baja';
+export interface PersonaLista {
+  id:number; nombre:string; apellido_paterno:string; apellido_materno:string; nombre_completo:string; codigo:string; matricula:string; grado:string|null;
+  cargo_directiva:string|null; role:string; email:string; telefono:string|null; carnet_identidad:string|null; estado:EstadoPersona; activo:number; total_puntos:number;
+  created_at:string; asist_presentes:number; asist_faltas:number; llamadas:number; meritos:number; demeritos:number; documentos:number; comision_destino:string|null;
+}
+export interface Comision { id:number; voluntario_id:number; motivo:string; destino:string; desde:string; hasta:string|null; estado:'activa'|'finalizada'; estado_anterior:string; creado_nombre:string; created_at:string; finalizada_at:string|null; observacion_cierre:string|null; persona?:string; matricula?:string; grado?:string|null; finalizada_nombre?:string|null }
+export interface Llamada { id:number; codigo:string; voluntario_id:number; tipo:'verbal'|'escrita'; gravedad:'leve'|'grave'|'muy_grave'; motivo:string; descripcion:string; fecha:string; puntos:number; registrado_nombre:string; created_at:string; reglamento_id?:number|null; reglamento_codigo?:string|null; reglamento_descripcion?:string|null; reglamento_sancion?:string|null; persona?:string; matricula?:string; grado?:string|null; carnet_identidad?:string|null }
+export interface Merito { id:number; tipo:'merito'|'demerito'|'antiguedad'; titulo:string; descripcion:string; puntos_extra:number; fecha:string; registrado_nombre:string|null; reglamento_id?:number|null; reglamento_codigo?:string|null; reglamento_gravedad?:string|null; reglamento_sancion?:string|null }
+/** Artículo del reglamento de méritos y deméritos (puntos en valor absoluto). */
+export interface ArticuloReglamento { id:number; tipo:'merito'|'demerito'; codigo:string; descripcion:string; gravedad:'leve'|'grave'|'muy_grave'|null; puntos:number; sancion:string|null; activo:number }
+export interface Bitacora { id:number; voluntario_id?:number; accion:string; detalle:string; created_at:string; registrado_nombre:string|null; persona?:string; matricula?:string; registrado_rol?:string }
+export interface DocumentoFile { id:number; nombre:string; categoria:string; descripcion:string; archivo_url:string; mime:string|null; tamano:number|null; created_at:string; registrado_nombre:string|null }
+export interface FilePersonal {
+  persona:{ id:number; nombre:string; apellido_paterno:string; apellido_materno:string; nombre_completo:string; carnet_identidad:string; fecha_nacimiento:string; tipo_sangre:string;
+    telefono:string; email:string; domicilio:string; contacto_nombre:string; contacto_telefono:string; especialidad:string; codigo:string; matricula:string; grado:string|null;
+    cargo_directiva:string|null; role:string; estado:EstadoPersona; total_puntos:number; created_at:string };
+  codigos:Record<string,string>; comisiones:Comision[]; llamadas:Llamada[]; meritos:Merito[];
+  asistencia:{ resumen:Record<string,number>; registros:{id:number;fecha:string;estado:string;observacion:string|null;registrado_nombre:string|null}[] };
+  documentos:DocumentoFile[]; certificados:{codigo:string;numero:number;curso:string;horas:string;emitido_at:string}[];
+  resoluciones:{id:number;tipo:string;numero:number;anio:number;titulo:string;fecha:string;rol:string|null}[];
+  capacitaciones:{nombre:string;tipo:string;fecha:string;horas:string;estado:string}[]; cursos:{nombre:string;institucion:string;tipo:string;fecha:string;horas:string;archivo_url:string|null}[];
+  equipos:{id:number;estado:string;fecha_devolucion:string;created_at:string;codigo:string;nombre:string;tipo:string}[]; actividad:{operaciones:number;guardias:number}; bitacora:Bitacora[];
+}
+export interface ListaAsistencia {
+  fecha:string; personal:{id:number;nombre_completo:string;matricula:string;codigo:string;grado:string|null;estado:EstadoPersona;comision_destino:string|null}[];
+  registros:{id:number;voluntario_id:number;estado:string;observacion:string|null;created_at:string;registrado_nombre:string|null;nombre_completo:string;matricula:string;grado:string|null}[];
+}
+type ConteoAsistencia = { presente:number; tarde:number; falta:number; permiso:number; comision:number; porcentaje:number|null };
+export interface ReporteAsistencia {
+  desde:string; hasta:string; personas:({voluntario_id:number;nombre_completo:string;matricula:string;grado:string|null;estado_personal:string}&ConteoAsistencia)[];
+  dias:({fecha:string}&ConteoAsistencia)[]; detalle:{fecha:string;estado:string;observacion:string|null;voluntario_id:number;nombre_completo:string;matricula:string;grado:string|null}[];
+}
+const qs=(o:Record<string,string|number|undefined>)=>new URLSearchParams(Object.entries(o).filter(e=>e[1]!==undefined&&e[1]!=='').map(([k,v])=>[k,String(v)]));
+
 export const gestionApi = {
   finanzas:()=>request<FinanzasData>('/gestion/finanzas'),
   solicitudes:()=>request<Solicitud[]>('/gestion/solicitudes'),
@@ -76,9 +112,19 @@ export const gestionApi = {
   miMensualidad:()=>request<EstadoMensualidad>('/gestion/mi-mensualidad'),
   deudas:()=>request<Deuda[]>('/gestion/deudas'),
   tiposEquipo:()=>request<TipoEquipo[]>('/gestion/tipos-equipo'),
+  personal:()=>request<{codigos:Record<string,string>;personal:PersonaLista[]}>('/gestion/personal'),
+  filePersonal:(id:number)=>request<FilePersonal>(`/gestion/personal/${id}/file`),
+  miFileCompleto:()=>request<FilePersonal>('/gestion/mi-file-completo'),
+  reglamento:()=>request<ArticuloReglamento[]>('/gestion/personal/reglamento'),
+  comisiones:()=>request<Comision[]>('/gestion/personal/comisiones'),
+  llamadas:()=>request<Llamada[]>('/gestion/personal/llamadas'),
+  llamada:(codigo:string)=>request<Llamada>(`/gestion/personal/llamadas/${encodeURIComponent(codigo)}`),
+  listaAsistencia:(fecha?:string)=>request<ListaAsistencia>(`/gestion/personal/asistencia?${qs({fecha})}`),
+  reporteAsistencia:(desde?:string,hasta?:string)=>request<ReporteAsistencia>(`/gestion/personal/asistencia/reporte?${qs({desde,hasta})}`),
+  bitacora:(f:{voluntario_id?:number;accion?:string;desde?:string;hasta?:string}={})=>request<Bitacora[]>(`/gestion/personal/bitacora?${qs(f)}`),
   acta:(codigo:string)=>request<Acta>(`/gestion/actas/${encodeURIComponent(codigo)}`),
   reporteLogistica:(desde?:string,hasta?:string)=>request<ReporteLogistica>(`/gestion/reportes/logistica?${new URLSearchParams(Object.entries({desde,hasta}).filter((e):e is [string,string]=>!!e[1]))}`),
   reporte:(desde?:string,hasta?:string)=>request<ReporteFinanzas>(`/gestion/reportes/finanzas?${new URLSearchParams(Object.entries({desde,hasta}).filter((e):e is [string,string]=>!!e[1]))}`),
   correos:()=>request<Correo[]>('/gestion/correos'),
-  guardar:(path:string,body:unknown,clave:string)=>request<{id?:number;ok?:boolean;comprobante?:string;saldo_deuda?:number}>(`/gestion${path}`,{method:'POST',headers:{'Idempotency-Key':clave},body:JSON.stringify(body)}),
+  guardar:(path:string,body:unknown,clave:string)=>request<{id?:number;ok?:boolean;comprobante?:string;saldo_deuda?:number;matricula?:string;registrados?:number;omitidos?:number;cambios?:number}>(`/gestion${path}`,{method:'POST',headers:{'Idempotency-Key':clave},body:JSON.stringify(body)}),
 };

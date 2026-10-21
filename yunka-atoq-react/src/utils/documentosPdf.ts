@@ -447,14 +447,22 @@ export async function generarComunicadoPDF(documento: DocumentoPresidencia) {
   return doc;
 }
 
+/** Convenio interinstitucional; con borrador=true lleva marca de agua y no muestra número. */
+export async function generarConvenioPDF(documento: DocumentoPresidencia, borrador = false) {
+  const { componerConvenioPDF } = await import('./conveniosPdf');
+  const [cabecera, logo] = await Promise.all([obtenerCabecera(), cargarLogoBase64()]);
+  return componerConvenioPDF(documento, { cabecera, logo }, borrador);
+}
+
 export async function generarDocumentoPDF(documento: DocumentoPresidencia) {
   if (documento.tipo === 'resolucion') return generarResolucionPDF(documento);
+  if (documento.tipo === 'convenio') return generarConvenioPDF(documento);
   if (documento.tipo === 'comunicado' || documento.tipo === 'carta') return generarComunicadoPDF(documento);
   return generarPasosPDF(documento);
 }
 
-function nombreArchivo(documento: DocumentoPresidencia) {
-  const prefijos: Record<string, string> = { resolucion: 'RES', procedimiento: 'PROC', protocolo: 'PROT', comunicado: 'COM', carta: 'PYA' };
+export function nombreArchivo(documento: DocumentoPresidencia) {
+  const prefijos: Record<string, string> = { resolucion: 'RES', procedimiento: 'PROC', protocolo: 'PROT', comunicado: 'COM', carta: 'PYA', convenio: 'CONV' };
   return `${prefijos[documento.tipo]}_${String(documento.numero).padStart(3, '0')}-${documento.anio}.pdf`;
 }
 

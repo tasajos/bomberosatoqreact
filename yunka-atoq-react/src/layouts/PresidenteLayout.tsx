@@ -59,6 +59,7 @@ const presidentGroups: { label: string; items: NavItem[] }[] = [
     { to: '/presidente/comunicados',    label: 'Comunicados',    icon: I.bullhorn },
     { to: '/presidente/cartas',         label: 'Mandar carta',   icon: I.mail },
     { to: '/presidente/certificados',   label: 'Certificados',   icon: I.mark },
+    { to: '/presidente/convenios',      label: 'Convenios',      icon: I.gavel },
   ] },
 ];
 
@@ -78,6 +79,7 @@ const TITLES: Record<string, [string, string]> = {
   '/presidente/comunicados':    ['Comunicados',    'Avisos institucionales para voluntarios'],
   '/presidente/cartas':         ['Mandar carta',   'Cartas con numeración y firma institucional'],
   '/presidente/certificados':   ['Certificados',   'Plantilla horizontal para cursos y capacitaciones'],
+  '/presidente/convenios':      ['Convenios',      'Convenios interinstitucionales con numeración correlativa'],
 };
 
 function tituloDe(pathname: string): [string, string] {
@@ -90,9 +92,10 @@ const DIAS = ['DOM', 'LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB'];
 const MESES = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
 const pad = (n: number) => String(n).padStart(2, '0');
 
-type Portal = 'presidente'|'voluntario'|'finanzas'|'logistica';
+type Portal = 'presidente'|'voluntario'|'finanzas'|'logistica'|'personal';
 const portalLinks: Record<Exclude<Portal,'presidente'>, [string,string,keyof typeof I][]> = {
   finanzas: [['','Estado financiero','dash'],['ingresos','Registrar ingresos','list'],['egresos','Registrar egresos','list'],['solicitar-ingreso','Solicitar ingreso por apoyo','inbox'],['solicitar-egreso','Solicitar egreso por apoyo','inbox'],['solicitudes','Atender solicitudes','shield'],['reservas','Reservas de dinero','mark'],['deudas','Deudas y préstamos','gavel'],['mensualidades','Mensualidades','users'],['correos','Notificaciones','mail']],
+  personal: [['','Personal','users'],['nuevo','Registrar personal','id'],['asistencia','Llamar lista','list'],['reporte','Reporte de asistencia','dash'],['comisiones','Comisiones','shield'],['llamadas','Llamadas de atención','bullhorn'],['reglamento','Reglamento disciplinario','gavel'],['bitacora','Bitácora de cambios','book'],['correos','Notificaciones','mail']],
   logistica: [['','Dashboard de equipos','dash'],['inventario','Registrar inventario','list'],['prestamos','Préstamos de equipos','shield'],['estados','Estado y bajas','mark'],['correos','Notificaciones','mail']],
   voluntario: [['','Mi panel','dash'],['operaciones','Mis operaciones','alarm'],['guardias','Registrar guardias','book'],['solicitudes','Solicitar dinero','inbox'],['mensualidades','Mis mensualidades','mark'],['file','File personal','id'],['documentos','Memos y resoluciones','list'],['equipos','Mis equipos','shield'],['meritos','Méritos','mark'],['capacitaciones','Capacitaciones','book'],['ordenes','Órdenes','alarm']],
 };

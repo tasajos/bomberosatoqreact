@@ -17,7 +17,7 @@ function centenas(n: number): string {
 // «uno» pierde la vocal delante de MIL / MILLONES: «veintiún mil», «un millón».
 const apocope = (s: string) => s.replace(/VEINTIUNO$/, 'VEINTIÚN').replace(/UNO$/, 'UN');
 
-function enteroALetras(n: number): string {
+export function enteroALetras(n: number): string {
   if (n === 0) return 'CERO';
   const millones = Math.floor(n / 1e6), miles = Math.floor(n / 1000) % 1000, resto = n % 1000;
   const partes: string[] = [];

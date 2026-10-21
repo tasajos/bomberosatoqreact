@@ -6,26 +6,26 @@ import s from './Gestion.module.css';
 export const dinero=(n:number|string)=>new Intl.NumberFormat('es-BO',{style:'currency',currency:'BOB'}).format(Number(n));
 export const fechaCorta=(v:string|null)=>v ? (v.length===10 ? new Date(`${v}T12:00:00`) : new Date(v)).toLocaleDateString('es-BO') : '—';
 export const hoy=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/La_Paz'}).format(new Date());
-export const labels:Record<string,string>={pendiente_finanzas:'Pendiente de finanzas',pendiente_presidencia:'Pendiente de presidencia',autorizada:'Autorizada · por ejecutar',ejecutada:'Ejecutada',rechazada:'Rechazada',pendiente:'Pendiente de presidencia',autorizado:'Asignado al voluntario',rechazado:'Rechazado',devuelto:'Devuelto',bueno:'Bueno',regular:'Regular',mantenimiento:'En mantenimiento',danado:'Dañado',baja:'Dado de baja',apoyo:'Apoyo',instruccion:'Instrucción',capacitacion:'Capacitación',viaje:'Viaje',campania:'Campaña',vehiculo:'Vehículo',logistica:'Logística',ingreso:'Ingreso',egreso:'Egreso',al_dia:'Al día',debe:'Con deuda',pagado:'Pagado',vencido:'Vencido',exento:'Exento',sin_cobro:'Sin cobro',adelanto:'Adelanto',pagada:'Pagada',prestamo:'Préstamo recibido',proveedor:'Deuda con proveedor',otro:'Otra deuda'};
-export function Badge({value}:{value:string}){return <span className={`${s.badge} ${['autorizado','ejecutada','devuelto','bueno','validado','al_dia','pagado','pagada'].includes(value)?s.good:['rechazada','rechazado','baja','danado','debe','vencido'].includes(value)?s.bad:value.startsWith('pendiente')?s.pending:''}`}>{labels[value]??value}</span>;}
+export const labels:Record<string,string>={pendiente_finanzas:'Pendiente de finanzas',pendiente_presidencia:'Pendiente de presidencia',autorizada:'Autorizada · por ejecutar',ejecutada:'Ejecutada',rechazada:'Rechazada',pendiente:'Pendiente de presidencia',autorizado:'Asignado al voluntario',rechazado:'Rechazado',devuelto:'Devuelto',bueno:'Bueno',regular:'Regular',mantenimiento:'En mantenimiento',danado:'Dañado',baja:'Dado de baja',apoyo:'Apoyo',instruccion:'Instrucción',capacitacion:'Capacitación',viaje:'Viaje',campania:'Campaña',vehiculo:'Vehículo',logistica:'Logística',ingreso:'Ingreso',egreso:'Egreso',al_dia:'Al día',debe:'Con deuda',pagado:'Pagado',vencido:'Vencido',exento:'Exento',sin_cobro:'Sin cobro',adelanto:'Adelanto',pagada:'Pagada',prestamo:'Préstamo recibido',proveedor:'Deuda con proveedor',otro:'Otra deuda',activo:'Activo',pasiva:'Pasivo',cooperador:'Cooperador',comision:'En comisión',activa:'Activa',finalizada:'Finalizada',presente:'Presente',tarde:'Tarde',falta:'Falta',permiso:'Permiso',leve:'Leve',muy_grave:'Muy grave',grave:'Grave',verbal:'Verbal',escrita:'Escrita',merito:'Mérito',demerito:'Demérito',postulante:'Postulante'};
+export function Badge({value}:{value:string}){return <span className={`${s.badge} ${['autorizado','ejecutada','devuelto','bueno','validado','al_dia','pagado','pagada','activo','presente','merito','finalizada'].includes(value)?s.good:['rechazada','rechazado','baja','danado','debe','vencido','falta','grave','muy_grave','demerito'].includes(value)?s.bad:value.startsWith('pendiente')||['tarde','permiso','leve','comision','activa','pasiva'].includes(value)?s.pending:''}`}>{labels[value]??value}</span>;}
 export function useRemote<T>(loader:()=>Promise<T>){
   const [data,setData]=useState<T|null>(null),[error,setError]=useState(''),[loading,setLoading]=useState(true),[version,setVersion]=useState(0);
   useEffect(()=>{let active=true;setLoading(true);setError('');loader().then(d=>{if(active)setData(d);}).catch(e=>{if(active)setError(e.message);}).finally(()=>{if(active)setLoading(false);});return()=>{active=false;};},[loader,version]);
   return {data,error,loading,reload:()=>setVersion(v=>v+1)};
 }
 export function useMutation(reload:()=>void){
-  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[message,setMessage]=useState(''),[comprobante,setComprobante]=useState('');
+  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[message,setMessage]=useState(''),[comprobante,setComprobante]=useState(''),[resultado,setResultado]=useState<Awaited<ReturnType<typeof gestionApi.guardar>>|null>(null);
   const lock=useRef(false),last=useRef({payload:'',key:''});
   async function save(path:string,body:unknown){
     if(lock.current)return false;
     lock.current=true;setBusy(true);setError('');setMessage('');setComprobante('');
     const payload=JSON.stringify({path,body});
     if(last.current.payload!==payload)last.current={payload,key:crypto.randomUUID()};
-    try{const r=await gestionApi.guardar(path,body,last.current.key);last.current={payload:'',key:''};setComprobante(r.comprobante??'');setMessage(r.comprobante?`Registro guardado. Se emitió ${r.comprobante.startsWith('LOG')?'el acta':'el voucher'} ${r.comprobante}.`:'Registro guardado correctamente.');reload();return true;}
+    try{const r=await gestionApi.guardar(path,body,last.current.key);setResultado(r);last.current={payload:'',key:''};setComprobante(r.comprobante??'');setMessage(r.comprobante?`Registro guardado. Se emitió ${r.comprobante.startsWith('LOG')?'el acta':'el voucher'} ${r.comprobante}.`:'Registro guardado correctamente.');reload();return true;}
     catch(e){setError(e instanceof Error?e.message:'No se pudo guardar');return false;}
     finally{lock.current=false;setBusy(false);}
   }
-  return {busy,error,message,comprobante,save};
+  return {busy,error,message,comprobante,resultado,save};
 }
 export function Feedback({loading,error,message,children}:{loading?:boolean;error?:string;message?:string;children?:ReactNode}){return <>{loading&&<p role="status" className={s.muted}>Cargando…</p>}{error&&<div role="alert" className={s.error}>{error}</div>}{message&&<div role="status" className={s.success}>{message} {children}</div>}</>;}
 export interface Field {name:string;label:string;type?:string;options?:[string,string][];value?:string;required?:boolean;max?:number;min?:string;step?:string;wide?:boolean}

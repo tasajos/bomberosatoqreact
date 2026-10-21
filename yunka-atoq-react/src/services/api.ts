@@ -828,7 +828,7 @@ export interface PuntoHistorialItem {
 
 export interface VoluntarioLogItem {
   id: number;
-  accion: 'edicion' | 'merito' | 'demerito' | 'asistencia' | 'documento' | 'grado' | 'estado';
+  accion: 'edicion' | 'merito' | 'demerito' | 'asistencia' | 'documento' | 'grado' | 'estado' | 'alta' | 'codigo' | 'comision' | 'llamada';
   detalle: string;
   registrado_nombre: string;
   created_at: string;
@@ -980,7 +980,7 @@ export const ordenesApi = {
 };
 
 // Documentos de presidencia: Resoluciones, Procedimientos, Protocolos, Comunicados
-export type TipoDocumentoPresidencia = 'resolucion' | 'procedimiento' | 'protocolo' | 'comunicado' | 'carta';
+export type TipoDocumentoPresidencia = 'resolucion' | 'procedimiento' | 'protocolo' | 'comunicado' | 'carta' | 'convenio';
 
 export interface ArticuloResolucion { numero: number; titulo: string; texto: string; }
 export interface PasoProcedimiento { numero: number; titulo: string; descripcion: string; }
@@ -1003,6 +1003,21 @@ export interface ContenidoComunicado {
   cuerpo: string;
 }
 
+/** Convenio interinstitucional: cada lista se dibuja como incisos de su cláusula. */
+export interface ContenidoConvenio {
+  titulo: string;
+  contraparte: { articulo: string; nombre: string; sigla: string; pais: string; representante: string; cargo: string; logo: string | null };
+  proposito: string;
+  ambitos: string[];
+  objetivos: string[];
+  compromisos_contraparte: string[];
+  compromisos_yunka: string[];
+  coordinacion: string;
+  financiamiento: string[];
+  vigencia: { anios: number; renovacion: boolean; preaviso_dias: number; ciudad: string; pais: string };
+  clausulas: { titulo: string; texto: string }[];
+}
+
 export interface DocumentoVoluntarioRef {
   voluntario_id: number;
   rol: string | null;
@@ -1021,7 +1036,7 @@ export interface DocumentoPresidencia {
   codigo_completo: string;
   titulo: string;
   fecha: string;
-  contenido: ContenidoResolucion | ContenidoPasos | ContenidoComunicado;
+  contenido: ContenidoResolucion | ContenidoPasos | ContenidoComunicado | ContenidoConvenio;
   firmante_nombre: string;
   firmante_cargo: string;
   creado_por: number | null;
@@ -1035,7 +1050,7 @@ export type DocumentoPresidenciaData = {
   tipo: TipoDocumentoPresidencia;
   titulo: string;
   fecha: string;
-  contenido: ContenidoResolucion | ContenidoPasos | ContenidoComunicado;
+  contenido: ContenidoResolucion | ContenidoPasos | ContenidoComunicado | ContenidoConvenio;
   firmante_nombre?: string;
   firmante_cargo?: string;
   voluntarios?: { voluntario_id: number; rol?: string }[];

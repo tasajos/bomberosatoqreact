@@ -59,6 +59,13 @@
 .tiposGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}.tipoCard{border:1px solid #dfe6f1;border-radius:12px;padding:14px 16px}
 .stackBar{display:flex;height:10px;border-radius:10px;overflow:hidden;background:#eef2f9;margin:8px 0}.stackBar span{height:100%}.barOff{background:#cbd5e1}
 .legendDark{display:flex;flex-wrap:wrap;gap:4px 12px;list-style:none;margin:6px 0 0;padding:0;font-size:12px;color:#4b5a75}.legendDark li{display:flex;align-items:center;gap:5px}.legendDark i{width:8px;height:8px;border-radius:3px;display:inline-block}
+/* Visor de documentos del file */
+.modal.visor{width:1000px;height:90vh;display:flex;flex-direction:column;gap:10px}.visor h2{overflow-wrap:anywhere}
+.visorMarco{flex:1;width:100%;border:1px solid #dfe6f1;border-radius:10px;background:#f7f9fc}
+.visorImagen{flex:1;overflow:auto;display:flex;align-items:flex-start;justify-content:center;background:#f7f9fc;border-radius:10px;padding:10px}.visorImagen img{max-width:100%;height:auto;border-radius:6px}
+/* Personal: matrículas por código y marcas de asistencia */
+.codeAzul{background:#edf3ff;color:#2456bd;border-color:#cddcff}.codeGris{background:#f1f4f8;color:#65728c;border-color:#dfe6f1}
+.tabs .marca_presente{background:#16a36b;color:#fff}.tabs .marca_tarde{background:#e09b25;color:#fff}.tabs .marca_falta{background:#d43a5c;color:#fff}.tabs .marca_permiso{background:#6d8fe6;color:#fff}.tabs .marca_comision{background:#2456bd;color:#fff}
 @media(max-width:900px){.finGrid{grid-template-columns:1fr}.estadoHero{grid-template-columns:1fr}.deudaInfo{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:700px){.voucher{padding:20px 16px}.vHeader{grid-template-columns:auto 1fr}.vNumero{grid-column:1/-1}.vMonto{grid-template-columns:1fr}.vMonto>div+div{border-left:0;padding-left:0;border-top:1px solid #dfe6f1;padding-top:12px}.vDatos{grid-template-columns:1fr}.vAutorizaciones li{grid-template-columns:auto 1fr}.vFirmas{flex-direction:column;gap:40px}.hero strong{font-size:28px}}
 @media print{.voucher{box-shadow:none;max-width:none;gap:14px}.vTitulo,.vCheck,.vNumero span,.code{-webkit-print-color-adjust:exact;print-color-adjust:exact}}

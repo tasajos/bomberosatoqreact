@@ -67,6 +67,10 @@ const LOG_META: Record<VoluntarioLogItem['accion'], { icon: string; label: strin
   documento: { icon: '📁', label: 'Documento', color: '#c4b5fd' },
   grado:     { icon: '⭐', label: 'Grado',     color: '#f59e0b' },
   estado:    { icon: '🔁', label: 'Estado',    color: '#34d399' },
+  alta:      { icon: '🆕', label: 'Alta',      color: '#38bdf8' },
+  codigo:    { icon: '🔢', label: 'Código',    color: '#a78bfa' },
+  comision:  { icon: '🧭', label: 'Comisión',  color: '#2dd4bf' },
+  llamada:   { icon: '📣', label: 'Llamada de atención', color: '#fb923c' },
 };
 
 const EST_LABEL: Record<string, string> = { presente:'Presente', tarde:'Tarde', falta:'Falta', permiso:'Permiso', comision:'Comisión' };

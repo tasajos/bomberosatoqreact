@@ -42,6 +42,7 @@ import PresidentePersonal       from './pages/presidente/PresidentePersonal';
 import PresidenteCapacitaciones from './pages/presidente/PresidenteCapacitaciones';
 import DocumentosPresidencia from './pages/presidente/DocumentosPresidencia';
 import CertificadosPresidencia from './pages/presidente/CertificadosPresidencia';
+import ConveniosPresidencia from './pages/presidente/ConveniosPresidencia';
 import OperacionesLayout from './layouts/OperacionesLayout';
 import OpsTabsLayout from './layouts/OpsTabsLayout';
 import OpsDashboard     from './pages/operaciones/OpsDashboard';
@@ -61,7 +62,6 @@ import MilestonesPage     from './pages/admin/MilestonesPage';
 import VoluntarioLayout     from './layouts/VoluntarioLayout';
 import VoluntarioDashboard  from './pages/voluntario/VoluntarioDashboard';
 import VoluntarioMeritos    from './pages/voluntario/VoluntarioMeritos';
-import VoluntarioFile       from './pages/voluntario/VoluntarioFile';
 import Finanzas from './pages/gestion/Finanzas';
 import Solicitudes from './pages/gestion/Solicitudes';
 import Logistica from './pages/gestion/Logistica';
@@ -70,6 +70,14 @@ import Voucher from './pages/gestion/Voucher';
 import Mensualidades, { MensualidadVoluntario, MiMensualidad } from './pages/gestion/Mensualidades';
 import Deudas from './pages/gestion/Deudas';
 import Acta from './pages/gestion/Acta';
+import Personal, { PersonalNuevo } from './pages/gestion/Personal';
+import PersonalFile from './pages/gestion/PersonalFile';
+import Asistencia, { ReporteAsistencia } from './pages/gestion/Asistencia';
+import Comisiones from './pages/gestion/Comisiones';
+import Llamadas, { LlamadaDoc } from './pages/gestion/Llamadas';
+import Bitacora from './pages/gestion/Bitacora';
+import Reglamento from './pages/gestion/Reglamento';
+import { MiFile } from './pages/gestion/PersonalFile';
 import Correos from './pages/gestion/Correos';
 import ActividadVoluntario from './pages/gestion/ActividadVoluntario';
 import DocumentosVoluntario from './pages/gestion/DocumentosVoluntario';
@@ -139,6 +147,21 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
               <Route path="correos" element={<Correos />} />
             </Route>
           </Route>
+          <Route element={<ProtectedRoute allowedRoles={['jefe_personal']} />}>
+            <Route path="/personal" element={<PresidenteLayout portal="personal" />}>
+              <Route index element={<Personal />} />
+              <Route path="nuevo" element={<PersonalNuevo />} />
+              <Route path="file/:id" element={<PersonalFile />} />
+              <Route path="asistencia" element={<Asistencia />} />
+              <Route path="reporte" element={<ReporteAsistencia />} />
+              <Route path="comisiones" element={<Comisiones />} />
+              <Route path="llamadas" element={<Llamadas />} />
+              <Route path="llamada/:codigo" element={<LlamadaDoc />} />
+              <Route path="bitacora" element={<Bitacora />} />
+              <Route path="reglamento" element={<Reglamento />} />
+              <Route path="correos" element={<Correos />} />
+            </Route>
+          </Route>
           <Route element={<ProtectedRoute allowedRoles={['jefe_logistica']} />}>
             <Route path="/logistica" element={<PresidenteLayout portal="logistica" />}>
               <Route index element={<Logistica />} />
@@ -154,7 +177,8 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
               <Route index element={<VoluntarioDashboard />} />
               <Route path="capacitaciones" element={<MisCapacitaciones />} />
               <Route path="meritos" element={<VoluntarioMeritos />} />
-              <Route path="file" element={<VoluntarioFile />} />
+              <Route path="file" element={<MiFile />} />
+              <Route path="llamada/:codigo" element={<LlamadaDoc />} />
               <Route path="operaciones" element={<ActividadVoluntario tipo="operaciones" />} />
               <Route path="guardias" element={<ActividadVoluntario tipo="guardias" />} />
               <Route path="solicitudes" element={<Solicitudes />} />
@@ -193,6 +217,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
               <Route path="comunicados"     element={<DocumentosPresidencia tipo="comunicado" />} />
               <Route path="cartas"          element={<DocumentosPresidencia tipo="carta" />} />
               <Route path="certificados"    element={<CertificadosPresidencia />} />
+              <Route path="convenios"       element={<ConveniosPresidencia />} />
               {/* Operaciones con sub-opciones como pestañas, dentro del shell presidencial */}
               <Route path="operaciones" element={<OpsTabsLayout />}>
                 <Route index element={<OpsDashboard />} />

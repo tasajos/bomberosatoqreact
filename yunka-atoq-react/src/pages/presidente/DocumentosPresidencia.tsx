@@ -17,6 +17,7 @@ const ROTULOS: Record<TipoDocumentoPresidencia, { singular: string; plural: stri
   protocolo:     { singular: 'Protocolo',     plural: 'Protocolos',     nuevo: 'Nuevo', de: 'del' },
   comunicado:    { singular: 'Comunicado',    plural: 'Comunicados',    nuevo: 'Nuevo', de: 'del' },
   carta:         { singular: 'Carta',         plural: 'Cartas',         nuevo: 'Nueva', de: 'de la' },
+  convenio:      { singular: 'Convenio',      plural: 'Convenios',      nuevo: 'Nuevo', de: 'del' }, // se gestiona en ConveniosPresidencia
 };
 
 const CARGO_DEFECTO = 'PRESIDENTE DE LA FUNDACIÓN\nREPRESENTANTE LEGAL\nYUNKA ATOQ';
