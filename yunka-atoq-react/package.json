@@ -14,6 +14,7 @@
     "test:logistica": "node --test tests/logistica.test.mjs",
     "test:personal": "node --test tests/personal.test.mjs",
     "test:convenios": "node --test tests/conveniosPdf.test.mjs",
+    "test:procedimientos": "node --test tests/procedimientosPdf.test.mjs",
     "preview": "vite preview"
   },
   "dependencies": {

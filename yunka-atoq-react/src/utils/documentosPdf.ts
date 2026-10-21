@@ -100,6 +100,34 @@ export const cargarLogoBase64 = async () =>
   (await cargarImagenBase64('/yunka_atoq_transparente.png')) ?? cargarImagenBase64('/yunka_atoq_log.png');
 const cargarLogoOBA    = () => cargarImagenBase64('/oba_logo.png');
 
+// Las tablas respetan el mismo margen derecho que el texto (A4 = 210 mm de ancho).
+const MARGENES_TABLA = { left: MARGEN_IZQ, right: 210 - MARGEN_DER, top: 20, bottom: 20 };
+
+// Caracteres de WinAnsi (fuentes estándar de jsPDF) fuera de Latin-1.
+const WINANSI = new Set([8211, 8212, 8216, 8217, 8218, 8220, 8221, 8222, 8224, 8225, 8226, 8230, 8240, 8249, 8250, 8364, 8482, 338, 339, 352, 353, 376, 381, 382, 402, 710, 732]);
+// Flechas -> ->, guiones y signo menos -> -, mayor/menor o igual, marcas de verificación y espacio duro.
+const REEMPLAZOS: [RegExp, string][] = [
+  [/[\u2192\u21D2\u2794\u279C\u279D\u27F6]/g, '->'], [/[\u2190\u21D0]/g, '<-'], [/[\u2212\u2010\u2011]/g, '-'],
+  [/\u2265/g, '>='], [/\u2264/g, '<='], [/[\u2713\u2714\u2611]/g, '(v)'], [/[\u2717\u2718]/g, '(x)'], [/\u00A0/g, ' '],
+];
+/** Texto apto para las fuentes estándar del PDF: lo no representable se sustituye o se omite. */
+export function textoPdf(texto: string): string {
+  let t = String(texto ?? '');
+  for (const [re, r] of REEMPLAZOS) t = t.replace(re, r);
+  return [...t].filter(ch => { const c = ch.codePointAt(0)!; return c === 10 || c === 9 || (c >= 32 && c <= 255) || WINANSI.has(c); }).join('');
+}
+
+/** Párrafo con salto de página: ninguna línea se escribe fuera del área útil. */
+function parrafoPaginado(doc: import('jspdf').jsPDF, texto: string, y: number, x = MARGEN_IZQ, ancho = ANCHO, alto = 5): number {
+  const lineas: string[] = doc.splitTextToSize(textoPdf(texto), ancho);
+  for (const linea of lineas) {
+    if (y > 277) { doc.addPage(); y = 20; }
+    doc.text(linea, x, y);
+    y += alto;
+  }
+  return y;
+}
+
 function tablaVoluntarios(doc: any, autoTable: any, y: number, voluntarios: DocumentoPresidencia['voluntarios']): number {
   if (!voluntarios.length) return y;
   if (y > 260) { doc.addPage(); y = 20; }
@@ -108,10 +136,11 @@ function tablaVoluntarios(doc: any, autoTable: any, y: number, voluntarios: Docu
   doc.text('Voluntarios relacionados', MARGEN_IZQ, y);
   autoTable(doc, {
     startY: y + 3,
-    margin: { left: MARGEN_IZQ, right: 195 - MARGEN_DER },
+    margin: MARGENES_TABLA,
     head: [['#', 'Nombre', 'Código', 'Rol', 'Especialidad']],
-    body: voluntarios.map((v, i) => [i + 1, v.nombre, v.matricula, v.rol || '-', v.especialidad || '-']),
-    styles: { fontSize: 9 },
+    body: voluntarios.map((v, i) => [i + 1, textoPdf(v.nombre), v.matricula, textoPdf(v.rol || '-'), textoPdf(v.especialidad || '-')]),
+    styles: { fontSize: 9, overflow: 'linebreak', valign: 'top' },
+    columnStyles: { 0: { cellWidth: 9 }, 2: { cellWidth: 24 } },
     headStyles: { fillColor: [178, 34, 34] },
   });
   return doc.lastAutoTable.finalY + 10;
@@ -345,7 +374,7 @@ async function crearBaseGenerica(documento: DocumentoPresidencia) {
 
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(11);
-  const tituloLineas = doc.splitTextToSize(documento.titulo, ANCHO);
+  const tituloLineas = doc.splitTextToSize(textoPdf(documento.titulo), ANCHO);
   doc.text(tituloLineas, 105, yTrasCabecera + 9, { align: 'center' });
 
   doc.setFont('helvetica', 'normal');
@@ -370,33 +399,29 @@ export async function generarPasosPDF(documento: DocumentoPresidencia) {
   const contenido = documento.contenido as ContenidoPasos;
   let y = yInicial;
 
-  if (contenido.objetivo) {
+  for (const [titulo, texto] of [['OBJETIVO:', contenido.objetivo], ['ALCANCE:', contenido.alcance]] as const) {
+    if (!texto) continue;
+    if (y > 270) { doc.addPage(); y = 20; }
     doc.setFont('helvetica', 'bold'); doc.setFontSize(10);
-    doc.text('OBJETIVO:', MARGEN_IZQ, y); y += 5;
+    doc.text(titulo, MARGEN_IZQ, y); y += 5;
     doc.setFont('helvetica', 'normal');
-    const lineas = doc.splitTextToSize(contenido.objetivo, ANCHO);
-    doc.text(lineas, MARGEN_IZQ, y); y += lineas.length * 5 + 4;
-  }
-  if (contenido.alcance) {
-    doc.setFont('helvetica', 'bold'); doc.setFontSize(10);
-    doc.text('ALCANCE:', MARGEN_IZQ, y); y += 5;
-    doc.setFont('helvetica', 'normal');
-    const lineas = doc.splitTextToSize(contenido.alcance, ANCHO);
-    doc.text(lineas, MARGEN_IZQ, y); y += lineas.length * 5 + 4;
+    y = parrafoPaginado(doc, texto, y) + 4;
   }
   if (contenido.pasos?.length) {
     if (y > 260) { doc.addPage(); y = 20; }
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(10);
     doc.text('PASOS', MARGEN_IZQ, y);
+    // La descripción ocupa el ancho restante y se parte en líneas dentro del margen.
     autoTable(doc, {
       startY: y + 3,
-      margin: { left: MARGEN_IZQ, right: 195 - MARGEN_DER },
+      margin: MARGENES_TABLA,
       head: [['N°', 'Paso', 'Descripción']],
-      body: contenido.pasos.map(p => [p.numero, p.titulo, p.descripcion]),
-      styles: { fontSize: 9, cellWidth: 'wrap' },
-      columnStyles: { 0: { cellWidth: 12 }, 1: { cellWidth: 40 } },
+      body: contenido.pasos.map(p => [p.numero, textoPdf(p.titulo), textoPdf(p.descripcion)]),
+      styles: { fontSize: 9, overflow: 'linebreak', valign: 'top', cellPadding: 2.4 },
+      columnStyles: { 0: { cellWidth: 10, halign: 'center' }, 1: { cellWidth: 42, fontStyle: 'bold' }, 2: { cellWidth: 'auto' } },
       headStyles: { fillColor: [178, 34, 34] },
+      rowPageBreak: 'avoid',
     });
     y = (doc as any).lastAutoTable.finalY + 10;
   }
@@ -415,17 +440,13 @@ export async function generarComunicadoPDF(documento: DocumentoPresidencia) {
     doc.setFont('helvetica', 'bold'); doc.setFontSize(10);
     doc.text('A:', MARGEN_IZQ, y);
     doc.setFont('helvetica', 'normal');
-    const lineas = doc.splitTextToSize(contenido.destinatario, ANCHO - 10);
-    doc.text(lineas, MARGEN_IZQ + 8, y);
-    y += lineas.length * 5 + 4;
+    y = parrafoPaginado(doc, contenido.destinatario, y, MARGEN_IZQ + 8, ANCHO - 8) + 4;
   }
   if (contenido.asunto) {
     doc.setFont('helvetica', 'bold'); doc.setFontSize(10);
     doc.text('ASUNTO:', MARGEN_IZQ, y);
     doc.setFont('helvetica', 'normal');
-    const lineas = doc.splitTextToSize(contenido.asunto, ANCHO - 22);
-    doc.text(lineas, MARGEN_IZQ + 22, y);
-    y += lineas.length * 5 + 6;
+    y = parrafoPaginado(doc, contenido.asunto, y, MARGEN_IZQ + 22, ANCHO - 22) + 6;
   }
 
   doc.setDrawColor(180);
@@ -435,12 +456,7 @@ export async function generarComunicadoPDF(documento: DocumentoPresidencia) {
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(10);
   const parrafos = (contenido.cuerpo || '').split('\n').filter(p => p.trim());
-  for (const p of parrafos) {
-    if (y > 270) { doc.addPage(); y = 20; }
-    const lineas = doc.splitTextToSize(p, ANCHO);
-    doc.text(lineas, MARGEN_IZQ, y);
-    y += lineas.length * 5 + 4;
-  }
+  for (const p of parrafos) y = parrafoPaginado(doc, p, y) + 4;
 
   y = tablaVoluntarios(doc, autoTable, y + 2, documento.voluntarios);
   pieFirmante(doc, y, documento, 'helvetica');
