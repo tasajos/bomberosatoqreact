@@ -118,8 +118,8 @@ router.get('/', verifyToken, async (req, res) => {
       `SELECT d.*, CONCAT(c.nombre,' ',c.apellido_paterno) AS creado_nombre
        FROM documentos_presidencia d
        LEFT JOIN users c ON d.creado_por = c.id
-       WHERE d.tipo=? ORDER BY d.anio DESC, d.numero DESC`,
-      [tipo]
+       WHERE d.tipo=? ${req.user.role === 'voluntario' ? 'AND EXISTS (SELECT 1 FROM documento_presidencia_voluntarios v WHERE v.documento_id=d.id AND v.voluntario_id=?)' : ''} ORDER BY d.anio DESC, d.numero DESC`,
+      req.user.role === 'voluntario' ? [tipo, req.user.id] : [tipo]
     );
     const data = await Promise.all(rows.map(hidratarDocumento));
     res.json({ data });
@@ -157,8 +157,8 @@ router.get('/:id', verifyToken, async (req, res) => {
       `SELECT d.*, CONCAT(c.nombre,' ',c.apellido_paterno) AS creado_nombre
        FROM documentos_presidencia d
        LEFT JOIN users c ON d.creado_por = c.id
-       WHERE d.id=?`,
-      [req.params.id]
+       WHERE d.id=? ${req.user.role === 'voluntario' ? 'AND EXISTS (SELECT 1 FROM documento_presidencia_voluntarios v WHERE v.documento_id=d.id AND v.voluntario_id=?)' : ''}`,
+      req.user.role === 'voluntario' ? [req.params.id, req.user.id] : [req.params.id]
     );
     if (!doc) return res.status(404).json({ error: 'Documento no encontrado' });
     res.json(await hidratarDocumento(doc));

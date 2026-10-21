@@ -26,6 +26,10 @@ import personalRoutes        from './routes/personal.js';
 import ordenesOperacionRoutes from './routes/ordenesOperacion.js';
 import documentosPresidenciaRoutes from './routes/documentosPresidencia.js';
 import certificadosRoutes from './routes/certificados.js';
+import pool from './db.js';
+import { crearGestion } from './services/gestion.js';
+import { crearRouterGestion } from './routes/gestion.js';
+import { iniciarCorreosGestion } from './services/gestionCorreos.js';
 import { noticiaOgHandler, pageOgHandler, OG_PAGE_PATHS } from './routes/ogMeta.js';
 
 dotenv.config();
@@ -65,6 +69,8 @@ app.use('/api/personal',        personalRoutes);
 app.use('/api/ordenes-operacion', ordenesOperacionRoutes);
 app.use('/api/documentos-presidencia', documentosPresidenciaRoutes);
 app.use('/api/certificados', certificadosRoutes);
+const gestion = crearGestion(pool);
+app.use('/api/gestion', crearRouterGestion(pool, gestion));
 
 app.get('/api/health', (_, res) => res.json({ status: 'ok', ts: new Date().toISOString() }));
 
@@ -84,5 +90,6 @@ app.get('*', (req, res) => {
 });
 
 app.listen(PORT, () => {
+  iniciarCorreosGestion(pool, gestion);
   console.log(`Yunka Atoq API corriendo en http://localhost:${PORT}`);
 });

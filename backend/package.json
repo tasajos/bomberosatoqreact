@@ -6,7 +6,9 @@
     "dev": "nodemon server.js",
     "start": "node server.js",
     "setup:admin": "node scripts/setup-admin.js",
-    "check:db": "node scripts/check-db.js"
+    "check:db": "node scripts/check-db.js",
+    "test:gestion": "node --test tests/gestion.test.js",
+    "migrate:gestion": "node scripts/migrate-gestion.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

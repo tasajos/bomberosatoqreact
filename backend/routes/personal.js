@@ -182,7 +182,7 @@ router.get('/:id', verifyToken, requireRole(...PERSONAL_ROLES), async (req, res)
     const [operaciones] = await pool.query(
       `SELECT o.id, o.titulo, o.tipo, o.fecha, o.estado, o.puntos_asignados, o.lugar
        FROM operaciones o
-       WHERE o.voluntario_id=? OR JSON_CONTAINS(COALESCE(NULLIF(o.personal_participante,''),'[]'), CAST(? AS JSON))
+       WHERE o.voluntario_id=? OR JSON_CONTAINS(COALESCE(NULLIF(o.personal_participante,''),'[]'), ?)
        ORDER BY o.fecha DESC`, [vid, String(vid)]
     ).catch(() => [[]]);
 

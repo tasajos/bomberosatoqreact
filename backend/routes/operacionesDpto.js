@@ -4,6 +4,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import pool from '../db.js';
 import { verifyToken, requireRole } from '../middleware/auth.js';
+import { fecha as validarFecha, exigir } from '../services/gestion.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const storage = multer.diskStorage({
@@ -15,6 +16,7 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage, limits: { fileSize: 15 * 1024 * 1024 } });
 
+export function crearRouterOperaciones(pool) {
 const router = Router();
 const OPS_ROLES = ['admin','presidente','jefe_operaciones','coordinador'];
 
@@ -25,9 +27,12 @@ const OPS_ROLES = ['admin','presidente','jefe_operaciones','coordinador'];
 // GET /api/operaciones-dpto — listar (todos los roles operativos)
 router.get('/', verifyToken, requireRole(...OPS_ROLES, 'voluntario'), async (req, res) => {
   const { estado, voluntario_id, tipo, page = 1, limit = 20 } = req.query;
-  const offset = (page - 1) * limit;
+  const pageNumber = Math.max(1, Math.floor(Number(page)||1));
+  const pageLimit = Math.max(1, Math.min(200, Math.floor(Number(limit)||20)));
+  const offset = (pageNumber - 1) * pageLimit;
   const where = [];
   const params = [];
+  if (req.user.role === 'voluntario') { where.push('(o.voluntario_id=? OR JSON_CONTAINS(o.personal_participante, ?))'); params.push(req.user.id, String(req.user.id)); }
   if (estado)        { where.push('o.estado=?');         params.push(estado); }
   if (voluntario_id) { where.push('o.voluntario_id=?');  params.push(voluntario_id); }
   if (tipo)          { where.push('o.tipo=?');            params.push(tipo); }
@@ -45,10 +50,10 @@ router.get('/', verifyToken, requireRole(...OPS_ROLES, 'voluntario'), async (req
        LEFT JOIN users r    ON o.registrado_por = r.id
        LEFT JOIN users val ON o.validado_por = val.id
        ${wStr} ORDER BY o.fecha DESC LIMIT ? OFFSET ?`,
-      [...params, Number(limit), offset]
+      [...params, pageLimit, offset]
     );
     const [[{ total }]] = await pool.query(`SELECT COUNT(*) as total FROM operaciones o ${wStr}`, params);
-    res.json({ data: rows, total, page: Number(page), pages: Math.ceil(total/limit) });
+    res.json({ data: rows, total, page: pageNumber, pages: Math.ceil(total/pageLimit) });
   } catch(err) { console.error(err); res.status(500).json({ error:'Error del servidor' }); }
 });
 
@@ -58,6 +63,13 @@ router.post('/', verifyToken, requireRole(...OPS_ROLES, 'voluntario'),
   const { tipo, titulo, descripcion, lugar, fecha, duracion_horas,
           voluntario_id, oficial_responsable_id, personal_participante } = req.body;
   if (!titulo || !fecha) return res.status(400).json({ error:'Título y fecha son requeridos' });
+  if (typeof titulo !== 'string' || titulo.trim().length > 200 || !titulo.trim() ||
+      !['local','nacional','internacional'].includes(tipo||'local') ||
+      !Number.isFinite(Number(duracion_horas||0)) || Number(duracion_horas||0)<0 || Number(duracion_horas||0)>999.99 ||
+      typeof fecha !== 'string' || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?$/.test(fecha) || isNaN(Date.parse(fecha))) {
+    return res.status(400).json({error:'Revise el título, tipo, fecha y duración de la operación'});
+  }
+  try { validarFecha(fecha.slice(0,10)); } catch { return res.status(400).json({error:'Fecha inválida'}); }
   const imagen_url = req.file ? `/uploads/operaciones/${req.file.filename}` : '';
   try {
     const personal = personal_participante
@@ -70,7 +82,8 @@ router.post('/', verifyToken, requireRole(...OPS_ROLES, 'voluntario'),
         imagen_respaldo,registrado_por,estado)
        VALUES (?,?,?,?,?,?,?,?,?,?,?,'pendiente')`,
       [tipo||'local', titulo, descripcion||'', lugar||'', fecha, duracion_horas||0,
-       voluntario_id||null, oficial_responsable_id||null, personal,
+       req.user.role === 'voluntario' ? req.user.id : voluntario_id||null, oficial_responsable_id||null,
+       req.user.role === 'voluntario' ? JSON.stringify([req.user.id]) : personal,
        imagen_url, req.user.id]
     );
     res.status(201).json({ id: r.insertId });
@@ -81,14 +94,21 @@ router.post('/', verifyToken, requireRole(...OPS_ROLES, 'voluntario'),
 router.put('/:id/validar', verifyToken, requireRole(...OPS_ROLES), async (req, res) => {
   const { estado, puntos_asignados = 0, observacion_validacion = '' } = req.body;
   if (!['validado','rechazado'].includes(estado)) return res.status(400).json({ error:'Estado inválido' });
+  if (!Number.isInteger(Number(puntos_asignados)) || Number(puntos_asignados)<0 || Number(puntos_asignados)>10000) return res.status(400).json({error:'Puntos inválidos'});
+  let conn;
   try {
-    await pool.query(
+    conn = await pool.getConnection();
+    await conn.beginTransaction();
+    const [[actual]] = await conn.query('SELECT estado FROM operaciones WHERE id=? FOR UPDATE',[req.params.id]);
+    exigir(actual,'Operación no encontrada',404);
+    exigir(actual.estado==='pendiente','La operación ya fue validada o rechazada',409);
+    await conn.query(
       `UPDATE operaciones SET estado=?,puntos_asignados=?,observacion_validacion=?,validado_por=? WHERE id=?`,
       [estado, puntos_asignados, observacion_validacion, req.user.id, req.params.id]
     );
     // Asignar puntos a TODOS los participantes si se valida
     if (estado === 'validado' && puntos_asignados > 0) {
-      const [[op]] = await pool.query(
+      const [[op]] = await conn.query(
         'SELECT voluntario_id, titulo, personal_participante FROM operaciones WHERE id=?',
         [req.params.id]
       );
@@ -97,22 +117,22 @@ router.put('/:id/validar', verifyToken, requireRole(...OPS_ROLES), async (req, r
       // personal_participante + voluntario_id (si no está ya en la lista)
       let ids = new Set();
       try {
-        const parsed = JSON.parse(op?.personal_participante || '[]');
-        if (Array.isArray(parsed)) parsed.forEach(id => ids.add(id));
+        const parsed = typeof op?.personal_participante === 'string' ? JSON.parse(op.personal_participante) : op?.personal_participante || [];
+        if (Array.isArray(parsed)) parsed.forEach(id => { if(Number.isInteger(Number(id)) && Number(id)>0) ids.add(Number(id)); });
       } catch {}
-      if (op?.voluntario_id) ids.add(op.voluntario_id);
+      if (op?.voluntario_id) ids.add(Number(op.voluntario_id));
 
       const concepto = `Operación validada: ${op?.titulo || ''}`;
 
       for (const vid of ids) {
         // Registrar en historial de puntos
-        await pool.query(
+        await conn.query(
           `INSERT INTO puntos_voluntario (voluntario_id,puntos,concepto,operacion_id,asignado_por)
            VALUES (?,?,?,?,?)`,
           [vid, puntos_asignados, concepto, req.params.id, req.user.id]
         );
         // Recalcular total_puntos desde el historial real (evita acumulación errónea)
-        await pool.query(
+        await conn.query(
           `UPDATE users u
            SET u.total_puntos = (
              SELECT COALESCE(SUM(p.puntos), 0)
@@ -124,8 +144,10 @@ router.put('/:id/validar', verifyToken, requireRole(...OPS_ROLES), async (req, r
         );
       }
     }
+    await conn.commit();
     res.json({ ok: true, participantes_actualizados: true });
-  } catch(err) { console.error(err); res.status(500).json({ error:'Error del servidor' }); }
+  } catch(err) { if(conn) await conn.rollback(); console.error(err.message); res.status(err.status||500).json({ error:err.status?err.message:'Error del servidor' }); }
+  finally { if(conn)conn.release(); }
 });
 
 // DELETE /api/operaciones-dpto/:id
@@ -140,9 +162,10 @@ router.delete('/:id', verifyToken, requireRole(...OPS_ROLES), async (req, res) =
 // LIBRO DE GUARDIA
 // ══════════════════════════════════════════════════════════════════
 
-router.get('/guardias', verifyToken, requireRole(...OPS_ROLES), async (req, res) => {
+router.get('/guardias', verifyToken, requireRole(...OPS_ROLES, 'voluntario'), async (req, res) => {
   const { fecha_desde, fecha_hasta } = req.query;
   const where = []; const params = [];
+  if (req.user.role === 'voluntario') { where.push('g.voluntario_id=?'); params.push(req.user.id); }
   if (fecha_desde) { where.push('g.fecha >= ?'); params.push(fecha_desde); }
   if (fecha_hasta) { where.push('g.fecha <= ?'); params.push(fecha_hasta); }
   const wStr = where.length ? `WHERE ${where.join(' AND ')}` : '';
@@ -161,14 +184,17 @@ router.get('/guardias', verifyToken, requireRole(...OPS_ROLES), async (req, res)
   } catch(err) { console.error(err); res.status(500).json({ error:'Error del servidor' }); }
 });
 
-router.post('/guardias', verifyToken, requireRole(...OPS_ROLES), async (req, res) => {
+router.post('/guardias', verifyToken, requireRole(...OPS_ROLES, 'voluntario'), async (req, res) => {
   const { fecha, turno, voluntario_id, rol_guardia, novedades, operativos_count } = req.body;
-  if (!fecha || !voluntario_id) return res.status(400).json({ error:'Fecha y voluntario requeridos' });
+  const voluntarioId = req.user.role === 'voluntario' ? req.user.id : voluntario_id;
+  if (!fecha || !voluntarioId) return res.status(400).json({ error:'Fecha y voluntario requeridos' });
+  try { validarFecha(fecha); } catch { return res.status(400).json({error:'Fecha inválida'}); }
+  if (!['diurno','nocturno','24h'].includes(turno || 'diurno')) return res.status(400).json({error:'Turno inválido'});
   try {
     const [r] = await pool.query(
       `INSERT INTO guardias (fecha,turno,voluntario_id,rol_guardia,novedades,operativos_count,registrado_por)
        VALUES (?,?,?,?,?,?,?)`,
-      [fecha, turno||'diurno', voluntario_id, rol_guardia||'', novedades||'', operativos_count||0, req.user.id]
+      [fecha, turno||'diurno', voluntarioId, rol_guardia||'', novedades||'', operativos_count||0, req.user.id]
     );
     res.status(201).json({ id: r.insertId });
   } catch(err) { console.error(err); res.status(500).json({ error:'Error del servidor' }); }
@@ -313,4 +339,6 @@ router.get('/resumen', verifyToken, requireRole(...OPS_ROLES), async (req, res) 
   } catch(err) { console.error(err); res.status(500).json({ error:'Error del servidor' }); }
 });
 
-export default router;
+return router;
+}
+export default crearRouterOperaciones(pool);

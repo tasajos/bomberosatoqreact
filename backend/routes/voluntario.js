@@ -179,7 +179,7 @@ router.get('/perfil/:id/operaciones', verifyToken, async (req, res) => {
       `SELECT o.id, o.titulo, o.tipo, o.fecha, o.estado, o.puntos_asignados, o.lugar, o.duracion_horas
        FROM operaciones o
        WHERE o.estado = 'validado'
-         AND (o.voluntario_id = ? OR JSON_CONTAINS(o.personal_participante, CAST(? AS JSON)))
+         AND (o.voluntario_id = ? OR JSON_CONTAINS(o.personal_participante, ?))
        ORDER BY o.fecha DESC`,
       [id, id]
     );

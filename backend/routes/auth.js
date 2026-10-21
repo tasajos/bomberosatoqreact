@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import pool from '../db.js';
 import { verifyToken } from '../middleware/auth.js';
 
+export function crearRouterAuth(pool) {
 const router = Router();
 
 // POST /api/auth/login
@@ -48,7 +49,7 @@ router.post('/login', async (req, res) => {
 router.get('/me', verifyToken, async (req, res) => {
   try {
     const [rows] = await pool.query(
-      'SELECT id, nombre, email, role, created_at FROM users WHERE id = ?',
+      'SELECT id, nombre, email, role, created_at FROM users WHERE id = ? AND activo = 1',
       [req.user.id]
     );
     if (rows.length === 0) return res.status(404).json({ error: 'Usuario no encontrado' });
@@ -89,4 +90,6 @@ router.post('/register', verifyToken, async (req, res) => {
   }
 });
 
-export default router;
+return router;
+}
+export default crearRouterAuth(pool);
