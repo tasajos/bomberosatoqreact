@@ -9,6 +9,9 @@
     "lint": "eslint .",
     "test:certificados": "node --test tests/certificadosPdf.test.mjs",
     "test:resoluciones": "node --test tests/resolucionesPdf.test.mjs",
+    "test:vouchers": "node --test tests/voucherPdf.test.mjs",
+    "test:finanzas-excel": "node --test tests/finanzasExcel.test.mjs",
+    "test:logistica": "node --test tests/logistica.test.mjs",
     "preview": "vite preview"
   },
   "dependencies": {

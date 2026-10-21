@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Navigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import styles from './LoginPage.module.css';
+import { roleHome } from '../utils/roleHome';
 
 export default function LoginPage() {
   const [email, setEmail]       = useState('');
@@ -15,9 +16,7 @@ export default function LoginPage() {
 
   if (authLoading) return null;
   if (user) {
-    const dest = user.role === 'presidente' ? '/presidente'
-               : user.role === 'voluntario' ? '/voluntario'
-               : '/admin/dashboard';
+    const dest = roleHome(user.role);
     return <Navigate to={dest} replace />;
   }
 
@@ -27,9 +26,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const u = await login(email, password);
-      const dest = u.role === 'presidente' ? '/presidente'
-                 : u.role === 'voluntario' ? '/voluntario'
-                 : '/admin/dashboard';
+      const dest = roleHome(u.role);
       navigate(dest);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Credenciales incorrectas');

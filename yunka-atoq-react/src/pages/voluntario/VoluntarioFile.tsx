@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { voluntarioApi, type VoluntarioDashboardData } from '../../services/api';
 import { GRADOS } from '../../utils/rankBadge';
 import s from './VoluntarioDashboard.module.css';
+import Prestamos from '../gestion/Prestamos';
+import DocumentosVoluntario from '../gestion/DocumentosVoluntario';
 
 function gradoLabel(value: string) {
   return GRADOS.find(g => g.value === value)?.label ?? value ?? '—';
@@ -128,6 +130,8 @@ export default function VoluntarioFile() {
           </section>
         </div>
       </div>
+      <Prestamos embedded />
+      <DocumentosVoluntario embedded />
     </div>
   );
 }

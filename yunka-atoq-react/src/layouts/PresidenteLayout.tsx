@@ -21,7 +21,7 @@ const I = {
 };
 
 type NavItem = { to: string; label: string; icon: React.ReactNode; end?: boolean };
-const groups: { label: string; items: NavItem[] }[] = [
+const presidentGroups: { label: string; items: NavItem[] }[] = [
   { label: 'PRINCIPAL', items: [
     { to: '/presidente', label: 'Dashboard', icon: I.dash, end: true },
   ] },
@@ -29,6 +29,15 @@ const groups: { label: string; items: NavItem[] }[] = [
     { to: '/presidente/voluntarios',   label: 'Voluntarios',   icon: I.users },
     { to: '/presidente/personal',      label: 'Personal',      icon: I.id },
     { to: '/presidente/postulaciones', label: 'Postulaciones', icon: I.inbox },
+  ] },
+  { label: 'RECURSOS', items: [
+    { to: '/presidente/finanzas', label: 'Estado financiero', icon: I.dash },
+    { to: '/presidente/mensualidades', label: 'Mensualidades', icon: I.users },
+    { to: '/presidente/deudas', label: 'Deudas y préstamos', icon: I.gavel },
+    { to: '/presidente/solicitudes', label: 'Autorizar fondos', icon: I.inbox },
+    { to: '/presidente/prestamos', label: 'Autorizar préstamos', icon: I.shield },
+    { to: '/presidente/logistica', label: 'Inventario', icon: I.list },
+    { to: '/presidente/correos', label: 'Notificaciones', icon: I.mail },
   ] },
   { label: 'OPERACIÓN', items: [
     { to: '/presidente/operaciones', label: 'Operaciones', icon: I.alarm },
@@ -81,7 +90,13 @@ const DIAS = ['DOM', 'LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB'];
 const MESES = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
 const pad = (n: number) => String(n).padStart(2, '0');
 
-export default function PresidenteLayout() {
+type Portal = 'presidente'|'voluntario'|'finanzas'|'logistica';
+const portalLinks: Record<Exclude<Portal,'presidente'>, [string,string,keyof typeof I][]> = {
+  finanzas: [['','Estado financiero','dash'],['ingresos','Registrar ingresos','list'],['egresos','Registrar egresos','list'],['solicitar-ingreso','Solicitar ingreso por apoyo','inbox'],['solicitar-egreso','Solicitar egreso por apoyo','inbox'],['solicitudes','Atender solicitudes','shield'],['reservas','Reservas de dinero','mark'],['deudas','Deudas y préstamos','gavel'],['mensualidades','Mensualidades','users'],['correos','Notificaciones','mail']],
+  logistica: [['','Dashboard de equipos','dash'],['inventario','Registrar inventario','list'],['prestamos','Préstamos de equipos','shield'],['estados','Estado y bajas','mark'],['correos','Notificaciones','mail']],
+  voluntario: [['','Mi panel','dash'],['operaciones','Mis operaciones','alarm'],['guardias','Registrar guardias','book'],['solicitudes','Solicitar dinero','inbox'],['mensualidades','Mis mensualidades','mark'],['file','File personal','id'],['documentos','Memos y resoluciones','list'],['equipos','Mis equipos','shield'],['meritos','Méritos','mark'],['capacitaciones','Capacitaciones','book'],['ordenes','Órdenes','alarm']],
+};
+export default function PresidenteLayout({ portal='presidente' }: {portal?:Portal}) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -96,7 +111,9 @@ export default function PresidenteLayout() {
   const initials = user ? `${user.nombre[0]}${user.nombre.split(' ')[1]?.[0] ?? ''}`.toUpperCase() : 'P';
   const handleLogout = () => { logout(); navigate('/login'); };
 
-  const [titulo, subtitulo] = tituloDe(location.pathname);
+  const groups = portal==='presidente' ? presidentGroups : [{label:portal.toUpperCase(),items:portalLinks[portal].map(([path,label,icon])=>({to:`/${portal}${path?`/${path}`:''}`,label,icon:I[icon],end:!path}))}];
+  const item = groups.flatMap(g=>g.items).find(i=>i.to===location.pathname);
+  const [titulo, subtitulo] = portal==='presidente' && (TITLES[location.pathname] || location.pathname.startsWith('/presidente/operaciones')) ? tituloDe(location.pathname) : [item?.label ?? 'Yunka Atoq',portal==='presidente'?'Gestión institucional':`Portal de ${portal}`];
   const reloj = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
   const fecha = `${DIAS[now.getDay()]} ${pad(now.getDate())} ${MESES[now.getMonth()]}`;
 
@@ -112,7 +129,7 @@ export default function PresidenteLayout() {
           <img src="/yunka_atoq_log.png" alt="Yunka Atoq" />
           <div>
             <div className={styles.brandName}>YUNKA ATOQ</div>
-            <div className={styles.brandSub}>PRESIDENCIA</div>
+            <div className={styles.brandSub}>{portal==='presidente'?'PRESIDENCIA':portal.toUpperCase()}</div>
           </div>
         </Link>
 
@@ -137,7 +154,7 @@ export default function PresidenteLayout() {
             <div className={styles.avatar}>{initials}</div>
             <div style={{ minWidth: 0 }}>
               <div className={styles.userName}>{user?.nombre}</div>
-              <div className={styles.userRole}>PRESIDENTE</div>
+              <div className={styles.userRole}>{user?.role.replaceAll('_',' ').toUpperCase()}</div>
             </div>
           </div>
           <button className={styles.logout} onClick={handleLogout}>

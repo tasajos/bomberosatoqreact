@@ -75,7 +75,7 @@ function fechaLarga(fechaISO: string): string {
 }
 
 const imagenCache = new Map<string, string>();
-async function cargarImagenBase64(url: string): Promise<string | null> {
+export async function cargarImagenBase64(url: string): Promise<string | null> {
   const cached = imagenCache.get(url);
   if (cached) return cached;
   try {
@@ -96,7 +96,7 @@ async function cargarImagenBase64(url: string): Promise<string | null> {
     return null;
   }
 }
-const cargarLogoBase64 = async () =>
+export const cargarLogoBase64 = async () =>
   (await cargarImagenBase64('/yunka_atoq_transparente.png')) ?? cargarImagenBase64('/yunka_atoq_log.png');
 const cargarLogoOBA    = () => cargarImagenBase64('/oba_logo.png');
 

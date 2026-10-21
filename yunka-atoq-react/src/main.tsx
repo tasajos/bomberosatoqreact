@@ -62,6 +62,17 @@ import VoluntarioLayout     from './layouts/VoluntarioLayout';
 import VoluntarioDashboard  from './pages/voluntario/VoluntarioDashboard';
 import VoluntarioMeritos    from './pages/voluntario/VoluntarioMeritos';
 import VoluntarioFile       from './pages/voluntario/VoluntarioFile';
+import Finanzas from './pages/gestion/Finanzas';
+import Solicitudes from './pages/gestion/Solicitudes';
+import Logistica from './pages/gestion/Logistica';
+import Prestamos from './pages/gestion/Prestamos';
+import Voucher from './pages/gestion/Voucher';
+import Mensualidades, { MensualidadVoluntario, MiMensualidad } from './pages/gestion/Mensualidades';
+import Deudas from './pages/gestion/Deudas';
+import Acta from './pages/gestion/Acta';
+import Correos from './pages/gestion/Correos';
+import ActividadVoluntario from './pages/gestion/ActividadVoluntario';
+import DocumentosVoluntario from './pages/gestion/DocumentosVoluntario';
 
 import './index.css';
 
@@ -92,7 +103,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
           {/* Login standalone — sin header/footer */}
           <Route path="/login" element={<LoginPage />} />
 
-          <Route element={<ProtectedRoute allowedRoles={['voluntario', 'admin']} />}>
+          <Route element={<ProtectedRoute allowedRoles={['admin', 'presidente']} />}>
             <Route path="/admin" element={<AdminLayout />}>
               <Route path="dashboard"        element={<DashboardPage />} />
               <Route path="mis-capacitaciones" element={<MisCapacitaciones />} />
@@ -112,12 +123,46 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
           </Route>
 
           {/* Vista del voluntario */}
+          <Route element={<ProtectedRoute allowedRoles={['jefe_finanzas']} />}>
+            <Route path="/finanzas" element={<PresidenteLayout portal="finanzas" />}>
+              <Route index element={<Finanzas />} />
+              <Route path="ingresos" element={<Finanzas vista="ingreso" />} />
+              <Route path="egresos" element={<Finanzas vista="egreso" />} />
+              <Route path="reservas" element={<Finanzas vista="reservas" />} />
+              <Route path="deudas" element={<Deudas />} />
+              <Route path="mensualidades" element={<Mensualidades />} />
+              <Route path="mensualidades/:id" element={<MensualidadVoluntario />} />
+              <Route path="solicitar-ingreso" element={<Solicitudes tipo="ingreso" />} />
+              <Route path="solicitar-egreso" element={<Solicitudes tipo="egreso" />} />
+              <Route path="solicitudes" element={<Solicitudes />} />
+              <Route path="voucher/:codigo" element={<Voucher />} />
+              <Route path="correos" element={<Correos />} />
+            </Route>
+          </Route>
+          <Route element={<ProtectedRoute allowedRoles={['jefe_logistica']} />}>
+            <Route path="/logistica" element={<PresidenteLayout portal="logistica" />}>
+              <Route index element={<Logistica />} />
+              <Route path="inventario" element={<Logistica vista="inventario" />} />
+              <Route path="estados" element={<Logistica vista="estados" />} />
+              <Route path="acta/:codigo" element={<Acta />} />
+              <Route path="prestamos" element={<Prestamos />} />
+              <Route path="correos" element={<Correos />} />
+            </Route>
+          </Route>
           <Route element={<ProtectedRoute allowedRoles={['voluntario']} />}>
             <Route path="/voluntario" element={<VoluntarioLayout />}>
               <Route index element={<VoluntarioDashboard />} />
               <Route path="capacitaciones" element={<MisCapacitaciones />} />
               <Route path="meritos" element={<VoluntarioMeritos />} />
               <Route path="file" element={<VoluntarioFile />} />
+              <Route path="operaciones" element={<ActividadVoluntario tipo="operaciones" />} />
+              <Route path="guardias" element={<ActividadVoluntario tipo="guardias" />} />
+              <Route path="solicitudes" element={<Solicitudes />} />
+              <Route path="mensualidades" element={<MiMensualidad />} />
+              <Route path="voucher/:codigo" element={<Voucher />} />
+              <Route path="equipos" element={<Prestamos />} />
+              <Route path="acta/:codigo" element={<Acta />} />
+              <Route path="documentos" element={<DocumentosVoluntario />} />
               <Route path="ordenes" element={<OrdenesEmergenciaView />} />
             </Route>
           </Route>
@@ -126,6 +171,16 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
           <Route element={<ProtectedRoute allowedRoles={['presidente']} />}>
             <Route path="/presidente" element={<PresidenteLayout />}>
               <Route index element={<PresidenteDashboard />} />
+              <Route path="finanzas" element={<Finanzas />} />
+              <Route path="deudas" element={<Deudas />} />
+              <Route path="mensualidades" element={<Mensualidades />} />
+              <Route path="mensualidades/:id" element={<MensualidadVoluntario />} />
+              <Route path="solicitudes" element={<Solicitudes />} />
+              <Route path="voucher/:codigo" element={<Voucher />} />
+              <Route path="prestamos" element={<Prestamos />} />
+              <Route path="logistica" element={<Logistica />} />
+              <Route path="acta/:codigo" element={<Acta />} />
+              <Route path="correos" element={<Correos />} />
               <Route path="voluntarios"        element={<PresidenteVolunteers />} />
               <Route path="personal"           element={<PresidentePersonal />} />
               <Route path="capacitaciones"     element={<PresidenteCapacitaciones />} />
