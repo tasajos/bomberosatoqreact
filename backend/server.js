@@ -26,6 +26,7 @@ import personalRoutes        from './routes/personal.js';
 import ordenesOperacionRoutes from './routes/ordenesOperacion.js';
 import documentosPresidenciaRoutes from './routes/documentosPresidencia.js';
 import certificadosRoutes from './routes/certificados.js';
+import credencialesRoutes from './routes/credenciales.js';
 import pool from './db.js';
 import { crearGestion } from './services/gestion.js';
 import { crearRouterGestion } from './routes/gestion.js';
@@ -44,6 +45,7 @@ app.use(cors({
 }));
 // Los convenios pueden incluir el logo de la contraparte (imagen reducida en el navegador).
 app.use('/api/documentos-presidencia', express.json({ limit: '1mb' }));
+app.use('/api/credenciales', express.json({limit:'600kb'}));
 app.use(express.json());
 
 // Servir archivos subidos (imágenes del slider, etc.)
@@ -71,6 +73,7 @@ app.use('/api/personal',        personalRoutes);
 app.use('/api/ordenes-operacion', ordenesOperacionRoutes);
 app.use('/api/documentos-presidencia', documentosPresidenciaRoutes);
 app.use('/api/certificados', certificadosRoutes);
+app.use('/api/credenciales', credencialesRoutes);
 const gestion = crearGestion(pool);
 app.use('/api/gestion', crearRouterGestion(pool, gestion));
 
@@ -78,7 +81,7 @@ app.get('/api/health', (_, res) => res.json({ status: 'ok', ts: new Date().toISO
 
 // Servir frontend estático (producción)
 const frontendDir = path.join(__dirname, '..', 'bomberosatoq.org');
-app.get('/certificados/verificar/:token', (_req,res) => {
+app.get(['/certificados/verificar/:token','/credenciales/verificar/:token'], (_req,res) => {
   res.set('X-Robots-Tag','noindex, nofollow');
   res.set('Cache-Control','private, no-store');
   res.sendFile(path.join(frontendDir,'index.html'));

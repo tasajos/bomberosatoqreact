@@ -3,6 +3,8 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
+    "test:credenciales": "node --test tests/credenciales.test.js",
+    "migrate:credenciales": "node scripts/migrate-credenciales.js",
     "dev": "nodemon server.js",
     "start": "node server.js",
     "setup:admin": "node scripts/setup-admin.js",
