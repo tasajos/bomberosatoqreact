@@ -1,4 +1,5 @@
-import { readFile } from 'node:fs/promises';
+// El SQL viaja incrustado en el código: el servidor no necesita la carpeta scripts/.
+import { sql as scriptSql } from './migracionesSql.js';
 import { createHash } from 'node:crypto';
 
 export function exigir(condicion, mensaje, status = 400) {
@@ -64,7 +65,7 @@ const MIGRACIONES = [
 export function crearGestion(pool) {
   let ready;
   const init = () => ready ??= (async () => {
-    const sql = await readFile(new URL('../scripts/18_finanzas_logistica.sql', import.meta.url), 'utf8');
+    const sql = scriptSql('18_finanzas_logistica.sql');
     for (const sentencia of sql.split(';').map(s => s.trim()).filter(Boolean)) await pool.query(sentencia);
     // Cada script se aplica una sola vez: la columna testigo indica que ya se ejecutó.
     for (const [script, tabla, testigo] of MIGRACIONES) {
@@ -72,7 +73,7 @@ export function crearGestion(pool) {
         WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME=? AND COLUMN_NAME=?`, [tabla, testigo]);
       if (columna) continue;
       // La numeración usa una tabla temporal: debe ejecutarse en una sola conexión.
-      const migracion = await readFile(new URL(`../scripts/${script}`, import.meta.url), 'utf8');
+      const migracion = scriptSql(script);
       const db = await pool.getConnection();
       try { for (const sentencia of migracion.split(';').map(s => s.trim()).filter(Boolean)) await db.query(sentencia); }
       finally { db.release(); }

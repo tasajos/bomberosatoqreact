@@ -36,7 +36,7 @@ export function crearProcesadorCorreos(pool, gestion, enviar) {
           await db.query("UPDATE gestion_correos SET intentos=intentos+1,ultimo_error='No se pudo entregar. Revise SMTP y el destinatario.',proximo_intento=DATE_ADD(NOW(),INTERVAL ? MINUTE) WHERE id=?",[espera,c.id]);
         }
       }
-    } catch(e) { console.error('Cola de gestión:',e.code || e.message); }
+    } catch(e) { console.error('Cola de gestión:',e.code || '',e.path || e.sqlMessage || e.message); }
     finally {
       if(db) { if(locked) await db.query("SELECT RELEASE_LOCK(CONCAT(DATABASE(), ':gestion_correo'))").catch(()=>{}); db.release(); }
       ocupado=false;

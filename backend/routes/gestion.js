@@ -471,7 +471,7 @@ export function crearRouterGestion(pool, servicio = crearGestion(pool)) {
   }));
   registrarPersonal(router,{pool,servicio,get,post,audit});
   router.use((err,req,res,_next)=>{
-    if(!err.status) console.error('Gestión:',err.code || err.message);
+    if(!err.status) console.error('Gestión:',err.code || '',err.path || err.sqlMessage || err.message);
     res.status(err.status || (err.code==='ER_DUP_ENTRY'?409:500)).json({error:err.status?err.message:err.code==='ER_DUP_ENTRY'?'El código o registro ya existe':'No se pudo completar la operación'});
   });
   return router;

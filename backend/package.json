@@ -5,6 +5,8 @@
   "scripts": {
     "test:credenciales": "node --test tests/credenciales.test.js",
     "migrate:credenciales": "node scripts/migrate-credenciales.js",
+    "sql:generar": "node scripts/generar-migraciones.js",
+    "test:migraciones": "node --test tests/migraciones.test.js",
     "dev": "nodemon server.js",
     "start": "node server.js",
     "setup:admin": "node scripts/setup-admin.js",
