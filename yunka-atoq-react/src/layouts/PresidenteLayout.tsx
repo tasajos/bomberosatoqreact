@@ -59,6 +59,7 @@ const presidentGroups: { label: string; items: NavItem[] }[] = [
     { to: '/presidente/comunicados',    label: 'Comunicados',    icon: I.bullhorn },
     { to: '/presidente/cartas',         label: 'Mandar carta',   icon: I.mail },
     { to: '/presidente/certificados',   label: 'Certificados',   icon: I.mark },
+    { to: '/presidente/credenciales',   label: 'Credenciales',   icon: I.id },
     { to: '/presidente/convenios',      label: 'Convenios',      icon: I.gavel },
   ] },
 ];
@@ -79,6 +80,7 @@ const TITLES: Record<string, [string, string]> = {
   '/presidente/comunicados':    ['Comunicados',    'Avisos institucionales para voluntarios'],
   '/presidente/cartas':         ['Mandar carta',   'Cartas con numeración y firma institucional'],
   '/presidente/certificados':   ['Certificados',   'Plantilla horizontal para cursos y capacitaciones'],
+  '/presidente/credenciales':   ['Credenciales',   'Identificación de voluntarios y verificación pública'],
   '/presidente/convenios':      ['Convenios',      'Convenios interinstitucionales con numeración correlativa'],
 };
 

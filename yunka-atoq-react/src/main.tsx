@@ -42,6 +42,8 @@ import PresidentePersonal       from './pages/presidente/PresidentePersonal';
 import PresidenteCapacitaciones from './pages/presidente/PresidenteCapacitaciones';
 import DocumentosPresidencia from './pages/presidente/DocumentosPresidencia';
 import CertificadosPresidencia from './pages/presidente/CertificadosPresidencia';
+import CredencialesPresidencia from './pages/presidente/CredencialesPresidencia';
+import VerificarCredencialPage from './pages/VerificarCredencialPage';
 import ConveniosPresidencia from './pages/presidente/ConveniosPresidencia';
 import OperacionesLayout from './layouts/OperacionesLayout';
 import OpsTabsLayout from './layouts/OpsTabsLayout';
@@ -106,6 +108,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
             <Route path="voluntarios"    element={<VolunteeringPage />} />
             <Route path="noticias"       element={<NewsPage />} />
             <Route path="certificados/verificar/:token" element={<VerificarCertificadoPage />} />
+            <Route path="credenciales/verificar/:token" element={<VerificarCredencialPage />} />
           </Route>
 
           {/* Login standalone — sin header/footer */}
@@ -217,6 +220,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
               <Route path="comunicados"     element={<DocumentosPresidencia tipo="comunicado" />} />
               <Route path="cartas"          element={<DocumentosPresidencia tipo="carta" />} />
               <Route path="certificados"    element={<CertificadosPresidencia />} />
+              <Route path="credenciales"    element={<CredencialesPresidencia />} />
               <Route path="convenios"       element={<ConveniosPresidencia />} />
               {/* Operaciones con sub-opciones como pestañas, dentro del shell presidencial */}
               <Route path="operaciones" element={<OpsTabsLayout />}>
