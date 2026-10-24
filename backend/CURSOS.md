@@ -77,7 +77,12 @@ compartir y se restringen ventanas emergentes y descargas mediante sandbox.
 Los videos no ofrecen descarga ni reproducción remota en sus controles.
 
 Las presentaciones siguen usando Office en HTTPS: se recorta su barra inferior
-y se restringen las descargas, compartir mediante Web Share y ventanas nuevas.
+y se permite el formulario interno de Office que inicia PowerPointFrame.aspx.
+Su reproductor incluye un botón de pantalla completa y otro para salir. En los
+navegadores compatibles se amplía el lector existente sin recargar Office ni
+perder la diapositiva actual. Cuando la API de pantalla completa no está
+disponible, se usa una vista que ocupa toda la ventana, sin cabecera del aula.
+Se restringen las descargas, compartir mediante Web Share y ventanas nuevas.
 Estos ajustes de interfaz no impiden obtener el contenido mediante herramientas
 del navegador. Los proveedores externos (Office, YouTube, Drive y sitios
 enlazados) controlan su interfaz y pueden cambiarla; la integración no garantiza
