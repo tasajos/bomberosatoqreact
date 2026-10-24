@@ -65,9 +65,10 @@
   padding: 14px 22px; display: flex; align-items: center; gap: 14px;
 }
 .hamb { display: none; }
-.topTitle { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 18px; letter-spacing: .2px; color: #14213D; }
+.topTitleWrap { flex: 1; min-width: 0; }
+.topTitle { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 18px; letter-spacing: .2px; color: #14213D; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .topSub { font-size: 12px; color: #8A95B0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.topRight { margin-left: auto; display: flex; align-items: center; gap: 14px; }
+.topRight { margin-left: auto; display: flex; align-items: center; gap: 14px; flex: none; }
 .clockBox { text-align: right; }
 .clock { font-family: 'IBM Plex Mono', monospace; font-weight: 500; font-size: 17px; color: #1C2A4D; letter-spacing: 1px; }
 .clockDate { font-size: 10px; color: #9AA4BD; font-family: 'IBM Plex Mono', monospace; letter-spacing: 1px; }
@@ -90,4 +91,11 @@
     background: #fff; color: #14213D; cursor: pointer; font-size: 1.2rem;
   }
   .backdrop { display: block; position: fixed; inset: 0; background: rgba(15,23,41,0.5); z-index: 55; backdrop-filter: blur(2px); }
+}
+
+@media (max-width: 640px) {
+  .topbar { padding: 10px 14px; gap: 10px; }
+  .topTitle { font-size: 16px; }
+  .clockBox { display: none; }
+  .topAvatar { width: 34px; height: 34px; }
 }

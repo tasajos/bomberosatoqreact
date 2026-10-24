@@ -96,9 +96,9 @@ const pad = (n: number) => String(n).padStart(2, '0');
 
 type Portal = 'presidente'|'voluntario'|'finanzas'|'logistica'|'personal';
 const portalLinks: Record<Exclude<Portal,'presidente'>, [string,string,keyof typeof I][]> = {
-  finanzas: [['','Estado financiero','dash'],['ingresos','Registrar ingresos','list'],['egresos','Registrar egresos','list'],['solicitar-ingreso','Solicitar ingreso por apoyo','inbox'],['solicitar-egreso','Solicitar egreso por apoyo','inbox'],['solicitudes','Atender solicitudes','shield'],['reservas','Reservas de dinero','mark'],['deudas','Deudas y préstamos','gavel'],['mensualidades','Mensualidades','users'],['correos','Notificaciones','mail']],
-  personal: [['','Personal','users'],['nuevo','Registrar personal','id'],['asistencia','Llamar lista','list'],['reporte','Reporte de asistencia','dash'],['comisiones','Comisiones','shield'],['llamadas','Llamadas de atención','bullhorn'],['reglamento','Reglamento disciplinario','gavel'],['bitacora','Bitácora de cambios','book'],['correos','Notificaciones','mail']],
-  logistica: [['','Dashboard de equipos','dash'],['inventario','Registrar inventario','list'],['prestamos','Préstamos de equipos','shield'],['estados','Estado y bajas','mark'],['correos','Notificaciones','mail']],
+  finanzas: [['','Estado financiero','dash'],['ingresos','Registrar ingresos','list'],['egresos','Registrar egresos','list'],['solicitar-ingreso','Solicitar ingreso por apoyo','inbox'],['solicitar-egreso','Solicitar egreso por apoyo','inbox'],['solicitudes','Atender solicitudes','shield'],['reservas','Reservas de dinero','mark'],['deudas','Deudas y préstamos','gavel'],['mensualidades','Mensualidades','users'],['capacitaciones','Capacitaciones','book'],['correos','Notificaciones','mail']],
+  personal: [['','Personal','users'],['nuevo','Registrar personal','id'],['asistencia','Llamar lista','list'],['reporte','Reporte de asistencia','dash'],['comisiones','Comisiones','shield'],['llamadas','Llamadas de atención','bullhorn'],['reglamento','Reglamento disciplinario','gavel'],['bitacora','Bitácora de cambios','book'],['capacitaciones','Capacitaciones','book'],['correos','Notificaciones','mail']],
+  logistica: [['','Dashboard de equipos','dash'],['inventario','Registrar inventario','list'],['prestamos','Préstamos de equipos','shield'],['estados','Estado y bajas','mark'],['capacitaciones','Capacitaciones','book'],['correos','Notificaciones','mail']],
   voluntario: [['','Mi panel','dash'],['operaciones','Mis operaciones','alarm'],['guardias','Registrar guardias','book'],['solicitudes','Solicitar dinero','inbox'],['mensualidades','Mis mensualidades','mark'],['file','File personal','id'],['documentos','Memos y resoluciones','list'],['equipos','Mis equipos','shield'],['meritos','Méritos','mark'],['capacitaciones','Capacitaciones','book'],['ordenes','Órdenes','alarm']],
 };
 export default function PresidenteLayout({ portal='presidente' }: {portal?:Portal}) {
@@ -177,7 +177,7 @@ export default function PresidenteLayout({ portal='presidente' }: {portal?:Porta
       <div className={styles.main}>
         <header className={styles.topbar}>
           <button className={styles.hamb} onClick={() => setOpen(o => !o)} aria-label="Menú">☰</button>
-          <div style={{ minWidth: 0 }}>
+          <div className={styles.topTitleWrap}>
             <div className={styles.topTitle}>{titulo}</div>
             <div className={styles.topSub}>{subtitulo}</div>
           </div>

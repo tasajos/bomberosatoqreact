@@ -147,6 +147,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
               <Route path="solicitar-egreso" element={<Solicitudes tipo="egreso" />} />
               <Route path="solicitudes" element={<Solicitudes />} />
               <Route path="voucher/:codigo" element={<Voucher />} />
+              <Route path="capacitaciones" element={<MisCapacitaciones />} />
               <Route path="correos" element={<Correos />} />
             </Route>
           </Route>
@@ -162,6 +163,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
               <Route path="llamada/:codigo" element={<LlamadaDoc />} />
               <Route path="bitacora" element={<Bitacora />} />
               <Route path="reglamento" element={<Reglamento />} />
+              <Route path="capacitaciones" element={<MisCapacitaciones />} />
               <Route path="correos" element={<Correos />} />
             </Route>
           </Route>
@@ -172,6 +174,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
               <Route path="estados" element={<Logistica vista="estados" />} />
               <Route path="acta/:codigo" element={<Acta />} />
               <Route path="prestamos" element={<Prestamos />} />
+              <Route path="capacitaciones" element={<MisCapacitaciones />} />
               <Route path="correos" element={<Correos />} />
             </Route>
           </Route>

@@ -94,7 +94,7 @@ export default function OpsGuardia() {
           <div className={styles.sectionLabel}>📋 Datos del turno</div>
 
           {/* Selector de turno tipo card */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '0.75rem', marginBottom: '1.25rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,minmax(0,1fr))', gap: '0.5rem', marginBottom: '1.25rem' }}>
             {TURNO_OPTIONS.map(t => {
               const sel = turno === t.value;
               return (
@@ -164,16 +164,10 @@ export default function OpsGuardia() {
               return (
                 <div
                   key={i}
+                  className={styles.miembroRow}
                   style={{
-                    display: 'grid',
-                    gridTemplateColumns: '40px 1fr 1fr auto',
-                    gap: '0.875rem',
-                    alignItems: 'center',
-                    padding: '0.875rem 1rem',
-                    borderRadius: '10px',
                     border: `1.5px solid ${m.voluntario_id ? '#E2E8F0' : '#F1F5F9'}`,
                     background: m.voluntario_id ? 'white' : '#FAFBFC',
-                    transition: 'all 0.18s',
                   }}
                 >
                   {/* Avatar con iniciales */}

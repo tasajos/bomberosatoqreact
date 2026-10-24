@@ -168,7 +168,7 @@ export default function OpsRegistrar() {
               <label className={styles.label}>
                 Clasificación del personal · RO-001/25 Art. 5
               </label>
-              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'0.625rem', marginTop:'0.25rem' }}>
+              <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap:'0.625rem', marginTop:'0.25rem' }}>
                 {CLASIFICACION_RO.map(cl => {
                   const sel = form.clasificacion_ro === cl.value;
                   return (
