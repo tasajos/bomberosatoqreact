@@ -8,8 +8,9 @@ import s from '../gestion/Gestion.module.css';
 import c from './Cursos.module.css';
 
 const PdfMaterial = lazy(() => import('./PdfMaterial'));
+// allow-modals habilita print() y confirm() de la práctica: así exporta a PDF con “Guardar como PDF” del navegador.
 // Sin permisos de descarga, ventanas emergentes ni navegación de la página principal.
-const SANDBOX_HTML = 'allow-scripts';
+const SANDBOX_HTML = 'allow-scripts allow-modals';
 const SANDBOX_EXTERNO = 'allow-scripts allow-same-origin';
 // Office inicia el visor mediante un POST a PowerPointFrame.aspx dentro del iframe.
 // Necesita formularios, sin habilitar descargas, ventanas nuevas ni navegación superior.
