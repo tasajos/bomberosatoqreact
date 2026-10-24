@@ -12,7 +12,7 @@
 .inner {
   display: flex;
   align-items: center;
-  gap: 2rem;
+  gap: 1.25rem;
   width: 100%;
   max-width: 1280px;
   margin-inline: auto;
@@ -61,8 +61,10 @@
   align-items: center;
   gap: 0.125rem;
   flex: 1;
+  min-width: 0;
   justify-content: center;
-  flex-wrap: wrap;
+  /* Una sola fila: si no cabe, se compacta (≤1280px) o pasa al menú hamburguesa (≤1100px). */
+  flex-wrap: nowrap;
 }
 
 .navLink {
@@ -157,11 +159,15 @@
 .hamburgerOpen span:nth-child(2) { opacity: 0; }
 .hamburgerOpen span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
 
-@media (max-width: 1024px) {
-  .navLink { font-size: 0.75rem; padding: 0.45rem 0.4rem; }
+@media (max-width: 1280px) {
+  .navLink { font-size: 0.78rem; padding: 0.45rem 0.4rem; }
+  .accessExtra { display: none; }
+  .actions { gap: 0.625rem; }
+  .donateBtn { padding: 0.55rem 1rem; }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1100px) {
+  .accessExtra { display: inline; }
   .hamburger { display: flex; }
 
   .nav {

@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { NavLink, Outlet, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { crearCursosApi } from '../services/cursosApi';
 import styles from './OperacionesLayout.module.css';
 
-const NAV = [
+type ItemNav = { to: string; label: string; icon: string; end?: boolean };
+const NAV: { section: string; items: ItemNav[] }[] = [
   { section: 'Principal', items: [
     { to: '/operaciones',           label: 'Dashboard',          icon: '📊', end: true },
   ]},
@@ -24,27 +26,33 @@ const NAV = [
   ]},
   { section: 'Capacitaciones', items: [
     { to: '/operaciones/capacitaciones', label: 'Mis Capacitaciones', icon: '📚' },
+    { to: '/operaciones/cursos-online',  label: 'Cursos online',      icon: '🎓' },
   ]},
 ];
+const DICTAR: ItemNav = { to: '/operaciones/dictar', label: 'Cursos para dictar', icon: '🧑‍🏫' };
 
 export default function OperacionesLayout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [dictando, setDictando] = useState(0);
+  // “Cursos para dictar” solo aparece si el usuario es instructor de algún curso.
+  useEffect(() => { crearCursosApi('interno').yo().then(r => setDictando(r.dictando)).catch(() => setDictando(0)); }, [user?.id]);
+  const nav = NAV.map(sec => sec.section === 'Capacitaciones' && dictando ? { ...sec, items: [...sec.items, DICTAR] } : sec);
 
   const handleLogout = () => { logout(); navigate('/login'); };
   const closeMenu = () => setMenuOpen(false);
 
   const sidebarContent = (
     <>
-      {NAV.map(section => (
+      {nav.map(section => (
         <div key={section.section} className={styles.sideSection}>
           <div className={styles.sideSectionLabel}>{section.section}</div>
           {section.items.map(item => (
             <NavLink
               key={item.to}
               to={item.to}
-              end={'end' in item ? item.end : undefined}
+              end={item.end}
               onClick={closeMenu}
               className={({ isActive }) =>
                 `${styles.sideItem} ${isActive ? styles.sideItemActive : ''}`

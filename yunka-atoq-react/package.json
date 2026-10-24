@@ -17,7 +17,8 @@
     "test:convenios": "node --test tests/conveniosPdf.test.mjs",
     "test:procedimientos": "node --test tests/procedimientosPdf.test.mjs",
     "test:whatsapp": "node --test tests/whatsapp.test.mjs",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:cursos": "node --test tests/cursosMedia.test.mjs"
   },
   "dependencies": {
     "exceljs": "^4.4.0",

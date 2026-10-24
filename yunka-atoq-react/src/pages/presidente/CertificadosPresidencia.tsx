@@ -5,6 +5,7 @@ import { capacitacionesApi, type Capacitacion } from '../../services/api';
 import { crearCertificadoPDF, datosCertificadoVacios, nombreArchivoCertificado, haySegundoFirmante,
   prepararRecursosCertificado, validarDisenoCertificado, type DatosCertificado } from '../../utils/certificadosPdf';
 import { certificadosApi, urlVerificacionCertificado, type CertificadoRegistrado } from '../../services/certificadosApi';
+import { cursosGestionApi, type DatosCertificadoCurso } from '../../services/cursosApi';
 import styles from './CertificadosPresidencia.module.css';
 
 function aplicarCurso(datos: DatosCertificado, curso: Capacitacion): DatosCertificado {
@@ -28,6 +29,9 @@ export default function CertificadosPresidencia() {
   const { user } = useAuth();
   const [params] = useSearchParams();
   const cursoId = params.get('curso');
+  // Desde Cursos online › Participantes: datos del participante aprobado; al emitir se vincula a su inscripción.
+  const inscripcionId = Number(params.get('inscripcion')) || null;
+  const [cursoOnline, setCursoOnline] = useState<DatosCertificadoCurso | null>(null);
   const [datos, setDatos] = useState<DatosCertificado>(() => ({ ...datosCertificadoVacios(), presidente: user?.nombre || '' }));
   const [cursos, setCursos] = useState<Capacitacion[]>([]);
   const [cursoSeleccionado, setCursoSeleccionado] = useState(cursoId || '');
@@ -59,6 +63,18 @@ export default function CertificadosPresidencia() {
     }).catch(() => { if (activo) setAvisoCursos('No se pudieron cargar los cursos. Puedes escribir los datos manualmente.'); });
     return () => { activo = false; };
   }, [cursoId]);
+
+  useEffect(() => {
+    if (!inscripcionId) return;
+    let activo = true;
+    cursosGestionApi.datosCertificado(inscripcionId).then(d => {
+      if (!activo) return;
+      setCursoOnline(d);
+      setDatos(prev => ({ ...prev, participante:d.participante, documento:d.documento, curso:d.curso, modalidad:d.modalidad, horas:d.horas,
+        fechaInicio:d.fechaInicio, fechaFin:d.fechaFin, instructor:d.instructor, temario:d.temario, codigo:'' }));
+    }).catch(e => { if (activo) setError(e instanceof Error ? e.message : 'No se pudieron cargar los datos del curso online.'); });
+    return () => { activo = false; };
+  }, [inscripcionId]);
 
   useEffect(() => () => { if (preview) URL.revokeObjectURL(preview); }, [preview]);
 
@@ -100,6 +116,10 @@ export default function CertificadosPresidencia() {
         intento.registro = registro;
       }
       intento.pdf = blob;
+      if (cursoOnline && registro.estado === 'emitido') {
+        await cursosGestionApi.vincularCertificado(cursoOnline.inscripcion_id, registro.id)
+          .catch(() => setError(`${registro.codigo} se emitió, pero no se pudo vincular a la inscripción del curso online. Vuelve a emitir sin modificar los datos: se reutiliza el mismo número y se reintenta el vínculo.`));
+      }
       setEmitido(registro); setPreview(URL.createObjectURL(blob)); setModificado(false);
       descargarBlob(blob,`${registro.codigo}.pdf`);
       void cargarLibro();
@@ -159,6 +179,8 @@ export default function CertificadosPresidencia() {
         <div><h1>Certificados de cursos</h1><p>Certificado horizontal de dos caras, con temario, sello de registro y QR de verificación en el sitio.</p></div>
         <button className={styles.secondary} disabled={ocupado} onClick={() => generar(true, true)}>Descargar plantilla</button>
       </header>
+      {cursoOnline && <p role="status" className={styles.hint}>Certificado del curso online <strong>{cursoOnline.curso}</strong> para <strong>{cursoOnline.participante}</strong>
+        {cursoOnline.nota !== null ? ` · nota final ${cursoOnline.nota}%` : ' · por participación'}. Al emitirlo quedará disponible para descarga en el aula del participante.</p>}
       {error && <p role="alert" className={styles.error}>{error}</p>}
       {emitido && <p role="status" className={styles.success}><strong>{emitido.codigo} - {emitido.datos.curso}</strong><br />
         Registrado en el libro de capacitaciones. <a href={urlVerificacionCertificado(emitido)} target="_blank" rel="noreferrer">Ver ficha pública</a></p>}

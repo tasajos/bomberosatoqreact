@@ -83,8 +83,30 @@ import { MiFile } from './pages/gestion/PersonalFile';
 import Correos from './pages/gestion/Correos';
 import ActividadVoluntario from './pages/gestion/ActividadVoluntario';
 import DocumentosVoluntario from './pages/gestion/DocumentosVoluntario';
+import { CursosZona } from './pages/cursos/CursosZona';
+import { rutasPortal, rutasPresidencia } from './pages/cursos/zona';
+import CursosGestion from './pages/cursos/CursosGestion';
+import UsuariosExternos from './pages/presidente/UsuariosExternos';
+import CursoEditor from './pages/cursos/CursoEditor';
+import CursosCatalogo from './pages/cursos/CursosCatalogo';
+import CursosDictar from './pages/cursos/CursosDictar';
+import Aula from './pages/cursos/Aula';
+import CursosPublico from './pages/cursos/CursosPublico';
+import CursosAcceso from './pages/cursos/CursosAcceso';
+import CursosVerificar from './pages/cursos/CursosVerificar';
+import CursosExternoLayout from './pages/cursos/CursosExternoLayout';
 
 import './index.css';
+
+// Cursos online dentro de cada portal institucional: tomar cursos y, si es instructor, dictarlos.
+const rutasCursosPortal = (base: string) => (
+  <Route element={<CursosZona modo="interno" rutas={rutasPortal(base)} />}>
+    <Route path="cursos-online"     element={<CursosCatalogo />} />
+    <Route path="cursos-online/:id" element={<Aula />} />
+    <Route path="dictar"            element={<CursosDictar />} />
+    <Route path="dictar/:id"        element={<CursoEditor />} />
+  </Route>
+);
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
@@ -109,6 +131,18 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
             <Route path="noticias"       element={<NewsPage />} />
             <Route path="certificados/verificar/:token" element={<VerificarCertificadoPage />} />
             <Route path="credenciales/verificar/:token" element={<VerificarCredencialPage />} />
+            <Route path="cursos"          element={<CursosPublico />} />
+            <Route path="cursos/registro" element={<CursosAcceso modo="registro" />} />
+            <Route path="cursos/ingresar" element={<CursosAcceso modo="ingresar" />} />
+            <Route path="cursos/verificar/:token" element={<CursosVerificar />} />
+          </Route>
+
+          {/* Portal de cursos para participantes e instructores externos (sesión propia de cursos) */}
+          <Route element={<CursosExternoLayout />}>
+            <Route path="/cursos/aula"           element={<CursosCatalogo />} />
+            <Route path="/cursos/aula/:id"       element={<Aula />} />
+            <Route path="/cursos/instructor"     element={<CursosDictar />} />
+            <Route path="/cursos/instructor/:id" element={<CursoEditor />} />
           </Route>
 
           {/* Login standalone — sin header/footer */}
@@ -149,6 +183,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
               <Route path="voucher/:codigo" element={<Voucher />} />
               <Route path="capacitaciones" element={<MisCapacitaciones />} />
               <Route path="correos" element={<Correos />} />
+              {rutasCursosPortal('/finanzas')}
             </Route>
           </Route>
           <Route element={<ProtectedRoute allowedRoles={['jefe_personal']} />}>
@@ -165,6 +200,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
               <Route path="reglamento" element={<Reglamento />} />
               <Route path="capacitaciones" element={<MisCapacitaciones />} />
               <Route path="correos" element={<Correos />} />
+              {rutasCursosPortal('/personal')}
             </Route>
           </Route>
           <Route element={<ProtectedRoute allowedRoles={['jefe_logistica']} />}>
@@ -176,6 +212,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
               <Route path="prestamos" element={<Prestamos />} />
               <Route path="capacitaciones" element={<MisCapacitaciones />} />
               <Route path="correos" element={<Correos />} />
+              {rutasCursosPortal('/logistica')}
             </Route>
           </Route>
           <Route element={<ProtectedRoute allowedRoles={['voluntario']} />}>
@@ -194,6 +231,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
               <Route path="acta/:codigo" element={<Acta />} />
               <Route path="documentos" element={<DocumentosVoluntario />} />
               <Route path="ordenes" element={<OrdenesEmergenciaView />} />
+              {rutasCursosPortal('/voluntario')}
             </Route>
           </Route>
 
@@ -213,6 +251,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
               <Route path="correos" element={<Correos />} />
               <Route path="voluntarios"        element={<PresidenteVolunteers />} />
               <Route path="personal"           element={<PresidentePersonal />} />
+              <Route path="usuarios-externos"  element={<UsuariosExternos />} />
               <Route path="capacitaciones"     element={<PresidenteCapacitaciones />} />
               <Route path="mis-capacitaciones" element={<MisCapacitaciones />} />
               <Route path="postulaciones"      element={<PostulacionesPage />} />
@@ -225,6 +264,12 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
               <Route path="certificados"    element={<CertificadosPresidencia />} />
               <Route path="credenciales"    element={<CredencialesPresidencia />} />
               <Route path="convenios"       element={<ConveniosPresidencia />} />
+              <Route element={<CursosZona modo="interno" rutas={rutasPresidencia} />}>
+                <Route path="cursos"          element={<CursosGestion />} />
+                <Route path="cursos/:id"      element={<CursoEditor />} />
+                <Route path="cursos/:id/aula" element={<Aula />} />
+              </Route>
+              {rutasCursosPortal('/presidente')}
               {/* Operaciones con sub-opciones como pestañas, dentro del shell presidencial */}
               <Route path="operaciones" element={<OpsTabsLayout />}>
                 <Route index element={<OpsDashboard />} />
@@ -261,6 +306,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
               <Route path="meritos"              element={<OpsMeritos />} />
               <Route path="voluntarios-ranking"  element={<OpsVoluntarios />} />
               <Route path="capacitaciones"       element={<MisCapacitaciones />} />
+              {rutasCursosPortal('/operaciones')}
             </Route>
           </Route>
         </Routes>

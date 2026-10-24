@@ -126,3 +126,11 @@ export async function notificarPostulacion({ nombre, email, telefono, edad, mens
     `,
   });
 }
+
+// Correo a uno o varios destinatarios, en texto plano y opcionalmente HTML (cursos online).
+// Devuelve null sin enviar si SMTP no está configurado.
+export const smtpConfigurado = () => !!(process.env.SMTP_USER && process.env.SMTP_PASS);
+export async function enviarCorreo({ to, subject, texto, html }) {
+  if (!smtpConfigurado()) return null;
+  return transporter.sendMail({ from: `"Yunka Atoq · Cursos" <${process.env.SMTP_USER}>`, to, subject, text: texto, html });
+}

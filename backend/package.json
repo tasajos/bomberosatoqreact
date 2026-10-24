@@ -12,7 +12,8 @@
     "setup:admin": "node scripts/setup-admin.js",
     "check:db": "node scripts/check-db.js",
     "test:gestion": "node --test tests/gestion.test.js",
-    "migrate:gestion": "node scripts/migrate-gestion.js"
+    "migrate:gestion": "node scripts/migrate-gestion.js",
+    "test:cursos": "node --test tests/cursos.test.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

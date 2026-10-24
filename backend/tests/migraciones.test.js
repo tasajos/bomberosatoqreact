@@ -11,7 +11,7 @@ test('el SQL incrustado coincide con los .sql (ejecute npm run sql:generar si fa
 
 test('cada script que el backend aplica al iniciar está incluido en el código', async () => {
   const usados = new Set();
-  for (const archivo of ['../services/gestion.js', '../services/credenciales.js']) {
+  for (const archivo of ['../services/gestion.js', '../services/credenciales.js', '../services/cursos.js']) {
     const fuente = await readFile(new URL(archivo, import.meta.url), 'utf8');
     for (const m of fuente.matchAll(/'(\d\d_[a-z_]+\.sql)'/g)) usados.add(m[1]);
   }

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { NavLink, Outlet, useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { crearCursosApi } from '../services/cursosApi';
 import styles from './PresidenteLayout.module.css';
 
 const I = {
@@ -28,6 +29,7 @@ const presidentGroups: { label: string; items: NavItem[] }[] = [
   { label: 'PERSONAS', items: [
     { to: '/presidente/voluntarios',   label: 'Voluntarios',   icon: I.users },
     { to: '/presidente/personal',      label: 'Personal',      icon: I.id },
+    { to: '/presidente/usuarios-externos', label: 'Usuarios externos', icon: I.users },
     { to: '/presidente/postulaciones', label: 'Postulaciones', icon: I.inbox },
   ] },
   { label: 'RECURSOS', items: [
@@ -45,6 +47,7 @@ const presidentGroups: { label: string; items: NavItem[] }[] = [
   ] },
   { label: 'FORMACIÓN', items: [
     { to: '/presidente/capacitaciones',     label: 'Capacitaciones',   icon: I.book },
+    { to: '/presidente/cursos',             label: 'Cursos online',    icon: I.book },
     { to: '/presidente/mis-capacitaciones', label: 'Mis Inscripciones', icon: I.mark },
   ] },
   { label: 'COMUNICACIÓN', items: [
@@ -68,9 +71,11 @@ const TITLES: Record<string, [string, string]> = {
   '/presidente': ['Dashboard presidencial', 'Resumen institucional'],
   '/presidente/voluntarios': ['Voluntarios', 'Directorio y gestión'],
   '/presidente/personal': ['Personal', 'Gestión integral del personal'],
+  '/presidente/usuarios-externos': ['Usuarios externos', 'Cuentas registradas en cursos'],
   '/presidente/postulaciones': ['Postulaciones', 'Solicitudes de ingreso'],
   '/presidente/capacitaciones': ['Capacitaciones', 'Programa de formación'],
   '/presidente/mis-capacitaciones': ['Mis inscripciones', 'Tus capacitaciones'],
+  '/presidente/cursos': ['Cursos online', 'Cursos, instructores, contenido y calificaciones'],
   '/presidente/campanas': ['Campañas', 'Recaudación y difusión'],
   '/presidente/contactos': ['Contacto', 'Mensajes recibidos'],
   '/presidente/ordenes': ['Órdenes de emergencia', 'Solicitudes activas de operación'],
@@ -87,6 +92,7 @@ const TITLES: Record<string, [string, string]> = {
 function tituloDe(pathname: string): [string, string] {
   if (TITLES[pathname]) return TITLES[pathname];
   if (pathname.startsWith('/presidente/operaciones')) return ['Operaciones', 'Departamento de operaciones'];
+  if (pathname.startsWith('/presidente/cursos')) return ['Cursos online', 'Contenido, exámenes y participantes'];
   return ['Vista presidencial', 'Yunka Atoq'];
 }
 
@@ -96,10 +102,10 @@ const pad = (n: number) => String(n).padStart(2, '0');
 
 type Portal = 'presidente'|'voluntario'|'finanzas'|'logistica'|'personal';
 const portalLinks: Record<Exclude<Portal,'presidente'>, [string,string,keyof typeof I][]> = {
-  finanzas: [['','Estado financiero','dash'],['ingresos','Registrar ingresos','list'],['egresos','Registrar egresos','list'],['solicitar-ingreso','Solicitar ingreso por apoyo','inbox'],['solicitar-egreso','Solicitar egreso por apoyo','inbox'],['solicitudes','Atender solicitudes','shield'],['reservas','Reservas de dinero','mark'],['deudas','Deudas y préstamos','gavel'],['mensualidades','Mensualidades','users'],['capacitaciones','Capacitaciones','book'],['correos','Notificaciones','mail']],
-  personal: [['','Personal','users'],['nuevo','Registrar personal','id'],['asistencia','Llamar lista','list'],['reporte','Reporte de asistencia','dash'],['comisiones','Comisiones','shield'],['llamadas','Llamadas de atención','bullhorn'],['reglamento','Reglamento disciplinario','gavel'],['bitacora','Bitácora de cambios','book'],['capacitaciones','Capacitaciones','book'],['correos','Notificaciones','mail']],
-  logistica: [['','Dashboard de equipos','dash'],['inventario','Registrar inventario','list'],['prestamos','Préstamos de equipos','shield'],['estados','Estado y bajas','mark'],['capacitaciones','Capacitaciones','book'],['correos','Notificaciones','mail']],
-  voluntario: [['','Mi panel','dash'],['operaciones','Mis operaciones','alarm'],['guardias','Registrar guardias','book'],['solicitudes','Solicitar dinero','inbox'],['mensualidades','Mis mensualidades','mark'],['file','File personal','id'],['documentos','Memos y resoluciones','list'],['equipos','Mis equipos','shield'],['meritos','Méritos','mark'],['capacitaciones','Capacitaciones','book'],['ordenes','Órdenes','alarm']],
+  finanzas: [['','Estado financiero','dash'],['ingresos','Registrar ingresos','list'],['egresos','Registrar egresos','list'],['solicitar-ingreso','Solicitar ingreso por apoyo','inbox'],['solicitar-egreso','Solicitar egreso por apoyo','inbox'],['solicitudes','Atender solicitudes','shield'],['reservas','Reservas de dinero','mark'],['deudas','Deudas y préstamos','gavel'],['mensualidades','Mensualidades','users'],['capacitaciones','Capacitaciones','book'],['cursos-online','Cursos online','book'],['correos','Notificaciones','mail']],
+  personal: [['','Personal','users'],['nuevo','Registrar personal','id'],['asistencia','Llamar lista','list'],['reporte','Reporte de asistencia','dash'],['comisiones','Comisiones','shield'],['llamadas','Llamadas de atención','bullhorn'],['reglamento','Reglamento disciplinario','gavel'],['bitacora','Bitácora de cambios','book'],['capacitaciones','Capacitaciones','book'],['cursos-online','Cursos online','book'],['correos','Notificaciones','mail']],
+  logistica: [['','Dashboard de equipos','dash'],['inventario','Registrar inventario','list'],['prestamos','Préstamos de equipos','shield'],['estados','Estado y bajas','mark'],['capacitaciones','Capacitaciones','book'],['cursos-online','Cursos online','book'],['correos','Notificaciones','mail']],
+  voluntario: [['','Mi panel','dash'],['operaciones','Mis operaciones','alarm'],['guardias','Registrar guardias','book'],['solicitudes','Solicitar dinero','inbox'],['mensualidades','Mis mensualidades','mark'],['file','File personal','id'],['documentos','Memos y resoluciones','list'],['equipos','Mis equipos','shield'],['meritos','Méritos','mark'],['capacitaciones','Capacitaciones','book'],['cursos-online','Cursos online','book'],['ordenes','Órdenes','alarm']],
 };
 export default function PresidenteLayout({ portal='presidente' }: {portal?:Portal}) {
   const { user, logout } = useAuth();
@@ -107,6 +113,13 @@ export default function PresidenteLayout({ portal='presidente' }: {portal?:Porta
   const location = useLocation();
   const [open, setOpen] = useState(false);
   const [now, setNow] = useState(new Date());
+  const [dictando, setDictando] = useState(0);
+
+  // La opción “Cursos para dictar” aparece solo si el usuario es instructor de algún curso.
+  useEffect(() => {
+    if (portal === 'presidente') return;
+    crearCursosApi('interno').yo().then(r => setDictando(r.dictando)).catch(() => setDictando(0));
+  }, [portal, user?.id]);
 
   useEffect(() => {
     const t = setInterval(() => setNow(new Date()), 1000);
@@ -116,8 +129,10 @@ export default function PresidenteLayout({ portal='presidente' }: {portal?:Porta
   const initials = user ? `${user.nombre[0]}${user.nombre.split(' ')[1]?.[0] ?? ''}`.toUpperCase() : 'P';
   const handleLogout = () => { logout(); navigate('/login'); };
 
-  const groups = portal==='presidente' ? presidentGroups : [{label:portal.toUpperCase(),items:portalLinks[portal].map(([path,label,icon])=>({to:`/${portal}${path?`/${path}`:''}`,label,icon:I[icon],end:!path}))}];
-  const item = groups.flatMap(g=>g.items).find(i=>i.to===location.pathname);
+  const links = portal==='presidente' ? [] : [...portalLinks[portal], ...(dictando ? [['dictar','Cursos para dictar','mark'] as [string,string,keyof typeof I]] : [])];
+  const groups = portal==='presidente' ? presidentGroups : [{label:portal.toUpperCase(),items:links.map(([path,label,icon])=>({to:`/${portal}${path?`/${path}`:''}`,label,icon:I[icon],end:!path}))}];
+  const items = groups.flatMap(g=>g.items);
+  const item = items.find(i=>i.to===location.pathname) ?? items.find(i=>!i.end && location.pathname.startsWith(`${i.to}/`));
   const [titulo, subtitulo] = portal==='presidente' && (TITLES[location.pathname] || location.pathname.startsWith('/presidente/operaciones')) ? tituloDe(location.pathname) : [item?.label ?? 'Yunka Atoq',portal==='presidente'?'Gestión institucional':`Portal de ${portal}`];
   const reloj = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
   const fecha = `${DIAS[now.getDay()]} ${pad(now.getDate())} ${MESES[now.getMonth()]}`;

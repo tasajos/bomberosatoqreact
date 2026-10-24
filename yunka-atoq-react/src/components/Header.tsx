@@ -9,6 +9,7 @@ const navItems = [
   { to: '/estadisticas',  label: 'Estadísticas' },
   { to: '/galeria',       label: 'Galería' },
   { to: '/voluntarios',   label: 'Voluntariado' },
+  { to: '/cursos',        label: 'Cursos' },
   { to: '/donaciones',    label: 'Donaciones' },
   { to: '/noticias',      label: 'Noticias' },
   { to: '/contacto',      label: 'Contacto' },
@@ -45,7 +46,7 @@ function Header() {
           ))}
           <div className={styles.actions}>
             <Link to="/login" className={styles.accessLink} onClick={close}>
-              <span>🔒</span> Acceso Voluntarios
+              <span>🔒</span> Acceso<span className={styles.accessExtra}> Voluntarios</span>
             </Link>
             <Link to="/donaciones" className={styles.donateBtn} onClick={close}>
               Donar

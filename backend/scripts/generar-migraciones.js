@@ -6,7 +6,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 export const SCRIPTS_RUNTIME = [
   '18_finanzas_logistica.sql', '19_finanzas_comprobantes.sql', '20_finanzas_mensualidades.sql',
   '21_finanzas_deudas_conceptos.sql', '22_logistica_actas_tipos.sql', '23_personal_gestion.sql', '24_personal_reglamento.sql',
-  '26_conceptos_guardias.sql', '27_credenciales.sql', '28_credenciales_diseno.sql',
+  '26_conceptos_guardias.sql', '27_credenciales.sql', '28_credenciales_diseno.sql', '29_cursos_online.sql', '30_cursos_aprobacion.sql',
 ];
 
 export async function contenidoModulo() {
