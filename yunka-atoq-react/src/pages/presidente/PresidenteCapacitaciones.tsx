@@ -5,6 +5,7 @@ import {
   type Capacitacion, type Inscripcion, type VoluntarioPerfil,
   type AdminUser,
 } from '../../services/api';
+import { descargarInscritosCapacitacion } from '../../utils/capacitacionExcel';
 import pStyles from './PresidenteCapacitaciones.module.css';
 
 // ── helpers ────────────────────────────────────────────────────────
@@ -13,6 +14,9 @@ function fmtDate(s?: string) {
   const d = new Date(s.slice(0, 10) + 'T12:00:00');
   return isNaN(d.getTime()) ? s
     : new Intl.DateTimeFormat('es-BO', { day: 'numeric', month: 'short', year: 'numeric' }).format(d);
+}
+function iniciales(nombre: string) {
+  return nombre.split(/\s+/).filter(Boolean).slice(0, 2).map(p => p[0]).join('').toUpperCase();
 }
 function extIcon(url: string) {
   const ext = url.split('.').pop()?.toLowerCase();
@@ -82,6 +86,14 @@ function TabCapacitaciones({ onSelect }: { onSelect:(c:Capacitacion)=>void }) {
       setShowForm(false); load();
     } catch(e:unknown){ setErr(e instanceof Error ? e.message : 'Error'); }
     finally { setSaving(false); }
+  };
+
+  const [exportando, setExportando] = useState<number|null>(null);
+  const exportar = async (c: Capacitacion) => {
+    setExportando(c.id); setErr('');
+    try { await descargarInscritosCapacitacion(c, await capacitacionesApi.getInscripciones(c.id)); }
+    catch(e:unknown){ setErr(e instanceof Error ? e.message : 'No se pudo generar el Excel'); }
+    finally { setExportando(null); }
   };
 
   const remove = async (id: number) => {
@@ -198,6 +210,10 @@ function TabCapacitaciones({ onSelect }: { onSelect:(c:Capacitacion)=>void }) {
               <div className={pStyles.capCardActions}>
                 <button className={pStyles.btnLink} onClick={()=>onSelect(c)}>Gestionar inscripciones →</button>
                 <div style={{display:'flex',gap:'0.5rem'}}>
+                  <button className={pStyles.btnExcelSm} title="Descargar inscritos en Excel"
+                    disabled={exportando===c.id || !c.inscritos} onClick={()=>exportar(c)}>
+                    {exportando===c.id ? '…' : '⬇ Excel'}
+                  </button>
                   <button className={pStyles.btnIconEdit} onClick={()=>openEdit(c)}>✏️</button>
                   <button className={pStyles.btnIconDel}  onClick={()=>remove(c.id)}>🗑</button>
                 </div>
@@ -274,8 +290,31 @@ function TabInscripciones({ cap, onBack }: { cap:Capacitacion; onBack:()=>void }
     loadIns();
   };
 
+  const [busqueda, setBusqueda] = useState('');
+  const [filtro, setFiltro]     = useState<'todos'|Inscripcion['estado']>('todos');
+  const [exportando, setExportando] = useState(false);
+
+  const exportar = async () => {
+    setExportando(true); setErr('');
+    try { await descargarInscritosCapacitacion(cap, inscripciones); }
+    catch(e:unknown){ setErr(e instanceof Error ? e.message : 'No se pudo generar el Excel'); }
+    finally { setExportando(false); }
+  };
+
   const tc = TIPO_CFG[cap.tipo];
   const byEstado = (e:string) => inscripciones.filter(i=>i.estado===e);
+  const q = busqueda.trim().toLowerCase();
+  const visibles = inscripciones.filter(i =>
+    (filtro === 'todos' || i.estado === filtro) &&
+    (!q || [i.nombre_completo, i.nombre_voluntario, i.matricula, i.carnet_identidad, i.grado, i.especialidad]
+      .some(v => v?.toLowerCase().includes(q)))
+  );
+  const CHIPS: { key: typeof filtro; label: string; count: number }[] = [
+    { key:'todos',      label:'Todos',       count: inscripciones.length },
+    { key:'inscrito',   label:'Inscritos',   count: byEstado('inscrito').length },
+    { key:'completado', label:'Completados', count: byEstado('completado').length },
+    { key:'ausente',    label:'Ausentes',    count: byEstado('ausente').length },
+  ];
 
   return (
     <div>
@@ -294,7 +333,11 @@ function TabInscripciones({ cap, onBack }: { cap:Capacitacion; onBack:()=>void }
           </div>
         </div>
         <div className={pStyles.capDetailStats}>
-          <div className={pStyles.statBox}><span className={pStyles.statBoxNum}>{inscripciones.length}</span><span className={pStyles.statBoxLabel}>Inscritos</span></div>
+          <div className={pStyles.statBox}>
+            <span className={pStyles.statBoxNum}>{inscripciones.length}{cap.cupo > 0 && <small style={{fontSize:'0.9rem',color:'#94A3B8'}}>/{cap.cupo}</small>}</span>
+            <span className={pStyles.statBoxLabel}>Inscritos</span>
+            {cap.cupo > 0 && <div className={pStyles.cupoTrack}><div className={pStyles.cupoFill} style={{width:`${Math.min(100, inscripciones.length / cap.cupo * 100)}%`}}/></div>}
+          </div>
           <div className={pStyles.statBox}><span className={pStyles.statBoxNum}>{byEstado('completado').length}</span><span className={pStyles.statBoxLabel}>Completados</span></div>
           <div className={pStyles.statBox}><span className={pStyles.statBoxNum}>{byEstado('ausente').length}</span><span className={pStyles.statBoxLabel}>Ausentes</span></div>
           <div className={pStyles.statBox} style={{borderColor: invAbierta ? '#86efac' : '#E2E8F0', background: invAbierta ? '#f0fdf4' : '#F8FAFC'}}>
@@ -333,36 +376,82 @@ function TabInscripciones({ cap, onBack }: { cap:Capacitacion; onBack:()=>void }
         </button>
       </div>
 
-      {loading && <p className={pStyles.empty}>Cargando…</p>}
-      {!loading && !inscripciones.length && <p className={pStyles.empty}>No hay voluntarios inscritos aún.</p>}
-      {!loading && inscripciones.length > 0 && (
-        <div className={pStyles.tableWrap}>
-          <div className={pStyles.tableHead}>
-            <span>#</span><span>Voluntario</span><span>Matrícula</span><span>Estado</span><span></span>
+      <div className={pStyles.insPanel}>
+        <div className={pStyles.insToolbar}>
+          <div className={pStyles.insTitle}>
+            Voluntarios inscritos<small>{visibles.length} de {inscripciones.length}</small>
           </div>
-          {inscripciones.map((ins, idx)=>{
-            const ei = ESTADO_INS[ins.estado];
-            return (
-              <div key={ins.id} className={pStyles.tableRow}>
-                <span className={pStyles.rowNum}>{idx+1}</span>
-                <div>
-                  <div className={pStyles.rowName}>{ins.nombre_voluntario}</div>
-                  <div className={pStyles.rowSub}>{ins.especialidad||'—'}</div>
-                </div>
-                <div className={pStyles.rowSub}>{ins.matricula||'—'}</div>
-                <select className={pStyles.estadoSelect} value={ins.estado}
-                  onChange={e=>changeEstado(ins,e.target.value)}
-                  style={{color:ei.color,background:ei.bg,borderColor:`${ei.color}40`}}>
-                  <option value="inscrito">Inscrito</option>
-                  <option value="completado">Completado</option>
-                  <option value="ausente">Ausente</option>
-                </select>
-                <button className={pStyles.btnIconDel} onClick={()=>removeIns(ins.id)}>✕</button>
-              </div>
-            );
-          })}
+          <div className={pStyles.insTools}>
+            <input className={pStyles.insSearch} value={busqueda} onChange={e=>setBusqueda(e.target.value)}
+              placeholder="Buscar nombre, C.I., matrícula…"/>
+            <div className={pStyles.chips}>
+              {CHIPS.map(c=>(
+                <button key={c.key} className={`${pStyles.chip} ${filtro===c.key ? pStyles.chipActive : ''}`}
+                  onClick={()=>setFiltro(c.key)}>{c.label} {c.count}</button>
+              ))}
+            </div>
+            <button className={pStyles.btnExcel} onClick={exportar} disabled={exportando || !inscripciones.length}>
+              {exportando ? 'Generando…' : '⬇ Descargar Excel'}
+            </button>
+          </div>
         </div>
-      )}
+
+        {loading && <p className={pStyles.insEmpty}>Cargando…</p>}
+        {!loading && !inscripciones.length && <p className={pStyles.insEmpty}>No hay voluntarios inscritos aún.</p>}
+        {!loading && inscripciones.length > 0 && !visibles.length && <p className={pStyles.insEmpty}>Ningún inscrito coincide con la búsqueda.</p>}
+        {!loading && visibles.length > 0 && (
+          <div className={pStyles.insScroll}>
+            <table className={pStyles.insTable}>
+              <thead>
+                <tr>
+                  <th>#</th><th>Voluntario</th><th>C.I.</th><th>Matrícula</th><th>Contacto</th>
+                  <th>Sangre</th><th>Inscripción</th><th>Estado</th><th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {visibles.map((ins, idx)=>{
+                  const ei = ESTADO_INS[ins.estado];
+                  const nombre = ins.nombre_completo || ins.nombre_voluntario;
+                  return (
+                    <tr key={ins.id}>
+                      <td className={pStyles.insNum}>{idx+1}</td>
+                      <td>
+                        <div className={pStyles.insVol}>
+                          <span className={pStyles.insAvatar}>{iniciales(nombre)}</span>
+                          <div style={{minWidth:0}}>
+                            <div className={pStyles.insName}>{nombre}</div>
+                            <div className={pStyles.insSub}>{[ins.grado, ins.especialidad].filter(Boolean).join(' · ') || '—'}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className={pStyles.insMono}>{ins.carnet_identidad || '—'}</td>
+                      <td className={pStyles.insMono}>{ins.matricula || '—'}</td>
+                      <td>
+                        <div className={pStyles.insContact}>
+                          {ins.telefono ? <a href={`tel:${ins.telefono}`}>📞 {ins.telefono}</a> : <span className={pStyles.insSub}>Sin teléfono</span>}
+                          {ins.email && <a href={`mailto:${ins.email}`}>✉ {ins.email}</a>}
+                        </div>
+                      </td>
+                      <td>{ins.tipo_sangre ? <span className={pStyles.insBlood}>{ins.tipo_sangre}</span> : <span className={pStyles.insSub}>—</span>}</td>
+                      <td className={pStyles.insSub} style={{whiteSpace:'nowrap'}}>{fmtDate(ins.fecha_inscripcion)}</td>
+                      <td>
+                        <select className={pStyles.estadoSelect} value={ins.estado}
+                          onChange={e=>changeEstado(ins,e.target.value)}
+                          style={{color:ei.color,background:ei.bg,borderColor:`${ei.color}40`}}>
+                          <option value="inscrito">Inscrito</option>
+                          <option value="completado">Completado</option>
+                          <option value="ausente">Ausente</option>
+                        </select>
+                      </td>
+                      <td><button className={pStyles.btnIconDel} title="Quitar" onClick={()=>removeIns(ins.id)}>✕</button></td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

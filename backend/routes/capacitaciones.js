@@ -10,6 +10,9 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const router = Router();
 const ROLES = ['admin', 'presidente', 'jefe_personal', 'jefe_operaciones', 'coordinador'];
 
+// Visible para voluntarios: toda capacitación activa, o con invitación abierta mientras no esté cerrada
+export const CAP_VISIBLE_SQL = `(c.estado = 'activa' OR (c.invitacion_abierta = 1 AND c.estado != 'cerrada'))`;
+
 // Multer para certificados/cursos
 const cursosDir = path.join(__dirname, '..', 'uploads', 'cursos');
 if (!fs.existsSync(cursosDir)) fs.mkdirSync(cursosDir, { recursive: true });
@@ -137,7 +140,9 @@ router.get('/:id/inscripciones', verifyToken, requireRole(...ROLES), async (req,
   try {
     const [rows] = await pool.query(`
       SELECT i.*, CONCAT(u.nombre,' ',u.apellido_paterno) AS nombre_voluntario,
-        u.matricula, u.codigo, u.especialidad
+        TRIM(CONCAT_WS(' ', u.nombre, u.apellido_paterno, u.apellido_materno)) AS nombre_completo,
+        u.matricula, u.codigo, u.especialidad, u.grado, u.carnet_identidad,
+        u.telefono, u.email, u.tipo_sangre
       FROM capacitacion_inscripciones i
       JOIN users u ON u.id = i.voluntario_id
       WHERE i.capacitacion_id = ?
@@ -190,7 +195,7 @@ router.post('/:id/cerrar-invitacion', verifyToken, requireRole(...ROLES), async 
   } catch (e) { console.error(e); res.status(500).json({ error: 'Error del servidor' }); }
 });
 
-// GET /api/capacitaciones/abiertas — capacitaciones con invitación abierta (todos los roles)
+// GET /api/capacitaciones/abiertas — capacitaciones activas o con invitación abierta (todos los roles)
 router.get('/abiertas', verifyToken, async (req, res) => {
   try {
     const [rows] = await pool.query(`
@@ -199,9 +204,9 @@ router.get('/abiertas', verifyToken, async (req, res) => {
         MAX(CASE WHEN i.voluntario_id = ? THEN 1 ELSE 0 END) AS ya_inscrito
       FROM capacitaciones c
       LEFT JOIN capacitacion_inscripciones i ON i.capacitacion_id = c.id
-      WHERE c.invitacion_abierta = 1 AND c.estado != 'cerrada'
+      WHERE ${CAP_VISIBLE_SQL}
       GROUP BY c.id
-      ORDER BY c.fecha ASC
+      ORDER BY c.fecha IS NULL, c.fecha ASC, c.id DESC
     `, [req.user.id]);
     res.json(rows);
   } catch (e) { console.error(e); res.status(500).json({ error: 'Error del servidor' }); }
@@ -210,9 +215,8 @@ router.get('/abiertas', verifyToken, async (req, res) => {
 // POST /api/capacitaciones/:id/inscribirse — auto-inscripción del usuario logueado
 router.post('/:id/inscribirse', verifyToken, async (req, res) => {
   try {
-    const [[cap]] = await pool.query('SELECT id,invitacion_abierta,estado FROM capacitaciones WHERE id=?', [req.params.id]);
-    if (!cap) return res.status(404).json({ error: 'Capacitación no encontrada' });
-    if (!cap.invitacion_abierta) return res.status(403).json({ error: 'Esta capacitación no tiene invitación abierta' });
+    const [[cap]] = await pool.query(`SELECT c.id FROM capacitaciones c WHERE c.id=? AND ${CAP_VISIBLE_SQL}`, [req.params.id]);
+    if (!cap) return res.status(403).json({ error: 'Esta capacitación no está abierta a inscripciones' });
     await pool.query(
       'INSERT IGNORE INTO capacitacion_inscripciones (capacitacion_id,voluntario_id) VALUES (?,?)',
       [req.params.id, req.user.id]

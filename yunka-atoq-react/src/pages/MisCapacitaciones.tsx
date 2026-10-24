@@ -1,26 +1,40 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type CSSProperties } from 'react';
 import { capacitacionesApi, type Capacitacion } from '../services/api';
+import s from './MisCapacitaciones.module.css';
 
 type CapAbierta = Capacitacion & { ya_inscrito: number };
+type Filtro = 'todas' | 'disponibles' | 'inscritas';
 
-function fmtDate(s?: string) {
-  if (!s) return '—';
-  const d = new Date(s.slice(0, 10) + 'T12:00:00');
-  return isNaN(d.getTime()) ? s
-    : new Intl.DateTimeFormat('es-BO', { day: 'numeric', month: 'long', year: 'numeric' }).format(d);
+function parseDate(str?: string) {
+  if (!str) return null;
+  const d = new Date(str.slice(0, 10) + 'T12:00:00');
+  return isNaN(d.getTime()) ? null : d;
 }
 
-const TIPO_CFG: Record<string, { label: string; color: string; bg: string }> = {
-  interna:       { label: 'Interna',       color: '#1e40af', bg: '#eff6ff' },
-  externa:       { label: 'Externa',       color: '#166534', bg: '#f0fdf4' },
-  certificacion: { label: 'Certificación', color: '#7c3aed', bg: '#f5f3ff' },
+const TIPO_CFG: Record<string, { label: string; icon: string; color: string; grad: string }> = {
+  interna:       { label: 'Interna',       icon: '🚒', color: '#1741B8', grad: 'linear-gradient(135deg,#2F6BFF,#1741B8)' },
+  externa:       { label: 'Externa',       icon: '🌐', color: '#13795B', grad: 'linear-gradient(135deg,#1F9D6B,#13795B)' },
+  certificacion: { label: 'Certificación', icon: '🎓', color: '#5B21B6', grad: 'linear-gradient(135deg,#7C5CFF,#5B21B6)' },
 };
 
+function DateBox({ fecha }: { fecha?: string }) {
+  const d = parseDate(fecha);
+  if (!d) return <div className={s.dateBox}><div className={s.dateNone}>FECHA<br />POR DEFINIR</div></div>;
+  return (
+    <div className={s.dateBox}>
+      <div className={s.dateDay}>{d.getDate()}</div>
+      <div className={s.dateMonth}>{new Intl.DateTimeFormat('es-BO', { month: 'short' }).format(d).replace('.', '')}</div>
+      <div className={s.dateYear}>{d.getFullYear()}</div>
+    </div>
+  );
+}
+
 export default function MisCapacitaciones() {
-  const [lista, setLista]   = useState<CapAbierta[]>([]);
+  const [lista, setLista]     = useState<CapAbierta[]>([]);
   const [loading, setLoading] = useState(true);
-  const [busy, setBusy]     = useState<number | null>(null);
-  const [msg, setMsg]       = useState('');
+  const [busy, setBusy]       = useState<number | null>(null);
+  const [msg, setMsg]         = useState('');
+  const [filtro, setFiltro]   = useState<Filtro>('todas');
 
   const load = () => {
     setLoading(true);
@@ -50,144 +64,121 @@ export default function MisCapacitaciones() {
     }
   };
 
+  const inscritas = lista.filter(c => c.ya_inscrito);
+  const visibles  = filtro === 'inscritas' ? inscritas
+                  : filtro === 'disponibles' ? lista.filter(c => !c.ya_inscrito)
+                  : lista;
+  const FILTROS: { key: Filtro; label: string; count: number }[] = [
+    { key: 'todas',       label: 'Todas',       count: lista.length },
+    { key: 'disponibles', label: 'Disponibles', count: lista.length - inscritas.length },
+    { key: 'inscritas',   label: 'Inscritas',   count: inscritas.length },
+  ];
+
   return (
-    <div style={{ maxWidth: '860px', margin: '0 auto', padding: '2rem 1.25rem' }}>
+    <div className={s.page}>
       {/* Header */}
-      <div style={{ marginBottom: '2rem' }}>
-        <h1 style={{ fontFamily: 'var(--font-condensed)', fontSize: 'clamp(1.5rem,3vw,2rem)', fontWeight: 900, color: '#0F172A', margin: 0, lineHeight: 1 }}>
-          Capacitaciones disponibles
-        </h1>
-        <p style={{ fontSize: '0.85rem', color: '#64748B', marginTop: '0.35rem' }}>
-          Capacitaciones con inscripción abierta. Presiona el botón para inscribirte o cancelar tu inscripción.
-        </p>
+      <div className={s.header}>
+        <div>
+          <div className={s.kicker}>Formación continua</div>
+          <h1 className={s.title}>Capacitaciones disponibles</h1>
+          <p className={s.subtitle}>Todas las capacitaciones activas. Inscríbete o cancela tu inscripción desde cada tarjeta.</p>
+        </div>
+        {lista.length > 0 && (
+          <div className={s.filters}>
+            {FILTROS.map(f => (
+              <button key={f.key}
+                className={`${s.filterBtn} ${filtro === f.key ? s.filterActive : ''}`}
+                onClick={() => setFiltro(f.key)}>
+                {f.label} <span className={s.filterCount}>{f.count}</span>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
-      {/* Mensaje */}
-      {msg && (
-        <div style={{ background: '#f0fdf4', border: '1px solid #86efac', borderRadius: '8px', padding: '0.75rem 1rem', fontSize: '0.875rem', color: '#166534', marginBottom: '1.25rem' }}>
-          {msg}
-        </div>
-      )}
+      {msg && <div className={s.toast}>{msg}</div>}
 
-      {loading && (
-        <p style={{ textAlign: 'center', color: '#94A3B8', padding: '3rem 0', fontSize: '0.875rem' }}>
-          Cargando capacitaciones…
-        </p>
-      )}
+      {loading && <p className={s.loading}>Cargando capacitaciones…</p>}
 
-      {!loading && !lista.length && (
-        <div style={{ textAlign: 'center', padding: '4rem 1rem' }}>
-          <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>📚</div>
-          <div style={{ fontFamily: 'var(--font-condensed)', fontSize: '1rem', fontWeight: 700, color: '#475569' }}>
-            No hay capacitaciones abiertas por el momento
+      {!loading && !visibles.length && (
+        <div className={s.empty}>
+          <div className={s.emptyIcon}>📚</div>
+          <div className={s.emptyTitle}>
+            {lista.length ? 'No hay capacitaciones en este filtro' : 'No hay capacitaciones activas por el momento'}
           </div>
-          <p style={{ fontSize: '0.82rem', color: '#94A3B8', marginTop: '0.35rem' }}>
-            Cuando el presidente publique una invitación, aparecerá aquí.
-          </p>
+          <p className={s.emptyText}>Cuando se active una capacitación, aparecerá aquí.</p>
         </div>
       )}
 
-      {/* Lista de capacitaciones */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        {lista.map(cap => {
-          const tc     = TIPO_CFG[cap.tipo] ?? TIPO_CFG.interna;
+      {/* Grid de capacitaciones */}
+      <div className={s.grid}>
+        {visibles.map(cap => {
+          const tc       = TIPO_CFG[cap.tipo] ?? TIPO_CFG.interna;
           const inscrito = !!cap.ya_inscrito;
+          const horas    = Number(cap.horas) || 0;
+          const lleno    = cap.cupo > 0 && cap.inscritos >= cap.cupo;
+          const pct      = cap.cupo > 0 ? Math.min(100, (cap.inscritos / cap.cupo) * 100) : 0;
 
           return (
-            <div key={cap.id} style={{
-              background: 'white',
-              border: `1.5px solid ${inscrito ? '#86efac' : '#E2E8F0'}`,
-              borderRadius: '14px',
-              padding: '1.25rem 1.5rem',
-              boxShadow: inscrito ? '0 0 0 3px rgba(134,239,172,0.2)' : '0 1px 4px rgba(0,0,0,0.05)',
-              transition: 'all 0.2s',
-              display: 'flex', alignItems: 'flex-start', gap: '1.25rem',
-            }}>
-              {/* Contenido */}
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', flexWrap: 'wrap', marginBottom: '0.4rem' }}>
-                  <span style={{
-                    fontFamily: 'var(--font-condensed)', fontSize: '0.63rem', fontWeight: 800,
-                    letterSpacing: '0.1em', textTransform: 'uppercase',
-                    color: tc.color, background: tc.bg, padding: '0.15rem 0.6rem', borderRadius: '4px',
-                  }}>{tc.label}</span>
-                  {inscrito && (
-                    <span style={{
-                      fontFamily: 'var(--font-condensed)', fontSize: '0.63rem', fontWeight: 800,
-                      letterSpacing: '0.08em', textTransform: 'uppercase',
-                      color: '#166534', background: '#f0fdf4', padding: '0.15rem 0.6rem', borderRadius: '4px',
-                      border: '1px solid #86efac',
-                    }}>✓ Inscrito</span>
-                  )}
+            <article key={cap.id}
+              className={`${s.card} ${inscrito ? s.cardInscrito : ''}`}
+              style={{ '--cap-color': tc.color, '--cap-grad': tc.grad } as CSSProperties}>
+              <div className={s.cover}>
+                <div>
+                  <div className={s.coverIcon}>{tc.icon}</div>
+                  <div className={s.coverBadges}>
+                    <span className={s.badge}>{tc.label}</span>
+                    {inscrito && <span className={`${s.badge} ${s.badgeOk}`}>✓ Inscrito</span>}
+                  </div>
                 </div>
+                <DateBox fecha={cap.fecha} />
+              </div>
 
-                <div style={{ fontFamily: 'var(--font-condensed)', fontSize: '1.05rem', fontWeight: 900, color: '#0F172A', marginBottom: '0.5rem' }}>
-                  {cap.nombre}
-                </div>
+              <div className={s.body}>
+                <h3 className={s.name}>{cap.nombre}</h3>
+                {cap.descripcion && <p className={s.desc}>{cap.descripcion}</p>}
 
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem 1.25rem' }}>
+                <div className={s.details}>
                   {cap.institucion && (
-                    <span style={{ fontSize: '0.8rem', color: '#1e40af', fontWeight: 600 }}>
-                      🏛 {cap.institucion}
-                    </span>
+                    <span className={`${s.detail} ${s.detailInst}`}><span className={s.detailIcon}>🏛</span><span>{cap.institucion}</span></span>
                   )}
                   {cap.instructor && (
-                    <span style={{ fontSize: '0.78rem', color: '#475569' }}>👤 {cap.instructor}</span>
+                    <span className={s.detail}><span className={s.detailIcon}>👤</span><span>{cap.instructor}</span></span>
                   )}
                   {cap.lugar && (
-                    <span style={{ fontSize: '0.78rem', color: '#475569' }}>📍 {cap.lugar}</span>
+                    <span className={s.detail}><span className={s.detailIcon}>📍</span><span>{cap.lugar}</span></span>
                   )}
-                  {cap.fecha && (
-                    <span style={{ fontSize: '0.78rem', color: '#475569' }}>📅 {fmtDate(cap.fecha)}</span>
-                  )}
-                  {cap.horas > 0 && (
-                    <span style={{ fontSize: '0.78rem', color: '#475569' }}>⏱ {cap.horas} horas</span>
+                  {horas > 0 && (
+                    <span className={s.detail}><span className={s.detailIcon}>⏱</span><span>{horas} horas académicas</span></span>
                   )}
                 </div>
 
-                {cap.descripcion && (
-                  <p style={{ fontSize: '0.8rem', color: '#64748B', marginTop: '0.5rem', lineHeight: 1.5 }}>
-                    {cap.descripcion}
-                  </p>
+                {cap.cupo > 0 && (
+                  <div className={s.cupo}>
+                    <div className={s.cupoHead}>
+                      <span>CUPO</span>
+                      <span><span className={s.cupoNum}>{cap.inscritos}</span> / {cap.cupo}</span>
+                    </div>
+                    <div className={s.cupoBar}>
+                      <div className={`${s.cupoFill} ${lleno ? s.cupoFull : ''}`} style={{ width: `${pct}%` }} />
+                    </div>
+                  </div>
                 )}
-
-                {/* Contador de inscritos */}
-                <div style={{
-                  marginTop: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '0.375rem',
-                  fontFamily: 'var(--font-condensed)', fontSize: '0.72rem', fontWeight: 700,
-                  color: '#64748B',
-                }}>
-                  <span style={{
-                    background: '#F1F5F9', borderRadius: '999px',
-                    padding: '0.15rem 0.6rem', fontWeight: 800, color: '#0F172A',
-                  }}>{cap.inscritos}</span>
-                  voluntario{cap.inscritos !== 1 ? 's' : ''} inscrito{cap.inscritos !== 1 ? 's' : ''}
-                  {cap.cupo > 0 && <span style={{ color: '#94A3B8' }}> · cupo {cap.cupo}</span>}
-                </div>
               </div>
 
-              {/* Botón inscribirse */}
-              <div style={{ flexShrink: 0, alignSelf: 'center' }}>
+              <div className={s.footer}>
+                <span className={s.inscritos}>
+                  👥 <span className={s.inscritosNum}>{cap.inscritos}</span>
+                  inscrito{cap.inscritos !== 1 ? 's' : ''}
+                </span>
                 <button
-                  disabled={busy === cap.id}
+                  disabled={busy === cap.id || (lleno && !inscrito)}
                   onClick={() => inscribirse(cap)}
-                  style={{
-                    fontFamily: 'var(--font-condensed)', fontSize: '0.78rem', fontWeight: 800,
-                    letterSpacing: '0.06em', textTransform: 'uppercase',
-                    padding: '0.7rem 1.25rem', borderRadius: '8px', border: '2px solid',
-                    cursor: busy === cap.id ? 'not-allowed' : 'pointer',
-                    transition: 'all 0.18s', whiteSpace: 'nowrap',
-                    ...(inscrito
-                      ? { background: '#fef2f2', color: '#991b1b', borderColor: '#fecaca' }
-                      : { background: '#C41E1E', color: 'white', borderColor: '#C41E1E' }
-                    ),
-                    opacity: busy === cap.id ? 0.6 : 1,
-                  }}
-                >
-                  {busy === cap.id ? '…' : inscrito ? 'Cancelar inscripción' : 'Inscribirme'}
+                  className={`${s.btn} ${inscrito ? s.btnLeave : s.btnJoin}`}>
+                  {busy === cap.id ? '…' : inscrito ? 'Cancelar inscripción' : lleno ? 'Cupo lleno' : 'Inscribirme'}
                 </button>
               </div>
-            </div>
+            </article>
           );
         })}
       </div>

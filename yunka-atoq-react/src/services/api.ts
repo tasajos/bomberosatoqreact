@@ -632,9 +632,15 @@ export interface Inscripcion {
   capacitacion_id: number;
   voluntario_id: number;
   nombre_voluntario: string;
+  nombre_completo: string;
   matricula: string;
   codigo: string;
   especialidad: string;
+  grado: string | null;
+  carnet_identidad: string | null;
+  telefono: string | null;
+  email: string | null;
+  tipo_sangre: string | null;
   estado: 'inscrito' | 'completado' | 'ausente';
   notas: string;
   fecha_inscripcion: string;

@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import pool from '../db.js';
 import { verifyToken } from '../middleware/auth.js';
+import { CAP_VISIBLE_SQL } from './capacitaciones.js';
 
 const router = Router();
 
@@ -103,8 +104,8 @@ router.get('/mi-perfil', verifyToken, async (req, res) => {
               MAX(CASE WHEN i.voluntario_id = ? THEN 1 ELSE 0 END) AS ya_inscrito
        FROM capacitaciones c
        LEFT JOIN capacitacion_inscripciones i ON i.capacitacion_id = c.id
-       WHERE c.invitacion_abierta = 1 AND c.estado != 'cerrada'
-       GROUP BY c.id ORDER BY c.fecha ASC LIMIT 6`, [vid]
+       WHERE ${CAP_VISIBLE_SQL}
+       GROUP BY c.id ORDER BY c.fecha IS NULL, c.fecha ASC, c.id DESC`, [vid]
     );
 
     const [caps_mis] = await pool.query(
