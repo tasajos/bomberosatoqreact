@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { cursosGestionApi, ETIQUETAS, textoNota, type ListaParticipantes, type Participante } from '../../services/cursosApi';
 import { useCursos } from './zona';
 import { Etiqueta } from './CursoCard';
+import ConfirmacionYunka from '../../components/ConfirmacionYunka';
 import s from '../gestion/Gestion.module.css';
 import c from './Cursos.module.css';
 
@@ -23,14 +24,23 @@ async function descargarNotas(data: ListaParticipantes) {
 export default function ParticipantesCurso({ cursoId, gestion }: { cursoId: number; gestion: boolean }) {
   const { api } = useCursos();
   const [data, setData] = useState<ListaParticipantes | null>(null), [error, setError] = useState(''), [buscar, setBuscar] = useState('');
+  const [revision, setRevision] = useState<{ participante: Participante; estado: 'activa' | 'rechazada' | 'retirada' } | null>(null);
+  const [observacion, setObservacion] = useState(''), [guardando, setGuardando] = useState(false), [errorRevision, setErrorRevision] = useState('');
+  const [aviso, setAviso] = useState('');
   const cargar = useCallback(() => api.participantes(cursoId).then(d => { setData(d); setError(''); }).catch(e => setError(e.message)), [api, cursoId]);
   useEffect(() => { void cargar(); }, [cargar]);
-  async function revisar(p: Participante, estado: 'activa' | 'rechazada' | 'retirada') {
-    const textos = { activa: `¿Habilitar a ${p.nombre} en el curso?${data?.curso.costo ? " Verifica antes su pago." : ""} Se le avisará por correo.`, rechazada: `¿Rechazar la inscripción de ${p.nombre}? Se le avisará por correo.`, retirada: `¿Dar de baja a ${p.nombre} del curso?` };
-    if (!window.confirm(textos[estado])) return;
-    const observacion = estado === 'activa' ? '' : window.prompt('Motivo (se muestra al participante, opcional):') ?? '';
-    try { await cursosGestionApi.revisarInscripcion(p.id, estado, observacion); await cargar(); }
-    catch (e) { setError(e instanceof Error ? e.message : 'No se pudo actualizar la inscripción.'); }
+  function revisar(p: Participante, estado: 'activa' | 'rechazada' | 'retirada') {
+    setRevision({ participante: p, estado }); setObservacion(''); setErrorRevision(''); setAviso('');
+  }
+  async function confirmarRevision() {
+    if (!revision || guardando) return;
+    setGuardando(true); setErrorRevision('');
+    try {
+      await cursosGestionApi.revisarInscripcion(revision.participante.id, revision.estado, observacion);
+      setAviso(`Inscripción de ${revision.participante.nombre}: ${ETIQUETAS[revision.estado]}.`);
+      setRevision(null); await cargar();
+    } catch (e) { setErrorRevision(e instanceof Error ? e.message : 'No se pudo actualizar la inscripción.'); }
+    finally { setGuardando(false); }
   }
 
   if (!data) return error ? <div role="alert" className={s.error}>{error}</div> : <p role="status" className={s.muted}>Cargando participantes…</p>;
@@ -50,6 +60,7 @@ export default function ParticipantesCurso({ cursoId, gestion }: { cursoId: numb
       ? 'El curso concluyó: los exámenes están cerrados y los participantes aprobados están habilitados para su certificado.'
       : 'La certificación se habilita cuando el curso concluye (al pasar la fecha de fin o al marcarlo como Finalizado).'}</div>
     {error && <div role="alert" className={s.error}>{error}</div>}
+    {aviso && <div role="status" className={s.success}>{aviso}</div>}
     <div className={s.toolbar} style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
       <input className={s.search} style={{ marginBottom: 0 }} placeholder="Buscar por nombre, documento o correo" value={buscar} onChange={e => setBuscar(e.target.value)} aria-label="Buscar participante" />
       <button className={s.secondary} disabled={!data.participantes.length} onClick={() => descargarNotas(data).catch(e => setError(e.message))}>Descargar notas (Excel)</button>
@@ -86,5 +97,19 @@ export default function ParticipantesCurso({ cursoId, gestion }: { cursoId: numb
         </tr>)}</tbody>
       </table>
     </div> : <p className={s.empty} style={{ marginTop: 14 }}>{data.participantes.length ? 'Ningún participante coincide con la búsqueda.' : 'Todavía no hay participantes inscritos.'}</p>}
+    {revision && <ConfirmacionYunka
+      titulo={revision.estado === 'activa' ? '¿Habilitar participante?' : revision.estado === 'rechazada' ? '¿Rechazar inscripción?' : '¿Dar de baja al participante?'}
+      confirmar={revision.estado === 'activa' ? 'Sí, habilitar' : revision.estado === 'rechazada' ? 'Sí, rechazar' : 'Sí, dar de baja'}
+      variante={revision.estado === 'activa' ? 'confirmacion' : 'peligro'} etiqueta="REVISIÓN DE INSCRIPCIÓN"
+      nota="El participante recibirá un aviso por correo sobre este cambio." textoOcupado="Guardando…"
+      ocupado={guardando} error={errorRevision} onCancelar={() => setRevision(null)} onConfirmar={() => void confirmarRevision()}>
+      <div className={c.revisionPersona}><strong>{revision.participante.nombre}</strong><span>{revision.participante.email}</span><small>{data.curso.titulo}</small></div>
+      {revision.estado === 'activa' ? <>
+        <p>Se habilitará su inscripción para acceder al contenido del curso desde la fecha de inicio.</p>
+        {data.curso.costo > 0 && <div className={s.notice}>Verifica el pago antes de continuar.<br /><strong>Referencia: {revision.participante.pago_referencia || 'Sin referencia registrada'}</strong></div>}
+      </> : <><p>{revision.estado === 'rechazada' ? 'La solicitud no será aprobada.' : 'El participante dejará de tener acceso al contenido del curso.'}</p>
+        <label className={s.field}>Motivo (opcional)<textarea value={observacion} maxLength={500} rows={3} disabled={guardando} onChange={e => setObservacion(e.target.value)} placeholder="Este motivo se mostrará al participante." /></label>
+      </>}
+    </ConfirmacionYunka>}
   </>;
 }

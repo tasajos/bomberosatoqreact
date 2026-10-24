@@ -177,7 +177,7 @@ function NuevoMaterial({ moduloId, recargar }: { moduloId: number; recargar: () 
       <input type="file" accept={ACEPTA[tipo]} required disabled={busy} onChange={e => { const f = e.target.files?.[0] ?? null; setArchivo(f); if (f) tituloDe(f.name); }} />
       <span className={s.muted} style={{ fontWeight: 400 }}>
         {tipo === 'pdf' && 'Se muestra dentro del aula.'}
-        {tipo === 'presentacion' && 'PPT, PPTX, PPS, PPSX u ODP. Se visualiza con el visor de Office cuando el sitio está publicado; también puede descargarse.'}
+        {tipo === 'presentacion' && 'PPT, PPTX, PPS, PPSX u ODP. Se muestra en modo lectura con el visor de Office cuando el sitio está publicado en HTTPS.'}
         {tipo === 'video' && 'MP4 (recomendado), WebM u OGV. Para videos muy pesados conviene subirlos a YouTube (no listado) y usar “Enlace”.'}
       </span></label>}
     {tipo === 'html' && <>

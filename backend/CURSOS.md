@@ -65,6 +65,25 @@ mientras espera puede registrar la referencia de su pago para que Presidencia la
 verifique. El contenido se habilita desde la fecha de inicio; los exámenes se
 rinden entre las fechas del curso mientras esté Publicado.
 
+La habilitación, el rechazo y la baja se confirman en un modal con el logo
+institucional. El modal permanece abierto hasta cancelar o completar el cambio;
+los errores aparecen dentro del modal y el motivo opcional se escribe allí.
+
+Lectura de materiales: al tocar un material en móvil se abre un visor que ocupa
+la pantalla, con un botón para volver al curso. En escritorio se puede ampliar.
+El PDF se renderiza con PDF.js, con navegación y zoom propios, sin barra nativa
+de descarga o compartir. En HTML se ocultan acciones de descarga, impresión y
+compartir y se restringen ventanas emergentes y descargas mediante sandbox.
+Los videos no ofrecen descarga ni reproducción remota en sus controles.
+
+Las presentaciones siguen usando Office en HTTPS: se recorta su barra inferior
+y se restringen las descargas, compartir mediante Web Share y ventanas nuevas.
+Estos ajustes de interfaz no impiden obtener el contenido mediante herramientas
+del navegador. Los proveedores externos (Office, YouTube, Drive y sitios
+enlazados) controlan su interfaz y pueden cambiarla; la integración no garantiza
+ocultar todas sus acciones internas. Un sitio enlazado puede impedir su lectura
+en iframe mediante sus propias políticas de seguridad.
+
 Correos: HTML con formato institucional y versión de texto plano. Los avisos a
 Presidencia van a los usuarios activos con rol presidente (o a NOTIFY_EMAIL si no
 hay ninguno). Requieren SMTP_USER y SMTP_PASS; sin SMTP no se envían y, fuera de

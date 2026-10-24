@@ -82,7 +82,7 @@ export default function Aula() {
           {!data.modulos.length && <p className={s.empty}>El instructor aún no publicó contenido.</p>}
         </nav>
         <section className={c.visor}>
-          {sel?.tipo === 'material' && <MaterialVisor materialId={sel.id} onVisto={marcarVisto} />}
+          {sel?.tipo === 'material' && <MaterialVisor key={sel.id} materialId={sel.id} onVisto={marcarVisto} onCerrar={() => setSel(null)} />}
           {sel?.tipo === 'examen' && <ExamenRendir examenId={sel.id} onTerminar={() => { setSel(null); setVersion(v => v + 1); }} />}
           {!sel && <div className={c.bienvenida}>
             <h2>Bienvenido al curso</h2>
